@@ -549,6 +549,8 @@ void RaceGUI::drawEnergyMeter(int x, int y, const AbstractKart *kart,
             }
         }
 
+    printf("Display energy value %f\n",state);
+
     printf("T2 Ax %f,Bx %f,Cx %f,Dx %f,Ex %f,Fx %f,Gx %f\n",position[0].X,position[1].X,position[2].X,position[3].X,position[4].X,position[5].X,position[6].X);
     printf("T2 Ay %f,By %f,Cy %f,Dy %f,Ey %f,Fy %f,Gy %f\n",position[0].Y,position[1].Y,position[2].Y,position[3].Y,position[4].Y,position[5].Y,position[6].Y);
 
@@ -581,6 +583,8 @@ void RaceGUI::drawEnergyMeter(int x, int y, const AbstractKart *kart,
     {
         float coin_target = (float)race_manager->getCoinTarget()
                           / kart->getKartProperties()->getNitroMax();
+
+    printf("Coin target %f\n", coin_target);
 
         video::S3DVertex vertices[vertices_count];
 
@@ -915,8 +919,10 @@ unsigned int RaceGUI::computeVerticesForMeter(core::vector2df position[], float 
         if (i<count-1 || (count == vertices_count && f == 1.0f))
         {
             vertices[i].TCoords = core::vector2df(position[i].X, position[i].Y);
+            if (vertices_count == 7) printf("Abstract position %i X : %f, Y : %f\n",i,position[i].X, position[i].Y); 
             vertices[i].Pos     = core::vector3df(offset.X+position[i].X*gauge_width,
                                   offset.Y-(1-position[i].Y)*gauge_height, 0);
+            if (vertices_count == 7) printf("Real position %i X : %f, Y : %f\n",i,offset.X+position[i].X*gauge_width, offset.Y-(1-position[i].Y)*gauge_height); 
         }
         //if the measure fall in this segment, compute the variable position
         else
@@ -924,8 +930,10 @@ unsigned int RaceGUI::computeVerticesForMeter(core::vector2df position[], float 
             //f : the proportion of the next point. 1-f : the proportion of the previous point
             vertices[i].TCoords = core::vector2df(position[i].X*(f)+position[i-1].X*(1.0f-f),
                                                   position[i].Y*(f)+position[i-1].Y*(1.0f-f));
+            if (vertices_count == 7) printf("Abstract position %i X : %f, Y : %f\n",i,position[i].X*(f)+position[i-1].X*(1.0f-f), position[i].Y*(f)+position[i-1].Y*(1.0f-f)); 
             vertices[i].Pos = core::vector3df(offset.X+ ((position[i].X*(f)+position[i-1].X*(1.0f-f))*gauge_width),
                                               offset.Y-(((1-position[i].Y)*(f)+(1-position[i-1].Y)*(1.0f-f))*gauge_height),0);
+            if (vertices_count == 7) printf("Real position %i X : %f, Y : %f\n",i,offset.X+ ((position[i].X*(f)+position[i-1].X*(1.0f-f))*gauge_width), offset.Y-(((1-position[i].Y)*(f)+(1-position[i-1].Y)*(1.0f-f))*gauge_height)); 
         }
     }
 
