@@ -521,6 +521,8 @@ void RaceGUI::drawEnergyMeter(int x, int y, const AbstractKart *kart,
     position[6].X = 0.948f;//G
     position[6].Y = 0.211f;//G
 
+    printf("T1 Ax %f,Bx %f,Cx %f,Dx %f,Ex %f,Fx %f,Gx %f\n",position[0].X,position[1].X,position[2].X,position[3].X,position[4].X,position[5].X,position[6].X);
+    printf("T1 Ay %f,By %f,Cy %f,Dy %f,Ey %f,Fy %f,Gy %f\n",position[0].Y,position[1].Y,position[2].Y,position[3].Y,position[4].Y,position[5].Y,position[6].Y);
 
     // The states at which different polygons must be used.
 
@@ -546,6 +548,9 @@ void RaceGUI::drawEnergyMeter(int x, int y, const AbstractKart *kart,
                 break;
             }
         }
+
+    printf("T2 Ax %f,Bx %f,Cx %f,Dx %f,Ex %f,Fx %f,Gx %f\n",position[0].X,position[1].X,position[2].X,position[3].X,position[4].X,position[5].X,position[6].X);
+    printf("T2 Ay %f,By %f,Cy %f,Dy %f,Ey %f,Fy %f,Gy %f\n",position[0].Y,position[1].Y,position[2].Y,position[3].Y,position[4].Y,position[5].Y,position[6].Y);
 
         unsigned int count = computeVerticesForMeter(position, threshold, vertices, vertices_count,
                                                      state, gauge_width, gauge_height, offset);
@@ -578,6 +583,9 @@ void RaceGUI::drawEnergyMeter(int x, int y, const AbstractKart *kart,
                           / kart->getKartProperties()->getNitroMax();
 
         video::S3DVertex vertices[vertices_count];
+
+    printf("T3 Ax %f,Bx %f,Cx %f,Dx %f,Ex %f,Fx %f,Gx %f\n",position[0].X,position[1].X,position[2].X,position[3].X,position[4].X,position[5].X,position[6].X);
+    printf("T3 Ay %f,By %f,Cy %f,Dy %f,Ey %f,Fy %f,Gy %f\n",position[0].Y,position[1].Y,position[2].Y,position[3].Y,position[4].Y,position[5].Y,position[6].Y);
 
         unsigned int count = computeVerticesForMeter(position, threshold, vertices, vertices_count, 
                                                      coin_target, gauge_width, gauge_height, offset);
@@ -892,6 +900,13 @@ unsigned int RaceGUI::computeVerticesForMeter(core::vector2df position[], float 
 
             break;
         }
+    }
+
+    if(vertices_count == 7)
+    {
+            printf("T4 Ax %f,Bx %f,Cx %f,Dx %f,Ex %f,Fx %f,Gx %f\n",position[0].X,position[1].X,position[2].X,position[3].X,position[4].X,position[5].X,position[6].X);
+            printf("T4 Ay %f,By %f,Cy %f,Dy %f,Ey %f,Fy %f,Gy %f\n",position[0].Y,position[1].Y,position[2].Y,position[3].Y,position[4].Y,position[5].Y,position[6].Y);
+            printf("T4 Offsetx %f,Offsety %f\n",offset.X,offset.Y);
     }
 
     for (unsigned int i=0 ; i < count ; i++)
