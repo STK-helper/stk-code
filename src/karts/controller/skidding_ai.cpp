@@ -161,7 +161,7 @@ void SkiddingAI::reset()
 {
     m_time_since_last_shot       = 0.0f;
     m_start_kart_crash_direction = 0;
-    m_start_delay                = -1.0f;
+    m_start_delay                = -1;
     m_time_since_stuck           = 0.0f;
     m_kart_ahead                 = NULL;
     m_distance_ahead             = 0.0f;
@@ -218,8 +218,9 @@ unsigned int SkiddingAI::getNextSector(unsigned int index)
  *  It is called once per frame for each AI and determines the behaviour of
  *  the AI, e.g. steering, accelerating/braking, firing.
  */
-void SkiddingAI::update(float dt)
+void SkiddingAI::update(int ticks)
 {
+    float dt = stk_config->ticks2Time(ticks);
     // This is used to enable firing an item backwards.
     m_controls->setLookBack(false);
     m_controls->setNitro(false);
@@ -293,14 +294,14 @@ void SkiddingAI::update(float dt)
     if(isStuck() && !m_kart->getKartAnimation())
     {
         new RescueAnimation(m_kart);
-        AIBaseLapController::update(dt);
+        AIBaseLapController::update(ticks);
         return;
     }
 
     if( m_world->isStartPhase() )
     {
         handleRaceStart();
-        AIBaseLapController::update(dt);
+        AIBaseLapController::update(ticks);
         return;
     }
 
@@ -309,7 +310,7 @@ void SkiddingAI::update(float dt)
 
     m_kart->setSlowdown(MaxSpeed::MS_DECREASE_AI,
                         m_ai_properties->getSpeedCap(m_distance_to_player),
-                        /*fade_in_time*/0.0f);
+                        /*fade_in_time*/0);
     //Detect if we are going to crash with the track and/or kart
     checkCrashes(m_kart->getXYZ());
     determineTrackDirection();
@@ -353,8 +354,8 @@ void SkiddingAI::update(float dt)
     if(!commands_set)
     {
         /*Response handling functions*/
-        handleAcceleration(dt);
-        handleSteering(dt); //Item handling relocated there to be direction aware
+        handleAcceleration(ticks);
+        handleSteering(dt);
         handleRescue(dt);
         handleBraking();
         // If a bomb is attached, nitro might already be set.
@@ -371,7 +372,7 @@ void SkiddingAI::update(float dt)
     }
 
     /*And obviously general kart stuff*/
-    AIBaseLapController::update(dt);
+    AIBaseLapController::update(ticks);
 }   // update
 
 //-----------------------------------------------------------------------------
@@ -851,7 +852,7 @@ bool SkiddingAI::handleSelectedItem(Vec3 kart_aim_direction, Vec3 *aim_point)
     // If the item is unavailable keep on testing. It is not necessary
     // to test if an item has turned bad, this was tested before this
     // function is called.
-    if(m_item_to_collect->getDisableTime()>0)
+    if(m_item_to_collect->getDisableTicks()>0)
         return false;
 
     const Vec3 &xyz = m_item_to_collect->getXYZ();
@@ -1041,7 +1042,7 @@ void SkiddingAI::evaluateItems(const Item *item, Vec3 kart_aim_direction,
     const KartProperties *kp = m_kart->getKartProperties();
 
     // Ignore items that are currently disabled
-    if(item->getDisableTime()>0) return;
+    if(item->getDisableTicks()>0) return;
 
     // If the item type is not handled here, ignore it
     Item::ItemType type = item->getType();
@@ -1360,7 +1361,7 @@ void SkiddingAI::handleItems(const float dt, const Vec3 *aim_point, int last_nod
 void SkiddingAI::handleBubblegum(int item_skill, const std::vector<const Item *> &items_to_collect,
                                                const std::vector<const Item *> &items_to_avoid)
 {
-    int shield_radius = m_ai_properties->m_shield_incoming_radius;
+    float shield_radius = m_ai_properties->m_shield_incoming_radius;
 
     int projectile_types[4]; //[3] basket, [2] cakes, [1] plunger, [0] bowling
     projectile_types[0] = projectile_manager->getNearbyProjectileCount(m_kart, shield_radius, PowerupManager::POWERUP_BOWLING);
@@ -1445,7 +1446,7 @@ void SkiddingAI::handleBubblegum(int item_skill, const std::vector<const Item *>
     }
 
     //If the kart view is blocked by a plunger, use the shield
-    if(m_kart->getBlockedByPlungerTime()>0)
+    if(m_kart->getBlockedByPlungerTicks()>0)
     {
         m_controls->setFire(true);
         m_controls->setLookBack(false);
@@ -1987,12 +1988,12 @@ void SkiddingAI::computeNearestKarts()
 /** Determines if the AI should accelerate or not.
  *  \param dt Time step size.
  */
-void SkiddingAI::handleAcceleration( const float dt)
+void SkiddingAI::handleAcceleration(int ticks)
 {
     //Do not accelerate until we have delayed the start enough
-    if( m_start_delay > 0.0f )
+    if( m_start_delay > 0 )
     {
-        m_start_delay -= dt;
+        m_start_delay -= ticks;
         m_controls->setAccel(0.0f);
         return;
     }
@@ -2003,7 +2004,7 @@ void SkiddingAI::handleAcceleration( const float dt)
         return;
     }
 
-    if(m_kart->getBlockedByPlungerTime()>0)
+    if(m_kart->getBlockedByPlungerTicks()>0)
     {
         if(m_kart->getSpeed() < m_kart->getCurrentMaxSpeed() / 2)
             m_controls->setAccel(0.05f);
@@ -2019,14 +2020,15 @@ void SkiddingAI::handleAcceleration( const float dt)
 //-----------------------------------------------------------------------------
 void SkiddingAI::handleRaceStart()
 {
-    if( m_start_delay <  0.0f )
+    if( m_start_delay <  0 )
     {
         // Each kart starts at a different, random time, and the time is
         // smaller depending on the difficulty.
-        m_start_delay = m_ai_properties->m_min_start_delay
+        m_start_delay = stk_config->time2Ticks(
+                        m_ai_properties->m_min_start_delay
                       + (float) rand() / RAND_MAX
                       * (m_ai_properties->m_max_start_delay -
-                         m_ai_properties->m_min_start_delay);
+                         m_ai_properties->m_min_start_delay)   );
 
         float false_start_probability =
                m_superpower == RaceManager::SUPERPOWER_NOLOK_BOSS
@@ -2035,7 +2037,7 @@ void SkiddingAI::handleRaceStart()
         // Now check for a false start. If so, add 1 second penalty time.
         if(rand() < RAND_MAX * false_start_probability)
         {
-            m_start_delay+=stk_config->m_penalty_time;
+            m_start_delay+=stk_config->m_penalty_ticks;
             return;
         }
     }
@@ -2072,7 +2074,8 @@ void SkiddingAI::handleNitroAndZipper(int item_skill)
    int nitro_skill = computeSkill(NITRO_SKILL);
    
    //Nitro continue to be advantageous during the fadeout
-   float nitro_time = ( m_kart->getSpeedIncreaseTimeLeft(MaxSpeed::MS_INCREASE_NITRO)
+   int nitro_ticks = m_kart->getSpeedIncreaseTicksLeft(MaxSpeed::MS_INCREASE_NITRO);
+   float nitro_time = ( stk_config->ticks2Time(nitro_ticks)
                        + m_kart->getKartProperties()->getNitroFadeOutTime() );
    float nitro_max_time = m_kart->getKartProperties()->getNitroDuration()
                          + m_kart->getKartProperties()->getNitroFadeOutTime();
@@ -2084,9 +2087,9 @@ void SkiddingAI::handleNitroAndZipper(int item_skill)
    //Nitro skill 2 : Don't use nitro if there is more than 1,2 seconds of effect/fadeout left. Use it when at
    //                max speed or under 5 of speed (after rescue, etc.). Use it to pass bombs.
    //                Tries to builds a reserve of 4 energy to use towards the end
-   //Nitro skill 3 : Same as level 2, but don't use until 0,5 seconds of effect/fadeout left, and don't use close
+   //Nitro skill 3 : Same as level 2, but don't use until 0.5 seconds of effect/fadeout left, and don't use close
    //                to bad items, and has a target reserve of 8 energy
-   //Nitro skill 4 : Same as level 3, but don't use until 0,05 seconds of effect/fadeout left and ignore the plunger
+   //Nitro skill 4 : Same as level 3, but don't use until 0.05 seconds of effect/fadeout left and ignore the plunger
    //                and has a target reserve of 12 energy
    
     m_controls->setNitro(false);
@@ -2113,7 +2116,7 @@ void SkiddingAI::handleNitroAndZipper(int item_skill)
     if(!m_kart->isOnGround() || m_kart->hasFinishedRace()) return;
    
     // Don't use nitro or zipper when the AI has a plunger in the face!
-    if(m_kart->getBlockedByPlungerTime()>0)
+    if(m_kart->getBlockedByPlungerTicks()>0)
     {
         if ((nitro_skill < 4) && (item_skill < 5))
         {
@@ -2184,7 +2187,7 @@ void SkiddingAI::handleNitroAndZipper(int item_skill)
     {
         float finish = m_world->getEstimatedFinishTime(m_kart->getWorldKartId()) - m_world->getTime();
         float max_time_effect = nitro_max_time / m_kart->getKartProperties()->getNitroConsumption()
-                                * m_kart->getEnergy()*2; //the minimum burst consumes around 0,5 energy
+                                * m_kart->getEnergy()*2; //the minimum burst consumes around 0.5 energy
        
         // The burster forces the AI to consume its reserve by series of 2 bursts
         // Otherwise the bursting differences of the various nitro skill wouldn't matter here
@@ -2251,7 +2254,7 @@ void SkiddingAI::handleNitroAndZipper(int item_skill)
     // Use zipper
     if(m_kart->getPowerup()->getType() == PowerupManager::POWERUP_ZIPPER 
         && item_skill >= 2 && m_kart->getSpeed()>1.0f &&
-        m_kart->getSpeedIncreaseTimeLeft(MaxSpeed::MS_INCREASE_ZIPPER)<=0)
+        m_kart->getSpeedIncreaseTicksLeft(MaxSpeed::MS_INCREASE_ZIPPER)<=0)
     {
         DriveNode::DirectionType dir;
         unsigned int last;
@@ -3020,7 +3023,7 @@ void SkiddingAI::setSteering(float angle, float dt)
     else if(steer_fraction < -1.0f) steer_fraction = -1.0f;
 
     // Restrict steering when a plunger is in the face
-    if(m_kart->getBlockedByPlungerTime()>0)
+    if(m_kart->getBlockedByPlungerTicks()>0)
     {
         if     (steer_fraction >  0.5f) steer_fraction =  0.5f;
         else if(steer_fraction < -0.5f) steer_fraction = -0.5f;
