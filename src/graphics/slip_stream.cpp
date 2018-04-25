@@ -293,7 +293,7 @@ SP::SPMesh* SlipStream::createMesh(Material* material, bool bonus_mesh)
             ("custom_alpha", [this](SP::SPUniformAssigner* ua)->void
             {
                 // In sp shader it's assigned reverse by 1.0 - custom_alpha
-                ua->setValue(1.0f - m_slipstream_time);
+                ua->setValue(1.0f - (m_slipstream_time/2.0f));
             });
     }
     else
