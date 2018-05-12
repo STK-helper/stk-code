@@ -93,13 +93,13 @@ void GhostReplaySelection::loadedFromFile()
         getWidget<GUIEngine::CheckBoxWidget>("compare_toggle");
     m_compare_toggle_widget->setState(/* default value */ false);
     m_is_comparing = false;
+    printf("Active comparison : %s\n", m_is_comparing ? "true" : "false");
     m_compare_toggle_widget->setVisible(false);
     getWidget<LabelWidget>("compare-toggle-text")->setVisible(false);
 
     m_mode_tabs = getWidget<GUIEngine::RibbonWidget>("race_mode");
     m_active_mode = RaceManager::MINOR_MODE_TIME_TRIAL;
     m_active_mode_is_linear = true;
-    m_mode_tabs->select("tab_egg_hunt", PLAYER_ID_GAME_MASTER);//FIXME bugged
 }   // loadedFromFile
 
 // ----------------------------------------------------------------------------
@@ -139,6 +139,8 @@ void GhostReplaySelection::loadList()
 {
     ReplayPlay::get()->sortReplay(m_sort_desc);
     m_replay_list_widget->clear();
+
+    printf("Active comparison : %s\n", m_is_comparing ? "true" : "false");
 
     if (ReplayPlay::get()->getNumReplayFile() == 0)
         return;
@@ -356,6 +358,7 @@ void GhostReplaySelection::eventCallback(GUIEngine::Widget* widget,
             return;
         }
 
+        printf("Active comparison : %s\n", m_is_comparing ? "true" : "false");
         new GhostReplayInfoDialog(selected_index, m_replay_to_compare_uid, m_is_comparing);
     }   // click on replay file
     else if (name == "race_mode")
@@ -381,21 +384,25 @@ void GhostReplaySelection::eventCallback(GUIEngine::Widget* widget,
     else if (name == "replay_difficulty_toggle")
     {
         m_same_difficulty = m_replay_difficulty_toggle_widget->getState();
+        printf("Active comparison : %s\n", m_is_comparing ? "true" : "false");
         refresh(/*reload replay files*/ false, /* update columns */ true);
     }
     else if (name == "replay_version_toggle")
     {
         m_same_version = m_replay_version_toggle_widget->getState();
+        printf("Active comparison : %s\n", m_is_comparing ? "true" : "false");
         refresh(/*reload replay files*/ false, /* update columns */ true);
     }
     else if (name == "best_times_toggle")
     {
         m_best_times = m_best_times_toggle_widget->getState();
+        printf("Active comparison : %s\n", m_is_comparing ? "true" : "false");
         refresh(/*reload replay files*/ false);
     }
     else if (name == "compare_toggle")
     {
         m_is_comparing = m_compare_toggle_widget->getState();
+        printf("Active comparison : %s\n", m_is_comparing ? "true" : "false");
         refresh(/*reload replay files*/ false);
     }
 
