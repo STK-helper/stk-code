@@ -38,9 +38,9 @@ GhostReplayInfoDialog::GhostReplayInfoDialog(unsigned int replay_id,
     m_record_race          = false;
     m_watch_only           = false;
 
-    // Pointers towards values tracked in GhostReplaySelection
     m_compare_ghost        = compare_ghost;
     m_compare_replay_uid   = compare_replay_uid;
+    printf("Active comparison (modal dialog) : %s\n", m_compare_ghost ? "true" : "false");
 
     m_rd = ReplayPlay::get()->getReplayData(m_replay_id);
 
@@ -190,6 +190,7 @@ void GhostReplayInfoDialog::updateReplayDisplayedInfo()
 GUIEngine::EventPropagation
     GhostReplayInfoDialog::processEvent(const std::string& event_source)
 {
+    printf("Active comparison (modal dialog) : %s\n", m_compare_ghost ? "true" : "false");
 
     if (event_source == "actions")
     {
@@ -215,14 +216,16 @@ GUIEngine::EventPropagation
             {
                 int second_replay_id = ReplayPlay::get()->getReplayIdByUID(m_compare_replay_uid);
                 ReplayPlay::get()->setSecondReplayFile(second_replay_id, /* use a second replay*/ true);
+                race_manager->setNumKarts(2);
                 m_compare_ghost = false;
             }
             else
+            {
                 ReplayPlay::get()->setSecondReplayFile(0, /* use a second replay*/ false);
+                race_manager->setNumKarts(race_manager->getNumLocalPlayers()+1);
+            }
 
             race_manager->setRaceGhostKarts(true);
-
-            race_manager->setNumKarts(race_manager->getNumLocalPlayers());
 
             // Disable accidentally unlocking of a challenge
             PlayerManager::getCurrentPlayer()->setCurrentChallenge("");
@@ -331,6 +334,7 @@ void GhostReplayInfoDialog::onUpdate(float dt)
 
 void GhostReplayInfoDialog::refreshMainScreen()
 {
+    printf("Active comparison (modal dialog) : %s\n", m_compare_ghost ? "true" : "false");
     GhostReplaySelection::getInstance()->setCompare(m_compare_ghost);
     GhostReplaySelection::getInstance()->setCompareReplayUid(m_compare_replay_uid);
 
