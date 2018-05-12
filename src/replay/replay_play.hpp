@@ -141,7 +141,9 @@ public:
 
     // ------------------------------------------------------------------------
     void               setSecondReplayFile(unsigned int n, bool second_replay_enabled)
-                           {                      m_second_replay_file = n; 
+                           {
+    printf("Set second replay file : %s\n", second_replay_enabled ? "true" : "false");
+                              m_second_replay_file = n; 
                              m_second_replay_enabled = second_replay_enabled;}
 
     // ------------------------------------------------------------------------

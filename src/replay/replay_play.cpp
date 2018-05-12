@@ -299,6 +299,8 @@ void ReplayPlay::load()
 {
     m_ghost_karts.clearAndDeleteAll();
 
+    printf("Loading file, second replay enabled : %s\n", m_second_replay_enabled ? "true" : "false");
+
     if (m_second_replay_enabled)
         loadFile(/* second replay */ true);
 
