@@ -308,9 +308,18 @@ void SkiddingAI::update(int ticks)
     // Get information that is needed by more than 1 of the handling funcs
     computeNearestKarts();
 
+    int num_ai = m_world->getNumKarts() - race_manager->getNumPlayers();
+    int position_among_ai = m_kart->getPosition() - m_num_players_ahead;
+
+    float speed_cap = m_ai_properties->getSpeedCap(m_distance_to_player,
+                                                   position_among_ai,
+                                                   num_ai);
+
     m_kart->setSlowdown(MaxSpeed::MS_DECREASE_AI,
-                        m_ai_properties->getSpeedCap(m_distance_to_player),
-                        /*fade_in_time*/0);
+                        speed_cap, /*fade_in_time*/0);
+
+    printf("Speed cap is %f\n",speed_cap);
+
     //Detect if we are going to crash with the track and/or kart
     checkCrashes(m_kart->getXYZ());
     determineTrackDirection();
@@ -1967,21 +1976,23 @@ void SkiddingAI::computeNearestKarts()
 
     // Compute distance to nearest player kart
     float max_overall_distance = 0.0f;
+    float own_overall_distance = m_world->getOverallDistance(m_kart->getWorldKartId());
+    m_num_players_ahead = 0;
     unsigned int n = ProfileWorld::isProfileMode()
                    ? 0 : race_manager->getNumPlayers();
     for(unsigned int i=0; i<n; i++)
     {
         unsigned int kart_id =
             m_world->getPlayerKart(i)->getWorldKartId();
+        if(m_world->getOverallDistance(kart_id)>own_overall_distance)
+            m_num_players_ahead++;
         if(m_world->getOverallDistance(kart_id)>max_overall_distance)
             max_overall_distance = m_world->getOverallDistance(kart_id);
     }
     if(max_overall_distance==0.0f)
         max_overall_distance = 999999.9f;   // force best driving
     // Now convert 'maximum overall distance' to distance to player.
-    m_distance_to_player =
-                m_world->getOverallDistance(m_kart->getWorldKartId())
-                - max_overall_distance;
+    m_distance_to_player = own_overall_distance - max_overall_distance;
 }   // computeNearestKarts
 
 //-----------------------------------------------------------------------------
