@@ -60,6 +60,7 @@ namespace SkinConfig
         std::string image;
         int leftborder = 0, rightborder=0, topborder=0, bottomborder=0;
         float hborder_out_portion = 0.5f, vborder_out_portion = 1.0f;
+        float hpadding = 0.0f, vpadding = 0.0f;
         bool preserve_h_aspect_ratios = false;
         std::string areas;
 
@@ -84,6 +85,9 @@ namespace SkinConfig
         node->get("hborder_out_portion", &hborder_out_portion);
         node->get("vborder_out_portion", &vborder_out_portion);
 
+        node->get("hpadding", &hpadding);
+        node->get("vpadding", &vpadding);
+
         node->get("preserve_h_aspect_ratios", &preserve_h_aspect_ratios);
 
         node->get("areas", &areas);
@@ -96,6 +100,8 @@ namespace SkinConfig
         new_param.m_bottom_border = bottomborder;
         new_param.m_hborder_out_portion = hborder_out_portion;
         new_param.m_vborder_out_portion = vborder_out_portion;
+        new_param.m_hpadding = hpadding;
+        new_param.m_vpadding = vpadding;
         new_param.m_preserve_h_aspect_ratios = preserve_h_aspect_ratios;
 
         // call last since it calculates coords considering all other
@@ -182,6 +188,14 @@ namespace SkinConfig
 
         delete root;
     }   // loadFromFile
+    float getVerticalPadding(GUIEngine::Widget type)
+    {
+        return m_render_params[type+"::neutral"].vpadding;
+    }
+    float getHorizontalPadding(GUIEngine::Widget type)
+    {
+        return m_render_params[type+"::neutral"].hpadding;
+    }
 };   // SkinConfig
 
 // ============================================================================

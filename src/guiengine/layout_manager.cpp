@@ -26,6 +26,7 @@
 #include "guiengine/abstract_top_level_container.hpp"
 #include "guiengine/engine.hpp"
 #include "guiengine/scalable_font.hpp"
+#include "guiengine/skin.hpp"
 #include "guiengine/widget.hpp"
 #include "io/file_manager.hpp"
 #include "utils/ptr_vector.hpp"
@@ -288,6 +289,22 @@ void LayoutManager::readCoords(Widget* self)
         else if (texture_h > -1)                 self->m_absolute_h = texture_h;
         else if (label_h > -1)                   self->m_absolute_h = label_h;
     }
+
+    if (self->getType() == WTYPE_BUTTON)
+    {
+        //printf("qqq\n");
+        //self->m_absolute_h += int(self->m_absolute_h*0.5);
+        //self->m_relative_h += int(self->m_relative_h*0.5);
+        self->m_absolute_h += self->m_absolute_h*SkinConfig::getVerticalPadding(self->getType());
+    }
+    if (self->getType() == WTYPE_BUTTON)
+    {
+        printf("qqq\n");
+        //self->m_absolute_w += int(self->m_absolute_w*0.5);
+        //self->m_relative_w += int(self->m_relative_w*0.5);
+        self->m_absolute_w += self->m_absolute_w*SkinConfig::getHorizontalPadding(self->getType());
+    }
+
 }
 
 // ----------------------------------------------------------------------------

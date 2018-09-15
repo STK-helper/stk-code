@@ -19,6 +19,8 @@
 #ifndef HEADER_SKIN_HPP
 #define HEADER_SKIN_HPP
 
+#include "guiengine/widget.hpp"
+
 #include <string>
 
 #include <rect.h>
@@ -420,7 +422,12 @@ namespace GUIEngine
 
         gui::IGUISkin* getFallbackSkin() { return m_fallback_skin; }
 
-
     };   // Skin
 }   // guiengine
+
+namespace SkinConfig
+{
+    float getVerticalPadding(GUIEngine::Widget type);
+    float getHorizontalPadding(GUIEngine::Widget type);
+}
 #endif
