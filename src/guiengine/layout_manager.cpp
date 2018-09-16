@@ -290,20 +290,20 @@ void LayoutManager::readCoords(Widget* self)
         else if (label_h > -1)                   self->m_absolute_h = label_h;
     }
 
-    if (self->getType() == WTYPE_BUTTON)
-    {
-        //printf("qqq\n");
+    //if (self->getType() == WTYPE_BUTTON)
+    //{
         //self->m_absolute_h += int(self->m_absolute_h*0.5);
         //self->m_relative_h += int(self->m_relative_h*0.5);
         self->m_absolute_h += self->m_absolute_h*SkinConfig::getVerticalPadding(self->getType());
-    }
-    if (self->getType() == WTYPE_BUTTON)
-    {
-        printf("qqq\n");
+        self->m_relative_h += self->m_relative_h*SkinConfig::getVerticalPadding(self->getType());
+    //}
+    //if (self->getType() == WTYPE_BUTTON)
+    //{
         //self->m_absolute_w += int(self->m_absolute_w*0.5);
         //self->m_relative_w += int(self->m_relative_w*0.5);
         self->m_absolute_w += self->m_absolute_w*SkinConfig::getHorizontalPadding(self->getType());
-    }
+        self->m_relative_w += self->m_relative_w*SkinConfig::getHorizontalPadding(self->getType());
+    //}
 
 }
 

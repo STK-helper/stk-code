@@ -190,13 +190,17 @@ namespace SkinConfig
     }   // loadFromFile
     float getVerticalPadding(GUIEngine::Widget type)
     {
-        return m_render_params[type+"::neutral"].vpadding;
+        std::string state = "neutral"; //FIXME: support all states?
+        return m_render_params["button::neutral"].m_vpadding;
+        //return m_render_params[type+"::"+state].m_vpadding;
     }
     float getHorizontalPadding(GUIEngine::Widget type)
     {
-        return m_render_params[type+"::neutral"].hpadding;
+        std::string state = "neutral"; //FIXME: support all states?
+        return m_render_params["button::neutral"].m_hpadding;
+        //return m_render_params[type+"::"+state].m_hpadding;
     }
-};   // SkinConfig
+};   // Namespace SkinConfig
 
 // ============================================================================
 #if 0
