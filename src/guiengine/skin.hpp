@@ -19,8 +19,6 @@
 #ifndef HEADER_SKIN_HPP
 #define HEADER_SKIN_HPP
 
-//#include "guiengine/widget.hpp"
-
 #include <string>
 
 #include <rect.h>
@@ -35,7 +33,6 @@ namespace irr
 }
 
 using namespace irr;
-
 
 #include "utils/leak_check.hpp"
 #include "utils/ptr_vector.hpp"
@@ -210,7 +207,7 @@ namespace GUIEngine
         int m_left_border, m_right_border, m_top_border, m_bottom_border;
         bool m_preserve_h_aspect_ratios;
         float m_hborder_out_portion, m_vborder_out_portion;
-        float m_hpadding, m_vpadding;
+        float m_horizontal_inner_padding, m_vertical_inner_padding;
 
         // this parameter is a bit special since it's the only one that can
         // change at runtime
@@ -428,7 +425,7 @@ namespace GUIEngine
 
 namespace SkinConfig
 {
-    float getVerticalPadding(GUIEngine::Widget type);
-    float getHorizontalPadding(GUIEngine::Widget type);
+    float getVerticalInnerPadding(int wtype);
+    float getHorizontalInnerPadding(int wtype);
 }
 #endif

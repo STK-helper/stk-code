@@ -60,7 +60,7 @@ namespace SkinConfig
         std::string image;
         int leftborder = 0, rightborder=0, topborder=0, bottomborder=0;
         float hborder_out_portion = 0.5f, vborder_out_portion = 1.0f;
-        float hpadding = 0.0f, vpadding = 0.0f;
+        float horizontal_inner_padding = 0.0f, vertical_inner_padding = 0.0f;
         bool preserve_h_aspect_ratios = false;
         std::string areas;
 
@@ -85,8 +85,8 @@ namespace SkinConfig
         node->get("hborder_out_portion", &hborder_out_portion);
         node->get("vborder_out_portion", &vborder_out_portion);
 
-        node->get("hpadding", &hpadding);
-        node->get("vpadding", &vpadding);
+        node->get("h_inner_padding", &horizontal_inner_padding);
+        node->get("v_inner_padding", &vertical_inner_padding);
 
         node->get("preserve_h_aspect_ratios", &preserve_h_aspect_ratios);
 
@@ -100,8 +100,8 @@ namespace SkinConfig
         new_param.m_bottom_border = bottomborder;
         new_param.m_hborder_out_portion = hborder_out_portion;
         new_param.m_vborder_out_portion = vborder_out_portion;
-        new_param.m_hpadding = hpadding;
-        new_param.m_vpadding = vpadding;
+        new_param.m_horizontal_inner_padding = horizontal_inner_padding;
+        new_param.m_vertical_inner_padding = vertical_inner_padding;
         new_param.m_preserve_h_aspect_ratios = preserve_h_aspect_ratios;
 
         // call last since it calculates coords considering all other
@@ -188,18 +188,57 @@ namespace SkinConfig
 
         delete root;
     }   // loadFromFile
-    float getVerticalPadding(GUIEngine::Widget type)
+
+    // ------------------------------------------------------------------------
+    float getVerticalInnerPadding(int wtype)
     {
         std::string state = "neutral"; //FIXME: support all states?
-        return m_render_params["button::neutral"].m_vpadding;
-        //return m_render_params[type+"::"+state].m_vpadding;
-    }
-    float getHorizontalPadding(GUIEngine::Widget type)
+        std::string type = "none";
+
+        switch (wtype)
+        {
+            case WTYPE_SPINNER:     type = "spinner"; break;
+            case WTYPE_BUTTON:      type = "button"; break;
+            case WTYPE_CHECKBOX:    type = "checkbox"; break;
+            case WTYPE_BUBBLE:      type = "textbubble"; break;
+            case WTYPE_LIST:        type = "list"; break;
+            case WTYPE_PROGRESS:    type = "progress"; break;
+            case WTYPE_RATINGBAR:   type = "rating"; break;
+        }
+
+        if (type == "none")
+        {
+            return 0.0f;
+        }
+
+        return m_render_params[type+"::"+state].m_vertical_inner_padding;
+    } // getVerticalInnerPadding
+
+    // ------------------------------------------------------------------------
+    float getHorizontalInnerPadding(int wtype)
     {
         std::string state = "neutral"; //FIXME: support all states?
-        return m_render_params["button::neutral"].m_hpadding;
-        //return m_render_params[type+"::"+state].m_hpadding;
-    }
+        std::string type = "none";
+
+        switch (wtype)
+        {
+            case WTYPE_SPINNER:     type = "spinner"; break;
+            case WTYPE_BUTTON:      type = "button"; break;
+            case WTYPE_CHECKBOX:    type = "checkbox"; break;
+            case WTYPE_BUBBLE:      type = "textbubble"; break;
+            case WTYPE_LIST:        type = "list"; break;
+            case WTYPE_PROGRESS:    type = "progress"; break;
+            case WTYPE_RATINGBAR:   type = "rating"; break;
+        }
+
+        if (type == "none")
+        {
+            return 0.0f;
+        }
+
+        return m_render_params[type+"::"+state].m_horizontal_inner_padding;
+    } // getHorizontalInnerPadding
+
 };   // Namespace SkinConfig
 
 // ============================================================================

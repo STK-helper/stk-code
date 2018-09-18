@@ -90,17 +90,17 @@ when the border that intersect at this corner are enabled.
 <element type="button" state="neutral" image="modern/button.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      hpadding="0.25" vpadding="0.25"/>
+      h_inner_padding="0.15" v_inner_padding="0.35"/>
 
 <element type="button" state="focused" image="modern/button_focused.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      hpadding="0.25" vpadding="0.25"/>
+      h_inner_padding="0.15" v_inner_padding="0.35"/>
 
 <element type="button" state="deactivated" image="modern/button_inactive.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      hpadding="0.25" vpadding="0.25"/>
+      h_inner_padding="0.15" v_inner_padding="0.35"/>
 
 <!-- TODO : buttons could support 'pressed' state -->
 
@@ -259,6 +259,9 @@ when the border that intersect at this corner are enabled.
 <element type="tooltip" image="common/tooltip.png"
     left_border="10" right_border="10" top_border="10" bottom_border="10"
     hborder_out_portion="1.0" vborder_out_portion="1.0" />
+
+<!-- Rating star image -->
+<element type="rating" state="neutral" image="common/rating_star.png" />
     
 <!--                   Colors                  -->
 <color type="text" state="neutral" r="0" g="0" b="0" />
@@ -277,9 +280,6 @@ when the border that intersect at this corner are enabled.
 <color type="text_field" state="neutral" a="255" r="138" g="138" b="138" />
 <color type="text_field" state="focused" a="255" r="243" g="164" b="80" />
 <color type="text_field" state="deactivated" a="255" r="138" g="138" b="138" />
-
-<!-- Rating star image -->
-<element type="rating" state="neutral" image="common/rating_star.png" />
 
 <!-- Font color -->
 <color type="font" state="top" a="255" r="255" g="128" b="0" />
