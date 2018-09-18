@@ -308,6 +308,7 @@ void STKHost::init()
 {
     m_network_timer.store(StkTime::getRealTimeMs());
     m_shutdown         = false;
+    m_shutdown_delay   = 0;
     m_authorised       = false;
     m_network          = NULL;
     m_exit_timeout.store(std::numeric_limits<uint64_t>::max());
@@ -1221,6 +1222,8 @@ std::vector<std::shared_ptr<NetworkPlayerProfile> >
     std::unique_lock<std::mutex> lock(m_peers_mutex);
     for (auto peer : m_peers)
     {
+        if (peer.second->isDisconnected())
+            continue;
         auto peer_profile = peer.second->getPlayerProfiles();
         p.insert(p.end(), peer_profile.begin(), peer_profile.end());
     }
