@@ -119,12 +119,11 @@ private:
      *  physics steps, so need to be set again by the application. */
     btScalar m_max_speed;
 
-    /** Smallest wheel height to the ground, with a few frames of history */
-    std::vector<btScalar> m_ground_height;
-    const float HISTORY_TIME = 0.05f;
-
-    /** Used to get the smallest weel height in the current frame */
-    btScalar m_new_ground_height;
+    /** Smallest wheel height to the ground */
+    btScalar m_ground_height;
+    btScalar m_ground_height_old;
+    /** Highest wheel height to the ground (to detect brutal changes) */
+    btScalar m_max_ground_height;
 
     /** True if the visual wheels touch the ground. */
     bool m_visual_wheels_touch_ground;
@@ -151,6 +150,7 @@ public:
                               Kart *kart);
      virtual          ~btKart();
     void               reset();
+    void               resetGroundHeight();
     void               debugDraw(btIDebugDraw* debugDrawer);
     const btTransform& getChassisWorldTransform() const;
     btScalar           rayCast(unsigned int index, float fraction=1.0f);

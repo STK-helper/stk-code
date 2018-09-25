@@ -1841,7 +1841,7 @@ void main_abort()
 {
     if (main_loop)
     {
-        main_loop->abort();
+        main_loop->requestAbort();
     }
 }
 #ifdef ANDROID
@@ -2279,8 +2279,10 @@ int main(int argc, char *argv[] )
     {
         Log::closeOutputFiles();
 #endif
+#ifndef ANDROID
         fclose(stderr);
         fclose(stdout);
+#endif
 #ifndef WIN32
     }
 #endif
