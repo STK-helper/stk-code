@@ -425,7 +425,7 @@ namespace GUIEngine
 
 namespace SkinConfig
 {
-    float getVerticalInnerPadding(int wtype);
-    float getHorizontalInnerPadding(int wtype);
+    float getVerticalInnerPadding(int wtype, GUIEngine::Widget* widget);
+    float getHorizontalInnerPadding(int wtype, GUIEngine::Widget* widget);
 }
 #endif

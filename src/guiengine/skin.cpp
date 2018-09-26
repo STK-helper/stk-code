@@ -190,7 +190,7 @@ namespace SkinConfig
     }   // loadFromFile
 
     // ------------------------------------------------------------------------
-    float getVerticalInnerPadding(int wtype)
+    float getVerticalInnerPadding(int wtype, Widget* widget)
     {
         std::string state = "neutral"; //FIXME: support all states?
         std::string type = "none";
@@ -204,6 +204,25 @@ namespace SkinConfig
             case WTYPE_LIST:        type = "list"; break;
             case WTYPE_PROGRESS:    type = "progress"; break;
             case WTYPE_RATINGBAR:   type = "rating"; break;
+            case WTYPE_RIBBON:
+                if (widget != nullptr)
+                {
+                    RibbonWidget* parentRibbon = (RibbonWidget*)widget->m_event_handler;
+                    if (parentRibbon != nullptr)
+                    {
+                        RibbonType rtype = parentRibbon->getRibbonType();
+
+                        if (rtype == RIBBON_VERTICAL_TABS)
+                        {
+                            type = "verticalTab"; printf("verticalTab detected \n");
+                        }
+                        if (rtype == RIBBON_TABS)
+                        {
+                            type = "tab"; printf("tab detected \n");
+                        }
+                    }
+                }
+                break;
         }
 
         if (type == "none")
@@ -215,7 +234,7 @@ namespace SkinConfig
     } // getVerticalInnerPadding
 
     // ------------------------------------------------------------------------
-    float getHorizontalInnerPadding(int wtype)
+    float getHorizontalInnerPadding(int wtype, Widget* widget)
     {
         std::string state = "neutral"; //FIXME: support all states?
         std::string type = "none";
@@ -229,6 +248,25 @@ namespace SkinConfig
             case WTYPE_LIST:        type = "list"; break;
             case WTYPE_PROGRESS:    type = "progress"; break;
             case WTYPE_RATINGBAR:   type = "rating"; break;
+            case WTYPE_RIBBON:
+                if (widget != nullptr)
+                {
+                    RibbonWidget* parentRibbon = (RibbonWidget*)widget->m_event_handler;
+                    if (parentRibbon != nullptr)
+                    {
+                        RibbonType rtype = parentRibbon->getRibbonType();
+
+                        if (rtype == RIBBON_VERTICAL_TABS)
+                        {
+                            type = "verticalTab"; printf("verticalTab detected \n");
+                        }
+                        if (rtype == RIBBON_TABS)
+                        {
+                            type = "tab"; printf("tab detected \n");
+                        }
+                    }
+                }
+                break;
         }
 
         if (type == "none")
