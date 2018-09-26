@@ -291,12 +291,12 @@ void LayoutManager::readCoords(Widget* self)
     }
 
     // Set vertical inner padding
-    self->m_absolute_h += self->m_absolute_h*SkinConfig::getVerticalInnerPadding(self->getType());
-    self->m_relative_h += self->m_relative_h*SkinConfig::getVerticalInnerPadding(self->getType());
+    self->m_absolute_h += self->m_absolute_h * SkinConfig::getVerticalInnerPadding(self->getType());
+    self->m_relative_h += self->m_relative_h * SkinConfig::getVerticalInnerPadding(self->getType());
 
     // Set horizontal inner padding
-    self->m_absolute_w += self->m_absolute_w*SkinConfig::getHorizontalInnerPadding(self->getType());
-    self->m_relative_w += self->m_relative_w*SkinConfig::getHorizontalInnerPadding(self->getType());
+    self->m_absolute_w += self->m_absolute_w * SkinConfig::getHorizontalInnerPadding(self->getType());
+    self->m_relative_w += self->m_relative_w * SkinConfig::getHorizontalInnerPadding(self->getType());
 
 }
 
