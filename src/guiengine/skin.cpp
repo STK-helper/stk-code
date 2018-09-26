@@ -207,22 +207,37 @@ namespace SkinConfig
             case WTYPE_RIBBON:
                 if (widget != nullptr)
                 {
-                    RibbonWidget* parentRibbon = (RibbonWidget*)widget->m_event_handler;
-                    if (parentRibbon != nullptr)
-                    {
-                        RibbonType rtype = parentRibbon->getRibbonType();
+                    RibbonWidget* ribbon = (RibbonWidget*)widget;
+                    RibbonType rtype = ribbon->getRibbonType();
 
-                        if (rtype == RIBBON_VERTICAL_TABS)
-                        {
-                            type = "verticalTab"; printf("verticalTab detected \n");
-                        }
-                        if (rtype == RIBBON_TABS)
-                        {
-                            type = "tab"; printf("tab detected \n");
-                        }
+                    if (rtype == RIBBON_VERTICAL_TABS)
+                    {
+                        type = "verticalTab"; printf("verticalTab detected \n");
+                    }
+                    if (rtype == RIBBON_TABS)
+                    {
+                        type = "tab"; printf("tab detected \n");
                     }
                 }
                 break;
+//                if (widget != nullptr)
+//                {
+//                    RibbonWidget* parentRibbon = (RibbonWidget*)widget->m_event_handler;
+//                    if (parentRibbon != nullptr)
+//                    {
+//                        RibbonType rtype = parentRibbon->getRibbonType();
+//
+//                        if (rtype == RIBBON_VERTICAL_TABS)
+//                        {
+//                            type = "verticalTab"; printf("verticalTab detected \n");
+//                        }
+//                        if (rtype == RIBBON_TABS)
+//                        {
+//                            type = "tab"; printf("tab detected \n");
+//                        }
+//                    }
+//                }
+//                break;
         }
 
         if (type == "none")
@@ -251,19 +266,16 @@ namespace SkinConfig
             case WTYPE_RIBBON:
                 if (widget != nullptr)
                 {
-                    RibbonWidget* parentRibbon = (RibbonWidget*)widget->m_event_handler;
-                    if (parentRibbon != nullptr)
-                    {
-                        RibbonType rtype = parentRibbon->getRibbonType();
+                    RibbonWidget* ribbon = (RibbonWidget*)widget;
+                    RibbonType rtype = ribbon->getRibbonType();
 
-                        if (rtype == RIBBON_VERTICAL_TABS)
-                        {
-                            type = "verticalTab"; printf("verticalTab detected \n");
-                        }
-                        if (rtype == RIBBON_TABS)
-                        {
-                            type = "tab"; printf("tab detected \n");
-                        }
+                    if (rtype == RIBBON_VERTICAL_TABS)
+                    {
+                        type = "verticalTab"; printf("verticalTab detected \n");
+                    }
+                    if (rtype == RIBBON_TABS)
+                    {
+                        type = "tab"; printf("tab detected \n");
                     }
                 }
                 break;
