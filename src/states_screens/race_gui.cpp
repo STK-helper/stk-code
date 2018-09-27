@@ -732,6 +732,7 @@ void RaceGUI::drawRank(const AbstractKart *kart,
 
     float scale = 1.0f;
     int rank = kart->getPosition();
+    int num_karts = race_manager->getNumberOfKarts();
     const float DURATION = 0.4f;
     const float MIN_SHRINK = 0.3f;
     if (m_animation_states[id] == AS_SMALLER)
@@ -769,15 +770,27 @@ void RaceGUI::drawRank(const AbstractKart *kart,
     std::ostringstream oss;
     oss << rank; // the current font has no . :(   << ".";
 
-    core::recti pos;
-    pos.LowerRightCorner = core::vector2di(int(offset.X + 0.64f*meter_width),
-                                           int(offset.Y - 0.49f*meter_height));
-    pos.UpperLeftCorner = core::vector2di(int(offset.X + 0.64f*meter_width),
-                                          int(offset.Y - 0.49f*meter_height));
+    core::recti current_rank_pos;
+    current_rank_pos.LowerRightCorner = core::vector2di(int(offset.X + 0.61f*meter_width),
+                                           int(offset.Y - 0.58f*meter_height));
+    current_rank_pos.UpperLeftCorner = core::vector2di(int(offset.X + 0.61f*meter_width),
+                                          int(offset.Y - 0.58f*meter_height));
 
     static video::SColor color = video::SColor(255, 255, 255, 255);
-    font->draw(oss.str().c_str(), pos, color, true, true);
-    font->setScale(1.0f);
+    font->draw(oss.str().c_str(), current_rank_pos, color, true, true);
+
+    font->setScale(0.8f);
+    std::ostringstream oss2;
+    oss2 << "/" << num_karts; // the current font has no . :(   << ".";
+
+    core::recti num_karts_pos;
+    num_karts_pos.LowerRightCorner = core::vector2di(int(offset.X + 0.71f*meter_width),
+                                           int(offset.Y - 0.35f*meter_height));
+    num_karts_pos.UpperLeftCorner = core::vector2di(int(offset.X + 0.71f*meter_width),
+                                          int(offset.Y - 0.35f*meter_height));
+
+    font->draw(oss2.str().c_str(), num_karts_pos, color, true, true);
+    font->setScale(1.0f); // Reset scale
 }   // drawRank
 
 //-----------------------------------------------------------------------------
