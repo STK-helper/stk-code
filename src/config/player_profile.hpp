@@ -218,6 +218,12 @@ public:
         return m_story_mode_status->getRecentlyCompletedChallenges();
     }   // getRecently Completed Challenges
     // ------------------------------------------------------------------------
+    /** Returns the list of recently unlocked features. */
+    std::vector<const ChallengeData*> getRecentlyUnlockedFeatures()
+    {
+        return m_story_mode_status->getRecentlyUnlockedFeatures();
+    }   // getRecently Unlocked Features
+    // ------------------------------------------------------------------------
     /** Sets the currently active challenge. */
     void setCurrentChallenge(const std::string &name)
     {

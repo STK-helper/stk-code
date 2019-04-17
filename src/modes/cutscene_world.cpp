@@ -440,10 +440,13 @@ void CutsceneWorld::enterRaceOverState()
 
             //TODO : this code largely duplicate a similar code present in raceResultGUI.
             //       Try to reduce duplication
-            std::vector<const ChallengeData*> unlocked =
+            std::vector<const ChallengeData*> completed =
                 PlayerManager::getCurrentPlayer()->getRecentlyCompletedChallenges();
 
-            if (unlocked.size() > 0)
+            std::vector<const ChallengeData*> unlocked =
+                PlayerManager::getCurrentPlayer()->getRecentlyUnlockedFeatures();
+
+            if (completed.size() > 0)
             {
                 PlayerManager::getCurrentPlayer()->clearUnlocked();
 
@@ -459,9 +462,9 @@ void CutsceneWorld::enterRaceOverState()
                 parts.push_back("featunlocked");
                 ((CutsceneWorld*)World::getWorld())->setParts(parts);
 
-                assert(unlocked.size() > 0);
                 scene->addTrophy(race_manager->getDifficulty(),true);
-                scene->findWhatWasUnlocked(race_manager->getDifficulty(),unlocked);
+                if (unlocked.size() > 0)
+                    scene->findWhatWasUnlocked(race_manager->getDifficulty(),unlocked);
 
                 StateManager::get()->replaceTopMostScreen(scene, GUIEngine::INGAME_MENU);
             }

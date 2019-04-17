@@ -270,7 +270,7 @@ void MainMenuScreen::eventCallback(Widget* widget, const std::string& name,
     if (selection == "test_gpwin")
     {
         StoryModeStatus* sms = PlayerManager::getCurrentPlayer()->getStoryModeStatus();
-        sms->unlockFeature(const_cast<ChallengeStatus*>(sms->getChallengeStatus("gp1")),
+        sms->completeChallenge(const_cast<ChallengeStatus*>(sms->getChallengeStatus("gp1")),
             RaceManager::DIFFICULTY_HARD);
 
         StateManager::get()->enterGameState();
@@ -304,7 +304,7 @@ void MainMenuScreen::eventCallback(Widget* widget, const std::string& name,
     else if (selection == "test_unlocked" || selection == "test_unlocked2")
     {
         StoryModeStatus* sms = PlayerManager::getCurrentPlayer()->getStoryModeStatus();
-        sms->unlockFeature(const_cast<ChallengeStatus*>(sms->getChallengeStatus("gp1")),
+        sms->completeChallenge(const_cast<ChallengeStatus*>(sms->getChallengeStatus("gp1")),
             RaceManager::DIFFICULTY_HARD);
 
         StateManager::get()->enterGameState();

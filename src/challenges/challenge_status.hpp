@@ -98,6 +98,17 @@ public:
                 m_state[2]==CH_SOLVED || m_state[3]==CH_SOLVED;
     }   // isSolvedAtAnyDifficulty
     // ------------------------------------------------------------------------
+    /** Returns the highest difficulty at which this challenge was solved.
+     */
+    RaceManager::Difficulty highestSolved() const
+    {
+        return (m_state[3]==CH_SOLVED) ? RaceManager::DIFFICULTY_BEST   :
+               (m_state[2]==CH_SOLVED) ? RaceManager::DIFFICULTY_HARD   :
+               (m_state[1]==CH_SOLVED) ? RaceManager::DIFFICULTY_MEDIUM :
+               (m_state[0]==CH_SOLVED) ? RaceManager::DIFFICULTY_EASY   :
+                                         RaceManager::DIFFICULTY_NONE;
+    }   // highestSolved
+    // ------------------------------------------------------------------------
     /** True if this challenge is active at the given difficulty.
      */
     bool isActive(RaceManager::Difficulty d) const

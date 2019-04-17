@@ -51,7 +51,10 @@ private:
     /** Contains whether each feature of the challenge is locked or unlocked */
     std::map<std::string, bool>   m_locked_features;
 
-    /** Recently unlocked features (they are waiting here
+    /** Recently completed challenges (multiple one possible with unlock lists) */
+    std::vector<const ChallengeData*> m_completed_challenges;
+
+    /** Recently completed challenges with unlocked features (they are waiting here
       * until they are shown to the user) */
     std::vector<const ChallengeData*> m_unlocked_features;
 
@@ -82,8 +85,7 @@ public:
     bool       isLocked          (const std::string& feature);
     void       unlockFeatureByList();
     void       lockFeature       (ChallengeStatus *challenge);
-    void       unlockFeature     (ChallengeStatus* c, RaceManager::Difficulty d,
-                                  bool do_save=true);
+    void       completeChallenge (ChallengeStatus* c, RaceManager::Difficulty d);
     void       raceFinished      ();
     void       grandPrixFinished ();
     void       save              (UTFWriter &out);
@@ -91,13 +93,22 @@ public:
     void       setCurrentChallenge(const std::string &challenge_id);
 
     // ------------------------------------------------------------------------
+    /** Returns the list of recently completed challenges (e.g. call at the end
+     *  of a race to know if a new trophy has been obtained) */
+    const std::vector<const ChallengeData*>
+        getRecentlyCompletedChallenges() {return m_completed_challenges;}
+    // ------------------------------------------------------------------------
     /** Returns the list of recently unlocked features (e.g. call at the end
      *  of a race to know if any features were unlocked) */
     const std::vector<const ChallengeData*>
-        getRecentlyCompletedChallenges() {return m_unlocked_features;}
+        getRecentlyUnlockedFeatures() {return m_unlocked_features;}
     // ------------------------------------------------------------------------
-    /** Clear the list of recently unlocked challenges */
-    void       clearUnlocked     () {m_unlocked_features.clear(); }
+    /** Clear the lists of recently completed challenges */
+    void       clearUnlocked()
+    {
+        m_completed_challenges.clear();
+        m_unlocked_features.clear();
+    }
     // ------------------------------------------------------------------------
     /** Returns the number of completed challenges. */
     int        getNumCompletedChallenges  () const { return (m_easy_challenges + m_medium_challenges +

@@ -304,7 +304,7 @@ void RaceResultGUI::eventCallback(GUIEngine::Widget* widget,
             }
 
             std::vector<const ChallengeData*> unlocked =
-                PlayerManager::getCurrentPlayer()->getRecentlyCompletedChallenges();
+                PlayerManager::getCurrentPlayer()->getRecentlyUnlockedFeatures();
 
             bool gameCompleted = false;
             for (unsigned int n = 0; n < unlocked.size(); n++)
@@ -353,7 +353,8 @@ void RaceResultGUI::eventCallback(GUIEngine::Widget* widget,
                     FeatureUnlockedCutScene::getInstance();
 
                 scene->addTrophy(race_manager->getDifficulty(),false);
-                scene->findWhatWasUnlocked(race_manager->getDifficulty(),unlocked);
+                if (unlocked.size() > 0)
+                    scene->findWhatWasUnlocked(race_manager->getDifficulty(),unlocked);
                 scene->push();
                 race_manager->setAIKartOverride("");
 

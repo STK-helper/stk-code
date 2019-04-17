@@ -288,9 +288,6 @@ void UnlockManager::findWhatWasUnlocked(int points_before, int points_now,
                 karts.push_back(features[i].m_name);
         }
     }
-
-    //std::vector<const ChallengeData*>
-    //    getRecentlyCompletedChallenges()
 } // findWhatWasUnlocked
 
 //-----------------------------------------------------------------------------
