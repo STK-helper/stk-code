@@ -49,11 +49,16 @@ StoryModeStatus::StoryModeStatus(const XMLNode *node)
     if(node)
     {
         node->get("first-time", &m_first_time);
-        //FIXME : check if these sub-nodes exist
-        node->get("finished", &m_story_mode_finished);
-        node->get("speedrun-finished", &m_valid_speedrun_finished);
-        node->get("story-ms", &m_story_mode_milliseconds);
-        node->get("speedrun-ms", &m_speedrun_milliseconds);
+
+        // If the timer sub-nodes are missing, don't load junk data
+        if(!node->get("finished", &m_story_mode_finished))
+            m_story_mode_finished     = false;
+        if(!node->get("speedrun-finished", &m_valid_speedrun_finished))
+            m_valid_speedrun_finished = false;
+        if(!node->get("story-ms", &m_story_mode_milliseconds))
+            m_story_mode_milliseconds = -1;
+        if(!node->get("speedrun-ms", &m_speedrun_milliseconds))
+            m_speedrun_milliseconds   = -1;
     }   // if node
 }   // StoryModeStatus
 
