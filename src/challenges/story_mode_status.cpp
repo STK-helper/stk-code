@@ -51,8 +51,9 @@ StoryModeStatus::StoryModeStatus(const XMLNode *node)
         node->get("first-time", &m_first_time);
 
         // If the timer sub-nodes are missing, don't load junk data
+        // Disable the timers if story mode has already been started.
         if(!node->get("finished", &m_story_mode_finished))
-            m_story_mode_finished     = false;
+            m_story_mode_finished     = !m_first_time;
         if(!node->get("speedrun-finished", &m_valid_speedrun_finished))
             m_valid_speedrun_finished = false;
         if(!node->get("story-ms", &m_story_mode_milliseconds))
