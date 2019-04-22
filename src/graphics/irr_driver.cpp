@@ -1832,13 +1832,9 @@ void IrrDriver::displayStoryModeTimer()
     int regular_timer_width = area.Width;
     int additional_height = 0;
     if (UserConfigParams::m_speedrun_mode)
-    {
         area = font->getDimension(L"99:99:99.999");
-    }
     else
-    {
         area = font->getDimension(L"99:99:99");
-    }
 
     int screen_width = irr_driver->getActualScreenSize().Width;
     int screen_height = irr_driver->getActualScreenSize().Height;
@@ -1848,11 +1844,15 @@ void IrrDriver::displayStoryModeTimer()
     core::rect<s32> position(screen_width - dist_from_right, screen_height*2/100,
                              screen_width                  , screen_height*6/100);
 
+    font->setColoredBorder(irr::video::SColor(255, 0, 32, 80));
+
    	if ( (UserConfigParams::m_speedrun_mode && story_mode_timer->speedrunIsFinished()) ||
          (!UserConfigParams::m_speedrun_mode && PlayerManager::getCurrentPlayer()->isFinished()) )
    		font->draw(timer_string.c_str(), position, video::SColor(255, 0, 255, 0), false, false, NULL, true);
     else
         font->draw(timer_string.c_str(), position, video::SColor(255, 220, 255, 0), false, false, NULL, true);
+
+    font->disableColoredBorder();
 #endif
 } // displayStoryModeTimer
 
