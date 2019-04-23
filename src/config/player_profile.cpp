@@ -219,7 +219,7 @@ void PlayerProfile::save(UTFWriter &out)
         bool is_current_player = false;
         PlayerProfile *player = PlayerManager::getCurrentPlayer();
 
-        if (player != NULL && (getName() == player->getName()));
+        if (player != NULL && (getName() == player->getName()))
             is_current_player = true;
 
         if(m_story_mode_status)
