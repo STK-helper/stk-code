@@ -369,7 +369,6 @@ void PlayerController::update(int ticks)
  */
 void PlayerController::handleZipper(bool play_sound)
 {
-    m_kart->showZipperFire();
 }   // handleZipper
 
 //-----------------------------------------------------------------------------

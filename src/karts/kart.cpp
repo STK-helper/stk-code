@@ -181,6 +181,7 @@ Kart::Kart (const std::string& ident, unsigned int world_kart_id,
 
     m_skid_sound    = SFXManager::get()->createSoundSource( "skid"  );
     m_nitro_sound   = SFXManager::get()->createSoundSource( "nitro" );
+    m_zipper_sound  = SFXManager::get()->createSoundSource( "wee" );
     m_terrain_sound          = NULL;
     m_last_sound_material    = NULL;
     m_previous_terrain_sound = NULL;
@@ -195,7 +196,7 @@ void Kart::init(RaceManager::KartType type)
 {
     m_type = type;
 
-    // In multiplayer mode, sounds are NOT positional
+    // FIXME : In local multiplayer mode, sounds are NOT positional
     if (race_manager->getNumLocalPlayers() > 1)
     {
         float factor = 1.0f / race_manager->getNumberOfKarts();
@@ -208,6 +209,7 @@ void Kart::init(RaceManager::KartType type)
 
         m_skid_sound->setVolume(factor);
         m_nitro_sound->setVolume(factor);
+        m_zipper_sound->setVolume(factor);
     }   // if getNumLocalPlayers > 1
 
     if(!m_engine_sound)
@@ -288,6 +290,7 @@ Kart::~Kart()
         m_emitters[i]->deleteSFX();
 
     m_nitro_sound ->deleteSFX();
+    m_zipper_sound ->deleteSFX();
     if(m_terrain_sound)          m_terrain_sound->deleteSFX();
     if(m_previous_terrain_sound) m_previous_terrain_sound->deleteSFX();
     if(m_collision_particles)    delete m_collision_particles;
@@ -1749,7 +1752,6 @@ void Kart::update(int ticks)
         else if(material->isZipper()     && isOnGround())
         {
             handleZipper(material);
-            showZipperFire();
         }
         else
         {
@@ -2189,10 +2191,11 @@ void Kart::handleMaterialGFX(float dt)
 }   // handleMaterialGFX
 
 //-----------------------------------------------------------------------------
-/** Sets zipper time, and apply one time additional speed boost. It can be
- *  used with a specific material, in which case the zipper parmaters are
- *  taken from this material (parameters that are <0 will be using the
- *  kart-specific values from kart-properties.
+/** Sets zipper time, apply one time additional speed boost, and sets the
+ *  visual and sound effect of the zipper. It can be used with a specific
+ *  material, in which case the zipper parameters are taken from this material
+ * (parameters that are <0 will be using the kart-specific values from
+ *  kart-properties).
  *  \param material If not NULL, will be used to determine the zipper
  *                  parameters, otherwise the defaults from kart properties
  *                  will be used.
@@ -2246,10 +2249,16 @@ void Kart::handleZipper(const Material *material, bool play_sound)
                                      engine_force,
                                      stk_config->time2Ticks(duration),
                                      stk_config->time2Ticks(fade_out_time));
-    // Play custom character sound (weee!)
+    // Special effects
     if (!RewindManager::get()->isRewinding())
     {
-        playCustomSFX(SFXManager::CUSTOM_ZIPPER);
+        if(!isGhostKart())
+        {
+            m_zipper_sound->play();
+            // FIXME : custom sounds are unsupported, this does nothing
+            playCustomSFX(SFXManager::CUSTOM_ZIPPER);
+        }
+        showZipperFire();
         m_controller->handleZipper(play_sound);
     }
 
@@ -3261,6 +3270,7 @@ void Kart::updateGraphics(float dt)
         m_emitters[i]->setPosition(getXYZ());
     m_skid_sound->setPosition(getXYZ());
     m_nitro_sound->setPosition(getXYZ());
+    m_zipper_sound->setPosition(getXYZ());
 
     m_attachment->updateGraphics(dt);
 
