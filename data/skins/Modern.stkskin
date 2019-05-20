@@ -170,6 +170,9 @@ when the border that intersect at this corner are enabled.
 <element type="squareFocusHalo4" image="common/glass_square_focused_yellow.png"
       left_border="6" right_border ="6" top_border="6" bottom_border="6"
       hborder_out_portion="1.0" />
+<element type="squareFocusHalo5" image="common/glass_square_focused_pink.png"
+      left_border="6" right_border ="6" top_border="6" bottom_border="6"
+      hborder_out_portion="1.0" />
       
 <!-- Stateless. No splitting into 9 areas is done; the image is just resized. -->
 <element type="selectionHalo" image="modern/bubble.png"  />
@@ -198,6 +201,9 @@ when the border that intersect at this corner are enabled.
       left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 <element type="spinner4" state="neutral" image="common/glass_square_yellow.png"
+      left_border="110" right_border="110" top_border="0" bottom_border="36"
+    preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
+<element type="spinner5" state="neutral" image="common/glass_square_pink.png"
       left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
@@ -253,6 +259,10 @@ when the border that intersect at this corner are enabled.
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       hborder_out_portion="0.0" vborder_out_portion="0.0" />
 
+<element type="section" state="selected" image="modern/glassbutton_focused.png"
+      left_border="15" right_border="15" top_border="15" bottom_border="15"
+      hborder_out_portion="0.0" vborder_out_portion="0.0" />
+
 <!-- Stateless -->
 <element type="rounded_section" image="common/glass_rsection.png"
       left_border="15" right_border="15" top_border="15" bottom_border="15"
@@ -267,9 +277,6 @@ when the border that intersect at this corner are enabled.
 <element type="tooltip" image="common/tooltip.png"
     left_border="10" right_border="10" top_border="10" bottom_border="10"
     hborder_out_portion="1.0" vborder_out_portion="1.0" />
-
-<!-- Rating star image -->
-<element type="rating" state="neutral" image="common/rating_star.png" />
     
 <!--                   Colors                  -->
 <color type="text" state="neutral" r="0" g="0" b="0" />
@@ -277,6 +284,17 @@ when the border that intersect at this corner are enabled.
 
 <!-- For highlighted items, e.g. in list -->
 <color type="text" state="focused" r="255" g="255" b="255" />
+
+<!-- Color used in the credits -->
+<color type="credits_text" state="neutral" r="65" g="15" b="0" />
+
+<!-- Color used for emphasized items in e.g. lists -->
+<color type="emphasis_text" state="neutral" r="0" g="0" b="180" />
+<color type="emphasis_text" state="focused" r="0" g="0" b="160" />
+
+<!-- Color used for blue items in list (e.g. player team color in networking) -->
+<color type="list_blue" state="neutral" r="0" g="0" b="255" />
+<color type="list_blue" state="focused" r="0" g="0" b="255" />
 
 <!-- Color used to fade out background when a dialog is shown -->
 <color type="dialog_background" state="neutral" a="120" r="0" g="0" b="0" />
@@ -288,6 +306,9 @@ when the border that intersect at this corner are enabled.
 <color type="text_field" state="neutral" a="255" r="138" g="138" b="138" />
 <color type="text_field" state="focused" a="255" r="243" g="164" b="80" />
 <color type="text_field" state="deactivated" a="255" r="138" g="138" b="138" />
+
+<!-- Rating star image -->
+<element type="rating" state="neutral" image="common/rating_star.png" />
 
 <!-- Font color -->
 <color type="font" state="top" a="255" r="255" g="128" b="0" />
