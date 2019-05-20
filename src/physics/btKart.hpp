@@ -11,8 +11,6 @@
 #ifndef BT_KART_HPP
 #define BT_KART_HPP
 
-#include <vector>
-
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "BulletDynamics/ConstraintSolver/btTypedConstraint.h"
 #include "physics/btKartRaycast.hpp"
@@ -20,6 +18,8 @@ class btDynamicsWorld;
 #include "LinearMath/btAlignedObjectArray.h"
 #include "BulletDynamics/Vehicle/btWheelInfo.h"
 #include "BulletDynamics/Dynamics/btActionInterface.h"
+
+#include "config/stk_config.hpp"
 
 class btVehicleTuning;
 class Kart;
@@ -81,22 +81,19 @@ private:
     btVector3           m_additional_impulse;
 
     /** The time the additional impulse should be applied. */
-    float               m_time_additional_impulse;
+    uint16_t            m_ticks_additional_impulse;
 
-    /** Additional rotation that is applied over a certain amount of time. */
-    btVector3           m_additional_rotation;
+    /** Additional rotation in y-axis that is applied over a certain amount of time. */
+    float               m_additional_rotation;
 
     /** Duration over which the additional rotation is applied. */
-    float               m_time_additional_rotation;
+    uint16_t            m_ticks_additional_rotation;
 
     /** The rigid body that is the chassis of the kart. */
     btRigidBody        *m_chassisBody;
 
     /** Number of wheels that touch the ground. */
     int                 m_num_wheels_on_ground;
-
-    /** Number of time steps during which cushioning is disabled. */
-    unsigned int        m_cushioning_disable_time;
 
     /** Index of the right axis. */
     int                 m_indexRightAxis;
@@ -118,12 +115,6 @@ private:
     /** Maximum speed for the kart. It is reset to -1 at the end of each
      *  physics steps, so need to be set again by the application. */
     btScalar m_max_speed;
-
-    /** Smallest wheel height to the ground */
-    btScalar m_ground_height;
-    btScalar m_ground_height_old;
-    /** Highest wheel height to the ground (to detect brutal changes) */
-    btScalar m_max_ground_height;
 
     /** True if the visual wheels touch the ground. */
     bool m_visual_wheels_touch_ground;
@@ -150,7 +141,6 @@ public:
                               Kart *kart);
      virtual          ~btKart();
     void               reset();
-    void               resetGroundHeight();
     void               debugDraw(btIDebugDraw* debugDrawer);
     const btTransform& getChassisWorldTransform() const;
     btScalar           rayCast(unsigned int index, float fraction=1.0f);
@@ -230,49 +220,42 @@ public:
     unsigned int getNumWheelsOnGround() const {return m_num_wheels_on_ground;}
     // ------------------------------------------------------------------------
     /** Sets an impulse that is applied for a certain amount of time.
-     *  \param t Time for the impulse to be active.
+     *  \param t Ticks for the impulse to be active.
      *  \param imp The impulse to apply.  */
-    void setTimedCentralImpulse(float t, const btVector3 &imp,
+    void setTimedCentralImpulse(uint16_t t, const btVector3 &imp,
                                 bool rewind = false)
     {
         // Only add impulse if no other impulse is active.
-        if (m_time_additional_impulse > 0 && !rewind) return;
+        if (m_ticks_additional_impulse > 0 && !rewind) return;
         m_additional_impulse      = imp;
-        m_time_additional_impulse = t;
+        m_ticks_additional_impulse = t;
     }   // setTimedImpulse
     // ------------------------------------------------------------------------
     /** Returns the time an additional impulse is activated. */
-    float getCentralImpulseTime() const { return m_time_additional_impulse; }
+    uint16_t getCentralImpulseTicks() const
+                                         { return m_ticks_additional_impulse; }
     // ------------------------------------------------------------------------
     const btVector3& getAdditionalImpulse() const
-                                             { return m_additional_impulse; }
+                                               { return m_additional_impulse; }
     // ------------------------------------------------------------------------
     /** Sets a rotation that is applied over a certain amount of time (to avoid
      *  a too rapid changes in the kart).
-     *  \param t Time for the rotation to be applied.
-     *  \param torque The rotation to apply.  */
-    void setTimedRotation(float t, const btVector3 &rot)
+     *  \param t Ticks for the rotation to be applied.
+     *  \param rot_in_y_axis The rotation in y-axis to apply.  */
+    void setTimedRotation(uint16_t t, float rot_in_y_axis)
     {
-        if(t>0) m_additional_rotation = rot/t;
-        m_time_additional_rotation = t;
+        if (t > 0)
+        {
+            m_additional_rotation =
+                rot_in_y_axis / (stk_config->ticks2Time(t));
+        }
+        m_ticks_additional_rotation = t;
     }   // setTimedTorque
     // ------------------------------------------------------------------------
-    const btVector3& getTimedRotation() const { return m_additional_rotation;  }
+    float getTimedRotation() const            { return m_additional_rotation; }
     // ------------------------------------------------------------------------
-    float getTimedRotationTime() const { return m_time_additional_rotation;  }
-    // ------------------------------------------------------------------------
-    /** Returns the time cushioning is disabled. Used for networking state
-     *  saving. */
-    unsigned int getCushioningDisableTime() const
-    {
-        return m_cushioning_disable_time;
-    }  // getCushioningDisableTime
-    // ------------------------------------------------------------------------
-    /** Sets the cushioning disable time. Used for networking state saving. */
-    void setCushioningDisableTime(unsigned int cdt)
-    {
-        m_cushioning_disable_time = cdt;
-    }   // setCushioningDisableTime
+    uint16_t getTimedRotationTicks() const
+                                        { return m_ticks_additional_rotation; }
     // ------------------------------------------------------------------------
     /** Sets the maximum speed for this kart. */
     void setMaxSpeed(float new_max_speed) 
@@ -301,3 +284,4 @@ public:
 };   // class btKart
 
 #endif //BT_KART_HPP
+

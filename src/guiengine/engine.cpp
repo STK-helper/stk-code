@@ -683,6 +683,7 @@ namespace GUIEngine
 #include "modes/cutscene_world.hpp"
 #include "modes/world.hpp"
 #include "states_screens/race_gui_base.hpp"
+#include "utils/debug.hpp"
 
 #include <iostream>
 #include <assert.h>
@@ -855,7 +856,7 @@ namespace GUIEngine
         {
             frame++;
             if (frame == 2)
-                GUIEngine::EventHandler::get()->startAcceptingEvents();
+                GUIEngine::EventHandler::get()->setAcceptEvents(true);
         }
     }
     // ------------------------------------------------------------------------
@@ -911,6 +912,7 @@ namespace GUIEngine
             return;
         }
 
+        Debug::closeDebugMenu();
         g_current_screen->beforeAddingWidget();
 
         // show screen
@@ -974,21 +976,39 @@ namespace GUIEngine
         if (ScreenKeyboard::isActive()) ScreenKeyboard::dismiss();
         if (ModalDialog::isADialogActive()) ModalDialog::dismiss();
 
-        //delete g_font;
-        g_font->drop();
-        g_font = NULL;
-        //delete g_title_font;
-        g_title_font->drop();
-        g_title_font = NULL;
-        //delete g_small_font;
-        g_small_font->drop();
-        g_small_font = NULL;
-        g_large_font->drop();
-        g_large_font = NULL;
-        g_digit_font->drop();
-        g_digit_font = NULL;
-        g_outline_font->drop();
-        g_outline_font = NULL;
+        if (g_font)
+        {
+            //delete g_font;
+            g_font->drop();
+            g_font = NULL;
+        }
+        if (g_title_font)
+        {
+            //delete g_title_font;
+            g_title_font->drop();
+            g_title_font = NULL;
+        }
+        if (g_small_font)
+        {
+            //delete g_small_font;
+            g_small_font->drop();
+            g_small_font = NULL;
+        }
+        if (g_large_font)
+        {
+            g_large_font->drop();
+            g_large_font = NULL;
+        }
+        if (g_digit_font)
+        {
+            g_digit_font->drop();
+            g_digit_font = NULL;
+        }
+        if (g_outline_font)
+        {
+            g_outline_font->drop();
+            g_outline_font = NULL;
+        }
 
         // nothing else to delete for now AFAIK, irrlicht will automatically
         // kill everything along the device
@@ -1125,8 +1145,12 @@ namespace GUIEngine
     }   // reloadSkin
 
     // -----------------------------------------------------------------------
-
-    void render(float elapsed_time)
+    /** \brief called on every frame to trigger the rendering of the GUI.
+     *  \param elapsed_time Time since last rendering calls (in seconds).
+     *  \param is_loading True if the rendering is called during loading of world,
+     *         in which case world, physics etc must not be accessed.
+     */
+    void render(float elapsed_time, bool is_loading)
     {
 #ifndef SERVER_ONLY
         GUIEngine::dt = elapsed_time;
@@ -1140,9 +1164,9 @@ namespace GUIEngine
 
         const GameState gamestate = g_state_manager->getGameState();
 
-        if (gamestate == MENU &&
-            GUIEngine::getCurrentScreen() != NULL &&
-            !GUIEngine::getCurrentScreen()->needs3D())
+        if ( (gamestate == MENU &&
+              GUIEngine::getCurrentScreen() != NULL &&
+             !GUIEngine::getCurrentScreen()->needs3D()  ) || is_loading)
         {
             g_skin->drawBgImage();
         }
@@ -1163,19 +1187,27 @@ namespace GUIEngine
         g_env->drawAll();
 
         // ---- some menus may need updating
-        if (gamestate != GAME)
+        if (gamestate != GAME || is_loading)
         {
+            bool dialog_opened = false;
+            
             if (ScreenKeyboard::isActive())
             {
                 ScreenKeyboard::getCurrent()->onUpdate(dt);
+                dialog_opened = true;
             }
             else if (ModalDialog::isADialogActive())
             {
                 ModalDialog::getCurrent()->onUpdate(dt);
+                dialog_opened = true;
             }
-            else
+            
+            Screen* screen = getCurrentScreen();
+
+            if (screen != NULL && 
+                (!dialog_opened || screen->getUpdateInBackground()))
             {
-                getCurrentScreen()->onUpdate(elapsed_time);
+                screen->onUpdate(elapsed_time);
             }
         }
         else
@@ -1315,7 +1347,7 @@ namespace GUIEngine
                            true/* center h */, false /* center v */ );
 
         const int icon_count = (int)g_loading_icons.size();
-        const int icon_size = (int)(screen_w / 16.0f);
+        const int icon_size = (int)(std::min(screen_w, screen_h) / 10.0f);
         const int ICON_MARGIN = 6;
         int x = ICON_MARGIN;
         int y = screen_h - icon_size - ICON_MARGIN;

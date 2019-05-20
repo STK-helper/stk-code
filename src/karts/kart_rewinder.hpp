@@ -29,10 +29,9 @@ class BareNetworkString;
 class KartRewinder : public Rewinder, public Kart
 {
 private:
-    
-    btTransform m_transfrom_from_network;
     float m_prev_steering, m_steering_smoothing_dt, m_steering_smoothing_time;
 
+    bool m_has_server_state;
 public:
     KartRewinder(const std::string& ident, unsigned int world_kart_id,
                  int position, const btTransform& init_transform,

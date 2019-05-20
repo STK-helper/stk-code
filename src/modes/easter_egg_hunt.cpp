@@ -87,39 +87,25 @@ void EasterEggHunt::readData(const std::string &filename)
         return;
     }
 
-    // Search for the closest difficulty set of egg.
+    // Search for the most relevant set of egg
     const XMLNode *data = NULL;
     RaceManager::Difficulty difficulty     = race_manager->getDifficulty();
     RaceManager::Difficulty act_difficulty = RaceManager::DIFFICULTY_COUNT;
-    for(int i=difficulty; i<=RaceManager::DIFFICULTY_LAST; i++)
+
+    for(int i=RaceManager::DIFFICULTY_FIRST; i<=RaceManager::DIFFICULTY_LAST; i++)
     {
-        std::string diff_name=
-            race_manager->getDifficultyAsString((RaceManager::Difficulty)i);
+        std::string diff_name = race_manager->getDifficultyAsString((RaceManager::Difficulty)i);
         const XMLNode * cur_data = easter->getNode(diff_name);
         if (cur_data)
         {
             data = cur_data;
             act_difficulty = (RaceManager::Difficulty)i;
-            break;
+            // Stop at the easiest difficulty which is equal or harder than the desired one.
+            // If none is equal or harder, this will default to the hardest defined set.
+            if (act_difficulty >= difficulty)
+                break;
         }
     }
-    // If there is no data for an equal or harder placement,
-    // check for the most difficult placement that is easier:
-    if(!data)
-    {
-        for(int i=difficulty-1; i>=RaceManager::DIFFICULTY_FIRST; i--)
-        {
-            std::string diff_name=
-               race_manager->getDifficultyAsString((RaceManager::Difficulty)i);
-            const XMLNode * cur_data = easter->getNode(diff_name);
-            if (cur_data)
-            {
-                data = cur_data;
-                act_difficulty = (RaceManager::Difficulty)i;
-                break;
-            }
-        }   // for i
-    }   // if !data
 
     if(!data)
     {
@@ -159,7 +145,8 @@ const std::string& EasterEggHunt::getIdent() const
 /** Called when a kart has collected an egg.
  *  \param kart The kart that collected an egg.
  */
-void EasterEggHunt::collectedItem(const AbstractKart *kart, const Item *item)
+void EasterEggHunt::collectedItem(const AbstractKart *kart,
+                                  const ItemState *item    )
 {
     if(item->getType() != ItemState::ITEM_EASTER_EGG) return;
 
@@ -211,15 +198,16 @@ bool EasterEggHunt::isRaceOver()
 }   // isRaceOver
 
 //-----------------------------------------------------------------------------
-/** Called then a battle is restarted.
+/** Called when an egg hunt is restarted.
  */
-void EasterEggHunt::reset()
+void EasterEggHunt::reset(bool restart)
 {
-    LinearWorld::reset();
+    LinearWorld::reset(restart);
 
     for(unsigned int i=0; i<m_eggs_collected.size(); i++)
         m_eggs_collected[i] = 0;
     m_eggs_found = 0;
+    m_finish_time = 0;
 }   // reset
 
 //-----------------------------------------------------------------------------

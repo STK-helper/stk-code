@@ -5,14 +5,17 @@
 
 #include "guiengine/widgets/CGUISTKListBox.hpp"
 
+#include "graphics/2dutils.hpp"
 #include "IGUISkin.h"
 #include "IGUIEnvironment.h"
 #include "IVideoDriver.h"
 #include "IGUIFont.h"
 #include "IGUISpriteBank.h"
 #include "IGUIScrollBar.h"
+#include "utils/string_utils.hpp"
 #include "utils/time.hpp"
 
+#include <cstdlib>
 
 namespace irr
 {
@@ -30,6 +33,7 @@ CGUISTKListBox::CGUISTKListBox(IGUIEnvironment* environment, IGUIElement* parent
     DrawBack(drawBack), MoveOverSelect(moveOverSelect), AutoScroll(true),
     HighlightWhenNotFocused(true)
 {
+    m_alternating_darkness = false;
     #ifdef _DEBUG
     setDebugName("CGUISTKListBox");
     #endif
@@ -384,7 +388,7 @@ bool CGUISTKListBox::OnEvent(const SEvent& event)
                     }
 
                     if (Selecting &&
-                        fabs(event.MouseInput.Y - MousePosY) > ItemHeight/3)
+                        std::abs(event.MouseInput.Y - MousePosY) > ItemHeight/3)
                     {
                         Moving = true;
                         Selecting = false;
@@ -422,8 +426,11 @@ void CGUISTKListBox::selectNew(s32 ypos, bool onlyHover)
     s32 oldSelected = Selected;
 
     Selected = getItemAt(AbsoluteRect.UpperLeftCorner.X, ypos);
-    if (Selected < 0 && !Items.empty())
-        Selected = 0;
+    if (Selected == -1 || Items.empty())
+    {
+        Selected = -1;
+        return;
+    }
 
     recalculateScrollPos();
 
@@ -476,7 +483,6 @@ void CGUISTKListBox::draw()
 
     core::rect<s32> clientClip(AbsoluteRect);
     clientClip.UpperLeftCorner.Y += 1;
-    clientClip.UpperLeftCorner.X += 1;
     if (ScrollBar->isVisible())
         clientClip.LowerRightCorner.X = AbsoluteRect.LowerRightCorner.X - skin->getSize(EGDS_SCROLLBAR_SIZE);
     clientClip.LowerRightCorner.Y -= 1;
@@ -489,7 +495,6 @@ void CGUISTKListBox::draw()
         clientClip.clipAgainst(*clipRect);
 
     frameRect = AbsoluteRect;
-    frameRect.UpperLeftCorner.X += 1;
     if (ScrollBar->isVisible())
         frameRect.LowerRightCorner.X = AbsoluteRect.LowerRightCorner.X - skin->getSize(EGDS_SCROLLBAR_SIZE);
 
@@ -505,10 +510,21 @@ void CGUISTKListBox::draw()
         if (frameRect.LowerRightCorner.Y >= AbsoluteRect.UpperLeftCorner.Y &&
             frameRect.UpperLeftCorner.Y <= AbsoluteRect.LowerRightCorner.Y)
         {
+#ifndef SERVER_ONLY
+            if (m_alternating_darkness && i % 2 != 0)
+            {
+                video::SColor color(0);
+                color.setAlpha(30);
+                GL32_draw2DRectangle(color, frameRect, &clientClip);
+            }
+#endif
             if (i == Selected && hl)
                 skin->draw2DRectangle(this, skin->getColor(EGDC_HIGH_LIGHT), frameRect, &clientClip);
 
             core::rect<s32> textRect = frameRect;
+            
+            if (!ScrollBar->isVisible())
+                textRect.LowerRightCorner.X = textRect.LowerRightCorner.X - skin->getSize(EGDS_SCROLLBAR_SIZE);
 
             if (Font)
             {
@@ -517,60 +533,88 @@ void CGUISTKListBox::draw()
                 {
                     total_proportion += Items[i].m_contents[x].m_proportion;
                 }
-                int part_size = (int)(textRect.getWidth() / float(total_proportion));
 
+                int total_width = textRect.getWidth();
+                
                 for(unsigned int x = 0; x < Items[i].m_contents.size(); ++x)
                 {
-                    textRect.LowerRightCorner.X = textRect.UpperLeftCorner.X +
-                                                  (Items[i].m_contents[x].m_proportion * part_size);
+                    int part_size = total_width * Items[i].m_contents[x].m_proportion / total_proportion;
+                    
+                    textRect.LowerRightCorner.X = textRect.UpperLeftCorner.X + part_size;
                     textRect.UpperLeftCorner.X += 3;
 
                     if (IconBank && (Items[i].m_contents[x].m_icon > -1))
                     {
                         core::position2di iconPos = textRect.UpperLeftCorner;
                         iconPos.Y += textRect.getHeight() / 2;
-                        iconPos.X += ItemsIconWidth/2;
-
-                        if ( i==Selected && hl )
+                        
+                        if (Items[i].m_contents[x].m_center && Items[i].m_contents[x].m_text.size() == 0)
                         {
-                            IconBank->draw2DSprite(
-                                (u32)Items[i].m_contents[x].m_icon,
-                                iconPos, &clientClip,
-                                hasItemOverrideColor(i, EGUI_LBC_ICON_HIGHLIGHT) ?
-                                getItemOverrideColor(i, EGUI_LBC_ICON_HIGHLIGHT) : getItemDefaultColor(EGUI_LBC_ICON_HIGHLIGHT),
-                                selectTime, (u32)StkTime::getTimeSinceEpoch(), false, true);
+                            iconPos.X += part_size/2 - 3;
                         }
                         else
                         {
-                            IconBank->draw2DSprite(
-                                (u32)Items[i].m_contents[x].m_icon,
-                                iconPos,
-                                &clientClip,
-                                hasItemOverrideColor(i, EGUI_LBC_ICON) ? getItemOverrideColor(i, EGUI_LBC_ICON) : getItemDefaultColor(EGUI_LBC_ICON),
-                                0 , (i==Selected) ? (u32)StkTime::getTimeSinceEpoch() : 0, false, true);
+                            iconPos.X += ItemsIconWidth/2;
                         }
+
+                        EGUI_LISTBOX_COLOR icon_color = EGUI_LBC_ICON;
+                        bool highlight=false;
+                        if ( i==Selected && hl )
+                        {
+                            icon_color = EGUI_LBC_ICON_HIGHLIGHT;
+                            highlight=true;
+                        }
+
+                        IconBank->draw2DSprite(
+                            (u32)Items[i].m_contents[x].m_icon,
+                            iconPos, &clientClip,
+                            hasItemOverrideColor(i, icon_color) ? getItemOverrideColor(i, icon_color) : getItemDefaultColor(icon_color),
+                            (highlight) ? selectTime : 0, (i==Selected) ? (u32)StkTime::getTimeSinceEpoch() : 0, false, true);
+
                         textRect.UpperLeftCorner.X += ItemsIconWidth;
                     }
 
                     textRect.UpperLeftCorner.X += 3;
 
+                    EGUI_LISTBOX_COLOR font_color = EGUI_LBC_TEXT;
                     if ( i==Selected && hl )
+                        font_color = EGUI_LBC_TEXT_HIGHLIGHT;
+
+                    if (!Items[i].m_contents[x].m_broken_text)
+                    {
+                        int text_width = (textRect.LowerRightCorner.X - textRect.UpperLeftCorner.X);
+                        std::wstring cell_text = Items[i].m_contents[x].m_text.c_str();
+                        std::vector<std::wstring> cell_text_lines;
+                        if (Items[i].m_word_wrap)
+                            StringUtils::breakText(cell_text, cell_text_lines, text_width, Font);
+                        else
+                            cell_text_lines.push_back(cell_text);
+
+                        for (unsigned int j=0; j<cell_text_lines.size(); j++)
+                        {
+                            irr::core::stringw text_line = cell_text_lines[j].c_str();
+                            Items[i].m_contents[x].m_text_lines.push_back(text_line);
+                        }
+                        Items[i].m_contents[x].m_broken_text = true;
+                    }
+
+                    core::rect<s32> lineRect = textRect;
+                    int line_height = Font->getDimension(L"A").Height*Items[i].m_line_height_scale;
+                    int supp_lines = Items[i].m_contents[x].m_text_lines.size() - 1;
+                    lineRect.UpperLeftCorner.Y -= (line_height*supp_lines)/2;
+                    lineRect.LowerRightCorner.Y -= (line_height*supp_lines)/2;
+                    for (unsigned int j=0; j<Items[i].m_contents[x].m_text_lines.size(); j++)
                     {
                         Font->draw(
-                            Items[i].m_contents[x].m_text.c_str(),
-                            textRect,
-                            hasItemOverrideColor(i, EGUI_LBC_TEXT_HIGHLIGHT) ?
-                            getItemOverrideColor(i, EGUI_LBC_TEXT_HIGHLIGHT) : getItemDefaultColor(EGUI_LBC_TEXT_HIGHLIGHT),
+                            Items[i].m_contents[x].m_text_lines[j],
+                            lineRect,
+                            hasItemOverrideColor(i, font_color) ? getItemOverrideColor(i, font_color) : getItemDefaultColor(font_color),
                             Items[i].m_contents[x].m_center, true, &clientClip);
+
+                        lineRect.UpperLeftCorner.Y += line_height;
+                        lineRect.LowerRightCorner.Y += line_height;
                     }
-                    else
-                    {
-                        Font->draw(
-                            Items[i].m_contents[x].m_text.c_str(),
-                            textRect,
-                            hasItemOverrideColor(i, EGUI_LBC_TEXT) ? getItemOverrideColor(i, EGUI_LBC_TEXT) : getItemDefaultColor(EGUI_LBC_TEXT),
-                            Items[i].m_contents[x].m_center, true, &clientClip);
-                    }
+
                     //Position back to inital pos
                     if (IconBank && (Items[i].m_contents[x].m_icon > -1))
                         textRect.UpperLeftCorner.X -= ItemsIconWidth;
@@ -578,7 +622,7 @@ void CGUISTKListBox::draw()
                     textRect.UpperLeftCorner.X -= 6;
 
                     //Calculate new beginning
-                    textRect.UpperLeftCorner.X += Items[i].m_contents[x].m_proportion * part_size;
+                    textRect.UpperLeftCorner.X += part_size;
                 }
             }
         }
@@ -673,6 +717,8 @@ void CGUISTKListBox::setCell(u32 row_num, u32 col_num, const wchar_t* text, s32 
 
     Items[row_num].m_contents[col_num].m_text = text;
     Items[row_num].m_contents[col_num].m_icon = icon;
+    Items[row_num].m_contents[col_num].m_broken_text = false;
+    Items[row_num].m_contents[col_num].m_text_lines.clear();
 
     recalculateItemHeight();
     recalculateIconWidth();

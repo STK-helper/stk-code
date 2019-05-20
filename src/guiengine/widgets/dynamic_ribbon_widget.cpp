@@ -62,6 +62,9 @@ DynamicRibbonWidget::DynamicRibbonWidget(const bool combo, const bool multi_row)
     m_item_count_hint = 0;
 
     m_max_label_width = 0;
+
+    m_scroll_callback.callback = NULL;
+    m_scroll_callback.data = NULL;
 }
 // -----------------------------------------------------------------------------
 DynamicRibbonWidget::~DynamicRibbonWidget()
@@ -149,14 +152,8 @@ void DynamicRibbonWidget::add()
 
     const int average_y = m_y + (m_h - m_label_height)/2;
 
-    unsigned int screen_height = irr_driver->getActualScreenSize().Height;
-    m_arrows_w = (int)(screen_height / 15);
+    m_arrows_w = GUIEngine::getFontHeight() * 2;
     m_arrows_w = std::max(m_arrows_w, 40);
-    
-    if (UserConfigParams::m_hidpi_enabled)
-    {
-        m_arrows_w = int(m_arrows_w*1.5f);
-    }
 
     const int button_h = m_arrows_w;
 
@@ -343,8 +340,12 @@ void DynamicRibbonWidget::buildInternalStructure()
 
     // ---- determine column amount
     const float row_height = (float)(m_h - m_label_height)/(float)m_row_amount;
-    float ratio_zoom = (float)row_height / (float)(m_child_height - m_label_height);
-    m_col_amount = (int)roundf( m_w / ( m_child_width*ratio_zoom ) );
+    float col_width = (float)(row_height * m_child_width / m_child_height);
+    
+    // Give some margin for columns for better readability
+    col_width *= 1.2f;
+    
+    m_col_amount = (int)floor( m_w / col_width );
 
     // ajust column amount to not add more item slots than we actually need
     const int item_count = (int) m_items.size();
@@ -399,13 +400,6 @@ void DynamicRibbonWidget::buildInternalStructure()
         ribbon->m_properties[PROP_ID] = name.str();
         ribbon->m_event_handler = this;
 
-        // calculate font size
-        if (m_col_amount > 0)
-        {
-            m_font->setScale(GUIEngine::getFont()->getScale() *
-                getFontScale((ribbon->m_w / m_col_amount) - 30));
-        }
-
         // add columns
         for (int i=0; i<m_col_amount; i++)
         {
@@ -419,7 +413,6 @@ void DynamicRibbonWidget::buildInternalStructure()
             icon->m_properties[PROP_HEIGHT] = m_properties[PROP_CHILD_HEIGHT];
             icon->m_w = atoi(icon->m_properties[PROP_WIDTH].c_str());
             icon->m_h = atoi(icon->m_properties[PROP_HEIGHT].c_str());
-            icon->setLabelFont(m_font);
 
             // If we want each icon to have its own label, we must make it non-empty, otherwise
             // it will assume there is no label and none will be created (FIXME: that's ugly)
@@ -532,6 +525,33 @@ void DynamicRibbonWidget::clearItems()
     m_scroll_offset = 0;
     m_max_label_width = 0;
 }
+
+// -----------------------------------------------------------------------------
+void DynamicRibbonWidget::setBadge(const std::string &name, BadgeType badge)
+{
+    for (unsigned int r = 0; r < m_rows.size(); r++)
+    {
+        for (unsigned int c = 0; c < m_rows[r].m_children.size(); c++)
+        {
+            if(m_rows[r].m_children[c].m_properties[PROP_ID]==name)
+                m_rows[r].m_children[c].setBadge(badge);
+            else
+                m_rows[r].m_children[c].unsetBadge(badge);
+        }
+    }
+    
+    for (unsigned int i = 0; i < m_items.size(); i++)
+    {
+        if (m_items[i].m_code_name == name)
+        {
+            m_items[i].m_badges |= int(badge);
+        }
+        else
+        {
+            m_items[i].m_badges &= (~int(badge));
+        }
+    }
+}   // setBadge
 
 // -----------------------------------------------------------------------------
 void DynamicRibbonWidget::elementRemoved()
@@ -798,6 +818,11 @@ void DynamicRibbonWidget::scroll(int x_delta, bool evenIfDeactivated)
 
     updateItemDisplay();
 
+    if (m_scroll_callback.callback != NULL)
+    {
+        m_scroll_callback.callback(m_scroll_callback.data);
+    }
+
     // update selection markers in child ribbon
     if (m_combo)
     {
@@ -977,6 +1002,14 @@ void DynamicRibbonWidget::updateItemDisplay()
         //std::cout << "Row " << n << "\n{\n";
 
         const unsigned int items_in_row = row.m_children.size();
+
+        // calculate font size
+        if (m_col_amount > 0)
+        {
+            m_font->setScale(GUIEngine::getFont()->getScale() *
+                getFontScale((row.m_w / m_col_amount) - 30));
+        }
+
         for (unsigned int i=0; i<items_in_row; i++)
         {
             IconButtonWidget* icon = dynamic_cast<IconButtonWidget*>(&row.m_children[i]);
@@ -994,6 +1027,7 @@ void DynamicRibbonWidget::updateItemDisplay()
                     icon->setImage( item_icon.c_str(), m_items[icon_id].m_image_path_type );
 
                     icon->m_properties[PROP_ID]   = m_items[icon_id].m_code_name;
+                    icon->setLabelFont(m_font);
                     icon->setLabel(m_items[icon_id].m_user_name);
                     icon->m_text                  = m_items[icon_id].m_user_name;
                     icon->m_badges                = m_items[icon_id].m_badges;

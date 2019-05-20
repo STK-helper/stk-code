@@ -113,6 +113,7 @@ GrandPrixWin::GrandPrixWin() : GrandPrixCutscene("grand_prix_win.stkgui")
         m_kart_node[i] = NULL;
         m_podium_steps[i] = NULL;
     }
+    m_player_won = false;
 }   // GrandPrixWin
 
 // -------------------------------------------------------------------------------------
@@ -229,8 +230,7 @@ void GrandPrixWin::onUpdate(float dt)
         {
             if (m_kart_node[k] != NULL)
             {
-
-                if (fabsf(m_kart_x[k] - KARTS_PODIUM_X[k]) > dt)
+                if (m_kart_x[k] != KARTS_PODIUM_X[k])
                 {
                     if (m_kart_x[k] < KARTS_PODIUM_X[k] - dt)
                         m_kart_x[k] += dt;
@@ -316,10 +316,11 @@ void GrandPrixWin::onUpdate(float dt)
 
     static int test_y = 0;
 
-    GUIEngine::getTitleFont()->draw(_("You completed the Grand Prix!"),
-                                    core::rect< s32 >( 0, test_y, w, h/10 ),
-                                    color,
-                                    true/* center h */, true /* center v */ );
+    irr::core::stringw message = (m_player_won) ? _("You won the Grand Prix!") :
+                                                  _("You completed the Grand Prix!");
+
+    GUIEngine::getTitleFont()->draw(message, core::rect< s32 >( 0, test_y, w, h/10 ),
+                                    color, true/* center h */, true /* center v */ );
 }   // onUpdate
 
 

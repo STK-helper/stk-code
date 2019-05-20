@@ -39,10 +39,11 @@ TrackSector::TrackSector()
 // ----------------------------------------------------------------------------
 void TrackSector::reset()
 {
-    m_current_graph_node       = Graph::UNKNOWN_SECTOR;
-    m_last_valid_graph_node    = Graph::UNKNOWN_SECTOR;
-    m_on_road                  = false;
-    m_last_triggered_checkline = -1;
+    m_current_graph_node         = Graph::UNKNOWN_SECTOR;
+    m_last_valid_graph_node      = Graph::UNKNOWN_SECTOR;
+    m_estimated_valid_graph_node = Graph::UNKNOWN_SECTOR;
+    m_on_road                    = false;
+    m_last_triggered_checkline   = -1;
 }   // reset
 
 // ----------------------------------------------------------------------------
@@ -84,12 +85,15 @@ void TrackSector::update(const Vec3 &xyz, bool ignore_vertical)
     }
 
     // keep the current quad as the latest valid one IF the player has one
-    // of the required checklines
+    // of the required checklines AND is on road
+    // The on-road condition isn't required for the estimated valid node
+    // used for distances.
     const DriveNode* dn = DriveGraph::get()->getNode(m_current_graph_node);
     const std::vector<int>& checkline_requirements = dn->getChecklineRequirements();
 
     if (checkline_requirements.size() == 0)
     {
+        m_estimated_valid_graph_node = m_current_graph_node;
         if (m_on_road)
             m_last_valid_graph_node = m_current_graph_node;
     }
@@ -97,16 +101,22 @@ void TrackSector::update(const Vec3 &xyz, bool ignore_vertical)
     {
         for (unsigned int i=0; i<checkline_requirements.size(); i++)
         {
-            if (m_last_triggered_checkline == checkline_requirements[i])
+            // If a checkline is validated while off-road and rescue is then
+            // used ; checking for > is required to have the rescue position
+            // correctly updating until the checkline is crossed again.
+            // This requires an ordering of checklines such that
+            // if checkline N is validated, all checklines for n<N are too.
+            if (m_last_triggered_checkline >= checkline_requirements[i])
             {
                 //has_prerequisite = true;
+                m_estimated_valid_graph_node = m_current_graph_node;
                 if (m_on_road)
                     m_last_valid_graph_node = m_current_graph_node;
                 break;
             }
         }
 
-        // TODO: show a message when we detect a user cheated.
+        // TODO: show a message when we detect a user missed a checkline.
 
     }
 
@@ -119,6 +129,12 @@ void TrackSector::update(const Vec3 &xyz, bool ignore_vertical)
     {
         DriveGraph::get()->spatialToTrack(&m_latest_valid_track_coords, xyz,
             m_last_valid_graph_node);
+    }
+
+    if (m_estimated_valid_graph_node != Graph::UNKNOWN_SECTOR)
+    {
+        DriveGraph::get()->spatialToTrack(&m_estimated_valid_track_coords, xyz,
+            m_estimated_valid_graph_node);
     }
 }   // update
 
@@ -139,6 +155,7 @@ void TrackSector::rescue()
                                             ->getPredecessor(0);
     m_last_valid_graph_node = DriveGraph::get()->getNode(m_current_graph_node)
                                                ->getPredecessor(0);
+    m_estimated_valid_graph_node = m_current_graph_node;
 }    // rescue
 
 // ----------------------------------------------------------------------------
@@ -160,23 +177,64 @@ float TrackSector::getRelativeDistanceToCenter() const
 }   // getRelativeDistanceToCenter
 
 // ----------------------------------------------------------------------------
+/** Only basket ball is used for rewind for TrackSector so save the minimum.
+ */
 void TrackSector::saveState(BareNetworkString* buffer) const
 {
-    buffer->addUInt32(m_current_graph_node);
-    buffer->addUInt32(m_last_valid_graph_node);
-    buffer->add(m_current_track_coords);
-    buffer->add(m_latest_valid_track_coords);
-    buffer->addUInt8(m_on_road ? 1 : 0);
-    buffer->addUInt32(m_last_triggered_checkline);
+    buffer->addUInt16((int16_t)m_current_graph_node);
+    buffer->addFloat(m_current_track_coords.getZ());
 }   // saveState
 
 // ----------------------------------------------------------------------------
 void TrackSector::rewindTo(BareNetworkString* buffer)
 {
-    m_current_graph_node = buffer->getUInt32();
-    m_last_valid_graph_node = buffer->getUInt32();
-    m_current_track_coords = buffer->getVec3();
-    m_latest_valid_track_coords = buffer->getVec3();
-    m_on_road = buffer->getUInt8() == 1;
-    m_last_triggered_checkline = buffer->getUInt32();
+    int16_t node = buffer->getUInt16();
+    m_current_graph_node = node;
+    m_current_track_coords.setZ(buffer->getFloat());
 }   // rewindTo
+
+// ----------------------------------------------------------------------------
+/** Save completely for spectating in linear race
+ */
+void TrackSector::saveCompleteState(BareNetworkString* bns)
+{
+    bns->addUInt32(m_current_graph_node);
+    bns->addUInt32(m_estimated_valid_graph_node);
+    bns->addUInt32(m_last_valid_graph_node);
+    bns->add(m_current_track_coords);
+    bns->add(m_estimated_valid_track_coords);
+    bns->add(m_latest_valid_track_coords);
+    bns->addUInt8(m_on_road ? 1 : 0);
+    bns->addUInt32(m_last_triggered_checkline);
+}   // saveCompleteState
+
+// ----------------------------------------------------------------------------
+void TrackSector::restoreCompleteState(const BareNetworkString& b)
+{
+    const int max_node = Graph::get()->getNumNodes();
+    m_current_graph_node = b.getUInt32();
+    if (m_current_graph_node >= max_node)
+    {
+        Log::warn("TrackSector", "Server has different graph node list.");
+        // 0 so that if any function is called before update track sector
+        // again it will have at least a valid node
+        m_current_graph_node = 0;
+    }
+    m_estimated_valid_graph_node = b.getUInt32();
+    if (m_estimated_valid_graph_node >= max_node)
+    {
+        Log::warn("TrackSector", "Server has different graph node list.");
+        m_estimated_valid_graph_node = 0;
+    }
+    m_last_valid_graph_node = b.getUInt32();
+    if (m_last_valid_graph_node >= max_node)
+    {
+        Log::warn("TrackSector", "Server has different graph node list.");
+        m_last_valid_graph_node = 0;
+    }
+    m_current_track_coords = b.getVec3();
+    m_estimated_valid_track_coords = b.getVec3();
+    m_latest_valid_track_coords = b.getVec3();
+    m_on_road = b.getUInt8() == 1;
+    m_last_triggered_checkline = b.getUInt32();
+}   // restoreCompleteState

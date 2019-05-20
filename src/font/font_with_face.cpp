@@ -350,27 +350,22 @@ void FontWithFace::dumpGlyphPage()
  */
 void FontWithFace::setDPI()
 {
-    const int screen_width = irr_driver->getFrameSize().Width;
-    const int screen_height = irr_driver->getFrameSize().Height;
+    float scale = std::min(irr_driver->getActualScreenSize().Height,
+                             irr_driver->getActualScreenSize().Width)  / 720.0f;
+    int factorTwo = getScalingFactorTwo();
     
-    if (UserConfigParams::m_hidpi_enabled)
+    if (UserConfigParams::m_fonts_size < 0)
     {
-        float scale = screen_height / 480.0f;
-        m_face_dpi = int(getScalingFactorTwo() * getScalingFactorOne() * scale);
+        UserConfigParams::m_fonts_size = 0;
     }
-    else
+    else if (UserConfigParams::m_fonts_size > 6)
     {
-        float scale = std::max(0, screen_width - 640) / 564.0f;
-    
-        // attempt to compensate for small screens
-        if (screen_width < 1200)
-            scale = std::max(0, screen_width - 640) / 750.0f;
-        if (screen_width < 900 || screen_height < 700)
-            scale = std::min(scale, 0.05f);
-    
-        m_face_dpi = unsigned((getScalingFactorOne() + 0.2f * scale) *
-            getScalingFactorTwo());
+        UserConfigParams::m_fonts_size = 6;
     }
+    
+    factorTwo += UserConfigParams::m_fonts_size * 5 - 10;
+    m_face_dpi = int(factorTwo * getScalingFactorOne() * scale);
+    
 }   // setDPI
 
 // ----------------------------------------------------------------------------
@@ -516,6 +511,8 @@ void FontWithFace::render(const core::stringw& text,
 
     const bool black_border = font_settings ?
         font_settings->useBlackBorder() : false;
+    const bool colored_border = font_settings ?
+        font_settings->useColoredBorder() : false;
     const bool rtl = font_settings ? font_settings->isRTL() : false;
     const float scale = font_settings ? font_settings->getScale() : 1.0f;
     const float shadow = font_settings ? font_settings->useShadow() : false;
@@ -639,11 +636,14 @@ void FontWithFace::render(const core::stringw& text,
 
     const int sprite_amount = sprites.size();
 
-    if ((black_border || isBold()) && char_collector == NULL)
+    if ((black_border || colored_border || isBold()) && char_collector == NULL)
     {
         // Draw black border first, to make it behind the real character
         // which make script language display better
+        video::SColor custom_color = font_settings->getBorderColor();
         video::SColor black(color.getAlpha(),0,0,0);
+        video::SColor border_color = (colored_border) ? custom_color : black;
+
         for (int n = 0; n < indice_amount; n++)
         {
             const int sprite_id = indices[n];
@@ -671,14 +671,19 @@ void FontWithFace::render(const core::stringw& text,
                 m_fallback_font->m_spritebank->getTexture(tex_id) :
                 m_spritebank->getTexture(tex_id));
 
-            for (int x_delta = -2; x_delta <= 2; x_delta++)
+            const bool thin_border = font_settings ?
+                font_settings->useThinBorder() : false;
+
+            int thickness = (thin_border) ? 1 : 2;
+
+            for (int x_delta = -thickness; x_delta <= thickness; x_delta++)
             {
-                for (int y_delta = -2; y_delta <= 2; y_delta++)
+                for (int y_delta = -thickness; y_delta <= thickness; y_delta++)
                 {
                     if (x_delta == 0 || y_delta == 0) continue;
                     draw2DImage(texture, dest + core::position2d<float>
                         (float(x_delta), float(y_delta)), source, clip,
-                        black, true);
+                        border_color, true);
                 }
             }
         }

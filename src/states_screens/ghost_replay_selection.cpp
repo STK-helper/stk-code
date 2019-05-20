@@ -19,6 +19,7 @@
 #include "states_screens/ghost_replay_selection.hpp"
 
 #include "config/player_manager.hpp"
+#include "config/user_config.hpp"
 #include "graphics/material.hpp"
 #include "guiengine/CGUISpriteBank.hpp"
 #include "karts/kart_properties.hpp"
@@ -52,9 +53,15 @@ GhostReplaySelection::~GhostReplaySelection()
 void GhostReplaySelection::tearDown()
 {
     m_replay_list_widget->setIcons(NULL);
+}
+
+// ----------------------------------------------------------------------------
+void GhostReplaySelection::unloaded()
+{
     delete m_icon_bank;
     m_icon_bank = NULL;
-}
+}   // unloaded
+
 
 // ----------------------------------------------------------------------------
 /** Triggers a refresh of the replay file list.
@@ -117,6 +124,24 @@ void GhostReplaySelection::loadedFromFile()
     m_mode_tabs = getWidget<GUIEngine::RibbonWidget>("race_mode");
     m_active_mode = RaceManager::MINOR_MODE_TIME_TRIAL;
     m_active_mode_is_linear = true;
+    
+    m_icon_bank = new irr::gui::STKModifiedSpriteBank( GUIEngine::getGUIEnv());
+
+    for(unsigned int i=0; i<kart_properties_manager->getNumberOfKarts(); i++)
+    {
+        const KartProperties* prop = kart_properties_manager->getKartById(i);
+        m_icon_bank->addTextureAsSprite(prop->getIconMaterial()->getTexture());
+    }
+
+    video::ITexture* kart_not_found = irr_driver->getTexture(
+                file_manager->getAsset(FileManager::GUI_ICON, "main_help.png"));
+
+    m_icon_unknown_kart = m_icon_bank->addTextureAsSprite(kart_not_found);
+
+    video::ITexture* lock = irr_driver->getTexture( file_manager->getAsset(
+                                        FileManager::GUI_ICON, "gui_lock.png"));
+
+    m_icon_lock = m_icon_bank->addTextureAsSprite(lock);
 }   // loadedFromFile
 
 // ----------------------------------------------------------------------------
@@ -124,20 +149,20 @@ void GhostReplaySelection::loadedFromFile()
  */
 void GhostReplaySelection::beforeAddingWidget()
 {
-    m_replay_list_widget->addColumn(_C("ghost_info", "Track"), 9 );
+    m_replay_list_widget->addColumn(_C("column_name", "Track"), 9 );
     if (m_active_mode_is_linear)
-        m_replay_list_widget->addColumn(_C("ghost_info", "Reverse"), 3);
+        m_replay_list_widget->addColumn(_C("column_name", "Reverse"), 3);
     if (!m_same_difficulty)
-        m_replay_list_widget->addColumn(_C("ghost_info", "Difficulty"), 4);
+        m_replay_list_widget->addColumn(_C("column_name", "Difficulty"), 4);
     if (m_active_mode_is_linear)
-        m_replay_list_widget->addColumn(_C("ghost_info", "Laps"), 3);
-    m_replay_list_widget->addColumn(_C("ghost_info", "Time"), 4);
-    m_replay_list_widget->addColumn(_C("ghost_info", "Kart"), 1);
-    m_replay_list_widget->addColumn(_C("ghost_info", "User"), 5);
+        m_replay_list_widget->addColumn(_C("column_name", "Laps"), 3);
+    m_replay_list_widget->addColumn(_C("column_name", "Time"), 4);
+    m_replay_list_widget->addColumn(_C("column_name", "Kart"), 1);
+    m_replay_list_widget->addColumn(_C("column_name", "User"), 5);
     if (m_multiplayer)
-        m_replay_list_widget->addColumn(_C("ghost_info", "Players"), 3);
+        m_replay_list_widget->addColumn(_C("column_name", "Players"), 3);
     if (!m_same_version)
-        m_replay_list_widget->addColumn(_C("ghost_info", "Version"), 3);
+        m_replay_list_widget->addColumn(_C("column_name", "Version"), 3);
 
     m_replay_list_widget->createHeader();
 }   // beforeAddingWidget
@@ -147,31 +172,14 @@ void GhostReplaySelection::init()
 {
     Screen::init();
     m_cur_difficulty = race_manager->getDifficulty();
-
-    m_icon_bank = new irr::gui::STKModifiedSpriteBank( GUIEngine::getGUIEnv());
-
-    for(unsigned int i=0; i<kart_properties_manager->getNumberOfKarts(); i++)
-    {
-        const KartProperties* prop = kart_properties_manager->getKartById(i);
-        m_icon_bank->addTextureAsSprite(prop->getIconMaterial()->getTexture());
-    }
-
-    video::ITexture* kart_not_found = irr_driver->getTexture( file_manager->getAsset(FileManager::GUI_ICON,
-                                                              "main_help.png"         ));
-
-    m_icon_unknown_kart = m_icon_bank->addTextureAsSprite(kart_not_found);
-
-    video::ITexture* lock = irr_driver->getTexture( file_manager->getAsset(FileManager::GUI_ICON,
-                                                              "gui_lock.png"         ));
-
-    m_icon_lock = m_icon_bank->addTextureAsSprite(lock);
-
-    int icon_height = getHeight()/24;
+    
+    int icon_height = GUIEngine::getFontHeight() * 3 / 2;
+    int row_height = GUIEngine::getFontHeight() * 2;
+                                                        
     // 128 is the height of the image file
-    //FIXME : this isn't guaranteed
-    // Amanda's icon is 300x300
     m_icon_bank->setScale(icon_height/128.0f);
-    m_replay_list_widget->setIcons(m_icon_bank, (int)icon_height);
+    m_icon_bank->setTargetIconSize(128, 128);
+    m_replay_list_widget->setIcons(m_icon_bank, (int)row_height);
 
     refresh(/*reload replay files*/ false, /* update columns */ true);
 }   // init

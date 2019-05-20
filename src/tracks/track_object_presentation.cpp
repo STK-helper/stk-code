@@ -44,7 +44,7 @@
 #include "states_screens/dialogs/tutorial_message_dialog.hpp"
 #include "tracks/check_cylinder.hpp"
 #include "tracks/check_manager.hpp"
-#include "tracks/check_sphere.hpp"
+#include "tracks/check_trigger.hpp"
 #include "tracks/model_definition_loader.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
@@ -652,7 +652,8 @@ void TrackObjectPresentationMesh::reset()
 // ----------------------------------------------------------------------------
 TrackObjectPresentationSound::TrackObjectPresentationSound(
                                                      const XMLNode& xml_node,
-                                                     scene::ISceneNode* parent)
+                                                     scene::ISceneNode* parent,
+                                                     bool disable_for_multiplayer)
                             : TrackObjectPresentation(xml_node)
 {
     // TODO: respect 'parent' if any
@@ -680,6 +681,16 @@ TrackObjectPresentationSound::TrackObjectPresentationSound(
     float max_dist = 390.0f;
     xml_node.get("max_dist", &max_dist );
 
+    if (trigger_when_near)
+    {
+        CheckManager::get()->add(
+            new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
+            &TrackObjectPresentationSound::onTriggerItemApproached,
+            this)));
+    }
+
+    if (disable_for_multiplayer)
+        return;
     // first try track dir, then global dir
     std::string soundfile = Track::getCurrentTrack()->getTrackFile(sound);
     //std::string soundfile = file_manager->getAsset(FileManager::MODEL,sound);
@@ -708,14 +719,10 @@ TrackObjectPresentationSound::TrackObjectPresentationSound(
     else
         Log::error("TrackObject", "Sound emitter object could not be created.");
 
-    if (trigger_when_near)
-    {
-        ItemManager::get()->placeTrigger(m_init_xyz, trigger_distance, this);
-    }
 }   // TrackObjectPresentationSound
 
 // ----------------------------------------------------------------------------
-void TrackObjectPresentationSound::update(float dt)
+void TrackObjectPresentationSound::updateGraphics(float dt)
 {
     if (m_sound != NULL && m_enabled)
     {
@@ -816,7 +823,7 @@ TrackObjectPresentationBillboard::TrackObjectPresentationBillboard(
 }   // TrackObjectPresentationBillboard
 
 // ----------------------------------------------------------------------------
-void TrackObjectPresentationBillboard::update(float dt)
+void TrackObjectPresentationBillboard::updateGraphics(float dt)
 {
     if (ProfileWorld::isNoGraphics()) return;
 #ifndef SERVER_ONLY
@@ -930,7 +937,7 @@ TrackObjectPresentationParticles::~TrackObjectPresentationParticles()
 }   // ~TrackObjectPresentationParticles
 
 // ----------------------------------------------------------------------------
-void TrackObjectPresentationParticles::update(float dt)
+void TrackObjectPresentationParticles::updateGraphics(float dt)
 {
     if (m_emitter != NULL)
     {
@@ -1063,7 +1070,7 @@ TrackObjectPresentationActionTrigger::TrackObjectPresentationActionTrigger(
     }
     m_xml_reenable_timeout = 999999.9f;
     xml_node.get("reenable-timeout", &m_xml_reenable_timeout);
-    m_reenable_timeout = 0.0f;
+    setReenableTimeout(0.0f);
 
     if (m_action.empty())
     {
@@ -1094,17 +1101,16 @@ TrackObjectPresentationActionTrigger::TrackObjectPresentationActionTrigger(
 
     if (m_type == TRIGGER_TYPE_POINT)
     {
-        // TODO: rewrite as a sphere check structure?
-        ItemManager::get()->placeTrigger(m_init_xyz, trigger_distance, this);
-        // 0 is the index, and is mostly used for debugging (i.e. to identify which check
-        // structure information is printed about) - not sure how to best use this
-        // with items added outside of the checkline manager. Best option would be to
-        // change CheckManager::add() to create the object?
-        // CheckManager::get()->add(new CheckSphere(xml_node, 0 /* TODO what is this? */));
+        CheckManager::get()->add(
+            new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
+            &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
+            this)));
     }
     else if (m_type == TRIGGER_TYPE_CYLINDER)
     {
-        CheckManager::get()->add(new CheckCylinder(xml_node, 0 /* TODO what is this? */, this));
+        CheckManager::get()->add(new CheckCylinder(xml_node, std::bind(
+            &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
+            this)));
     }
     else
     {
@@ -1125,19 +1131,22 @@ TrackObjectPresentationActionTrigger::TrackObjectPresentationActionTrigger(
     float trigger_distance = distance;
     m_action               = script_name;
     m_xml_reenable_timeout = 999999.9f;
-    m_reenable_timeout     = 0.0f;
+    setReenableTimeout(0.0f);
     m_type                 = TRIGGER_TYPE_POINT;
-    ItemManager::get()->placeTrigger(m_init_xyz, trigger_distance, this);
+    CheckManager::get()->add(
+        new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
+        &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
+        this)));
 }   // TrackObjectPresentationActionTrigger
 
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationActionTrigger::onTriggerItemApproached()
 {
-    if (m_reenable_timeout > 0.0f)
+    if (m_reenable_timeout > StkTime::getMonoTimeMs())
     {
         return;
     }
-    m_reenable_timeout = m_xml_reenable_timeout;
+    setReenableTimeout(m_xml_reenable_timeout);
 
     int kart_id = 0;
     Camera* camera = Camera::getActiveCamera();

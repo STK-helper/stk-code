@@ -129,6 +129,7 @@ bool DeviceManager::initialize()
         // Some systems report a disk accelerometer as a gamepad, skip that
         if (name.find("LIS3LV02DL") != -1) continue;
         if (name == "applesmc") continue;
+        if (name.find("VirtualBox") == 0) continue;
 
         if(m_irrlicht_gamepads[id].HasGenericName)
         {
@@ -167,7 +168,9 @@ bool DeviceManager::initialize()
         addGamepad(gamepadDevice);
     } // end for
 
-    if (UserConfigParams::m_multitouch_enabled)
+    if ((UserConfigParams::m_multitouch_active == 1 && 
+        irr_driver->getDevice()->supportsTouchDevice()) ||
+        UserConfigParams::m_multitouch_active > 1)
     {
         m_multitouch_device = new MultitouchDevice();
     }

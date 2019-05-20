@@ -34,6 +34,11 @@
 #  include <errno.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
+
 #ifdef ANDROID
 #include <dlfcn.h>
 #include <fstream>
@@ -54,6 +59,15 @@ std::string SeparateProcess::getCurrentExecutableLocation()
     char path[1024];
     unsigned buf_size = 1024;
     if (_NSGetExecutablePath(path, &buf_size) == 0)
+    {
+        return file_manager->getFileSystem()->getAbsolutePath(path).c_str();
+    }
+    return "";
+#elif defined (__FreeBSD__)
+    char path[PATH_MAX];
+    size_t len = PATH_MAX;
+    const int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+    if (sysctl(&mib[0], 4, &path, &len, NULL, 0) == 0)
     {
         return file_manager->getFileSystem()->getAbsolutePath(path).c_str();
     }
@@ -283,9 +297,27 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
     }
     
     std::string data_path = AssetsAndroid::getDataPath();
-    std::string main_path = data_path + "/lib/libmain.so";
+    std::string main_path;
     
-    if (data_path.empty() || access(main_path.c_str(), R_OK) != 0)
+    if (!data_path.empty())
+    {
+        main_path = data_path + "/lib/libmain.so";
+    }
+
+    if (main_path.empty() || access(main_path.c_str(), R_OK) != 0)
+    {
+        std::string lib_path = AssetsAndroid::getLibPath();
+        
+        if (!lib_path.empty())
+        {
+            main_path = lib_path + "/libmain.so";
+        }
+        
+        Log::info("SeparateProcess", "Trying to use fallback lib path: %s", 
+                  main_path.c_str());
+    }
+        
+    if (main_path.empty() || access(main_path.c_str(), R_OK) != 0)
     {
         Log::error("SeparateProcess", "Error: Cannot read libmain.so");
         return false;

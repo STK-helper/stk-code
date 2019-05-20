@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "input/input_device.hpp"
+#include "utils/types.hpp"
 #include "IEventReceiver.h"
 
 #ifdef ANDROID
@@ -44,7 +45,8 @@ enum MultitouchButtonType
     BUTTON_UP,
     BUTTON_DOWN,
     BUTTON_LEFT,
-    BUTTON_RIGHT
+    BUTTON_RIGHT,
+    BUTTON_CUSTOM
 };
 
 struct MultitouchEvent
@@ -67,6 +69,8 @@ struct MultitouchButton
     int height;
     float axis_x;
     float axis_y;
+    unsigned int id;
+    void (*callback)(unsigned int, bool);
 };
 
 class Controller;
@@ -81,18 +85,23 @@ private:
 
     /** The parameter that is used for steering button and determines dead area
      *  in a center of button */
-    float m_deadzone_center;
+    float m_deadzone;
 
-    /** The parameter that is used for steering button and determines dead area
-     *  at the edge of button */
-    float m_deadzone_edge;
+    /** A parameter in range that determines the sensitivity for x axis. */
+    float m_sensitivity_x;
+    
+    /** A parameter in range that determines the sensitivity for y axis. */
+    float m_sensitivity_y;
+
+    float m_orientation;
+    uint64_t m_gyro_time;
 
 #ifdef ANDROID
     /** Pointer to the Android irrlicht device */
     CIrrDeviceAndroid* m_android_device;
 #endif
 
-    float getSteeringFactor(float value);
+    float getSteeringFactor(float value, float sensitivity);
     void handleControls(MultitouchButton* button);
     bool isGameRunning();
 
@@ -112,7 +121,7 @@ public:
     unsigned int getActiveTouchesCount();
 
     void addButton(MultitouchButtonType type, int x, int y, int width,
-                   int height);
+                   int height, void (*callback)(unsigned int, bool) = NULL);
     void clearButtons();
     void reset();
 
@@ -125,9 +134,16 @@ public:
     void activateAccelerometer();
     void deactivateAccelerometer();
     bool isAccelerometerActive();
-    
+
+    void activateGyroscope();
+    void deactivateGyroscope();
+    bool isGyroscopeActive();
+
     void updateAxisX(float value);
     void updateAxisY(float value);
+    float getOrientation();
+    void updateOrientationFromAccelerometer(float x, float y);
+    void updateOrientationFromGyroscope(float z);
     void updateDeviceState(unsigned int event_id);
     void updateController();
     void updateConfigParams();

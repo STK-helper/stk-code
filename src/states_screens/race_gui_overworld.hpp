@@ -54,18 +54,9 @@ private:
 
     bool             m_close_to_a_challenge;
 
-    /** Translated string 'lap' displayed every frame. */
-    core::stringw    m_string_lap;
-
-    /** Translated string 'rank' displayed every frame. */
-    core::stringw    m_string_rank;
-
     // Minimap related variables
     // -------------------------
-    video::ITexture *m_trophy1;
-    video::ITexture *m_trophy2;
-    video::ITexture *m_trophy3;
-    video::ITexture *m_trophy4;
+    video::ITexture* m_trophy[4];
     video::ITexture *m_lock;
     video::ITexture *m_open_challenge;
     video::ITexture *m_locked_bonus;

@@ -49,6 +49,7 @@ using namespace irr;
 #include "modes/linear_world.hpp"
 #include "modes/world.hpp"
 #include "modes/soccer_world.hpp"
+#include "network/protocols/client_lobby.hpp"
 #include "race/race_manager.hpp"
 #include "states_screens/race_gui_multitouch.hpp"
 #include "tracks/track.hpp"
@@ -85,7 +86,7 @@ RaceGUI::RaceGUI()
     m_negative_timer_additional_width = area.Width;
 
     if (race_manager->getMinorMode()==RaceManager::MINOR_MODE_FOLLOW_LEADER ||
-        race_manager->getMinorMode()==RaceManager::MINOR_MODE_BATTLE     ||
+        race_manager->isBattleMode()     ||
         race_manager->getNumLaps() > 9)
         m_lap_width = font->getDimension(L"99/99").Width;
     else
@@ -112,21 +113,26 @@ RaceGUI::RaceGUI()
     }
 
     // Originally m_map_height was 100, and we take 480 as minimum res
-    float scaling = irr_driver->getFrameSize().Height / 480.0f;
+    float scaling = std::min(irr_driver->getFrameSize().Height,  
+                             irr_driver->getFrameSize().Width) / 480.0f;
     const float map_size = stk_config->m_minimap_size * map_size_splitscreen;
     const float top_margin = 3.5f * m_font_height;
+
+    bool multitouch_enabled = (UserConfigParams::m_multitouch_active == 1 && 
+                               irr_driver->getDevice()->supportsTouchDevice()) ||
+                               UserConfigParams::m_multitouch_active > 1;
     
-    if (UserConfigParams::m_multitouch_enabled && 
-        UserConfigParams::m_multitouch_mode != 0 &&
+    if (multitouch_enabled && UserConfigParams::m_multitouch_draw_gui &&
         race_manager->getNumLocalPlayers() == 1)
     {
         m_multitouch_gui = new RaceGUIMultitouch(this);
     }
     
     // Check if we have enough space for minimap when touch steering is enabled
-    if (m_multitouch_gui != NULL)
+    if (m_multitouch_gui != NULL  && !m_multitouch_gui->isSpectatorMode())
     {
-        const float map_bottom = (float)(m_multitouch_gui->getMinimapBottom());
+        const float map_bottom = (float)(irr_driver->getActualScreenSize().Height - 
+                                         m_multitouch_gui->getHeight());
         
         if ((map_size + 20.0f) * scaling > map_bottom - top_margin)
         {
@@ -168,7 +174,7 @@ RaceGUI::RaceGUI()
                      m_map_width - (int)( 10.0f * scaling);
         m_map_bottom        = (int)( 10.0f * scaling);
     }
-    else if (m_multitouch_gui != NULL)
+    else if (m_multitouch_gui != NULL  && !m_multitouch_gui->isSpectatorMode())
     {
         m_map_left = (int)((irr_driver->getActualScreenSize().Width - 
                                                         m_map_width) * 0.95f);
@@ -186,13 +192,13 @@ RaceGUI::RaceGUI()
     //createMarkerTexture();
 
     // Load icon textures for later reuse
-    m_lap_flag = irr_driver->getTexture(FileManager::GUI_ICON, "lap_flag.png");
     m_red_team = irr_driver->getTexture(FileManager::GUI_ICON, "soccer_ball_red.png");
     m_blue_team = irr_driver->getTexture(FileManager::GUI_ICON, "soccer_ball_blue.png");
     m_red_flag = irr_driver->getTexture(FileManager::GUI_ICON, "red_flag.png");
     m_blue_flag = irr_driver->getTexture(FileManager::GUI_ICON, "blue_flag.png");
     m_soccer_ball = irr_driver->getTexture(FileManager::GUI_ICON, "soccer_ball_normal.png");
     m_heart_icon = irr_driver->getTexture(FileManager::GUI_ICON, "heart.png");
+    m_champion = irr_driver->getTexture(FileManager::GUI_ICON, "gp_new.png");
 }   // RaceGUI
 
 //-----------------------------------------------------------------------------
@@ -258,15 +264,16 @@ void RaceGUI::renderGlobal(float dt)
     {
         drawGlobalReadySetGo();
     }
-    if(world->getPhase() == World::GOAL_PHASE)
+    else if (world->isGoalPhase())
         drawGlobalGoal();
+
+    if (!m_enabled) return;
 
     // MiniMap is drawn when the players wait for the start countdown to end
     drawGlobalMiniMap();
-    
+
     // Timer etc. are not displayed unless the game is actually started.
     if(!world->isRacePhase()) return;
-    if (!m_enabled) return;
 
     //drawGlobalTimer checks if it should display in the current phase/mode
     drawGlobalTimer();
@@ -287,15 +294,21 @@ void RaceGUI::renderGlobal(float dt)
 
     if (!m_is_tutorial)
     {
-        if(UserConfigParams::m_minimap_display == 0 || /*map in the bottom-left*/
-           (UserConfigParams::m_minimap_display == 1 &&
-            race_manager->getNumLocalPlayers() >= 2))
+        if (m_multitouch_gui != NULL)
+        {
+            drawGlobalPlayerIcons(m_multitouch_gui->getHeight());
+        }
+        else if (UserConfigParams::m_minimap_display == 0 || /*map in the bottom-left*/
+                (UserConfigParams::m_minimap_display == 1 &&
+                race_manager->getNumLocalPlayers() >= 2))
+        {
             drawGlobalPlayerIcons(m_map_height + m_map_bottom);
+        }
         else // map hidden or on the right side
+        {
             drawGlobalPlayerIcons(0);
+        }
     }
-    if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_SOCCER)
-        drawScores();
 #endif
 }   // renderGlobal
 
@@ -331,7 +344,7 @@ void RaceGUI::renderPlayerView(const Camera *camera, float dt)
 
     if(!World::getWorld()->isRacePhase()) return;
 
-    if (m_multitouch_gui == NULL)
+    if (m_multitouch_gui == NULL || m_multitouch_gui->isSpectatorMode())
     {
         drawPowerupIcons(kart, viewport, scaling);
         drawSpeedEnergyRank(kart, viewport, scaling, dt);
@@ -340,53 +353,6 @@ void RaceGUI::renderPlayerView(const Camera *camera, float dt)
     if (!m_is_tutorial)
         drawLap(kart, viewport, scaling);
 }   // renderPlayerView
-
-
-//-----------------------------------------------------------------------------
-/** Shows the current soccer result.
- */
-void RaceGUI::drawScores()
-{
-#ifndef SERVER_ONLY
-    SoccerWorld* sw = dynamic_cast<SoccerWorld*>(World::getWorld());
-    int offset_y = 5;
-    int offset_x = 5;
-    gui::ScalableFont* font = GUIEngine::getTitleFont();
-    static video::SColor color = video::SColor(255,255,255,255);
-
-    //Draw two teams score
-    irr::video::ITexture *team_icon = m_red_team;
-
-    for(unsigned int i=0; i<2; i++)
-    {
-        core::recti position(offset_x, offset_y,
-            offset_x + 2*m_minimap_player_size, offset_y + 2*m_minimap_player_size);
-
-        core::stringw score = StringUtils::toWString(sw->getScore((KartTeam)i));
-        int string_height =
-            GUIEngine::getFont()->getDimension(score.c_str()).Height;
-        core::recti pos(position.UpperLeftCorner.X + 5,
-                        position.LowerRightCorner.Y + offset_y,
-                        position.LowerRightCorner.X,
-                        position.LowerRightCorner.Y + string_height);
-
-        font->draw(score.c_str(),pos,color);
-
-        if (i == 1)
-        {
-            team_icon = m_blue_team;
-        }
-        core::rect<s32> indicator_pos(offset_x, offset_y,
-                                     offset_x + (int)(m_minimap_player_size*2),
-                                     offset_y + (int)(m_minimap_player_size*2));
-        core::rect<s32> source_rect(core::position2d<s32>(0,0),
-                                                   team_icon->getSize());
-        draw2DImage(team_icon,indicator_pos,source_rect,
-            NULL,NULL,true);
-        offset_x += position.LowerRightCorner.X + 30;
-    }
-#endif
-}   // drawScores
 
 //-----------------------------------------------------------------------------
 /** Displays the racing time on the screen.
@@ -409,8 +375,8 @@ void RaceGUI::drawGlobalTimer()
     float elapsed_time = World::getWorld()->getTime();
     if (!race_manager->hasTimeTarget() ||
         race_manager ->getMinorMode()==RaceManager::MINOR_MODE_SOCCER ||
-        race_manager->getMajorMode() == RaceManager::MAJOR_MODE_FREE_FOR_ALL ||
-        race_manager->getMajorMode() == RaceManager::MAJOR_MODE_CAPTURE_THE_FLAG)
+        race_manager->getMinorMode() == RaceManager::MINOR_MODE_FREE_FOR_ALL ||
+        race_manager->getMinorMode() == RaceManager::MINOR_MODE_CAPTURE_THE_FLAG)
     {
         sw = core::stringw (
             StringUtils::timeToString(elapsed_time).c_str() );
@@ -450,8 +416,10 @@ void RaceGUI::drawGlobalTimer()
     if (use_digit_font)
         font->setShadow(video::SColor(255, 128, 0, 0));
     font->setScale(1.0f);
+    font->setBlackBorder(true);
     font->draw(sw.c_str(), pos, time_color, false, false, NULL,
                true /* ignore RTL */);
+    font->setBlackBorder(false);
 
 }   // drawGlobalTimer
 
@@ -514,9 +482,10 @@ void RaceGUI::drawLiveDifference()
     gui::ScalableFont* font = GUIEngine::getHighresDigitFont();
     font->setShadow(video::SColor(255, 128, 0, 0));
     font->setScale(1.0f);
+    font->setBlackBorder(true);
     font->draw(sw.c_str(), pos, time_color, false, false, NULL,
                true /* ignore RTL */);
-
+    font->setBlackBorder(false);
 }   // drawLiveDifference
 
 //-----------------------------------------------------------------------------
@@ -526,8 +495,16 @@ void RaceGUI::drawGlobalMiniMap()
 {
 #ifndef SERVER_ONLY
     //TODO : exception for some game modes ? Another option "Hidden in race, shown in battle ?"
-    if(UserConfigParams::m_minimap_display == 2 /*map hidden*/)
+    if (UserConfigParams::m_minimap_display == 2) /*map hidden*/
         return;
+    
+    if (m_multitouch_gui != NULL && !m_multitouch_gui->isSpectatorMode())
+    {
+        float max_scale = 1.3f;
+                                                      
+        if (UserConfigParams::m_multitouch_scale > max_scale)
+            return;
+    }
 
     // draw a map when arena has a navigation mesh.
     Track *track = Track::getCurrentTrack();
@@ -542,13 +519,14 @@ void RaceGUI::drawGlobalMiniMap()
 
     track->drawMiniMap(dest);
 
-    World *world = World::getWorld();
+    World* world = World::getWorld();
+    CaptureTheFlag *ctf_world = dynamic_cast<CaptureTheFlag*>(World::getWorld());
+    SoccerWorld *soccer_world = dynamic_cast<SoccerWorld*>(World::getWorld());
 
-    CaptureTheFlag *ctf = dynamic_cast<CaptureTheFlag*>(World::getWorld());
-    if (ctf)
+    if (ctf_world)
     {
         Vec3 draw_at;
-        if (!ctf->isRedFlagInBase())
+        if (!ctf_world->isRedFlagInBase())
         {
             track->mapPoint2MiniMap(Track::getCurrentTrack()->getRedFlag().getOrigin(),
                 &draw_at);
@@ -559,8 +537,10 @@ void RaceGUI::drawGlobalMiniMap()
                 lower_y   -(int)(draw_at.getY()-(m_minimap_player_size/2.2f)));
             draw2DImage(m_red_flag, rp, rs, NULL, NULL, true, true);
         }
+        Vec3 pos = ctf_world->getRedHolder() == -1 ? ctf_world->getRedFlag() :
+            ctf_world->getKart(ctf_world->getRedHolder())->getSmoothedTrans().getOrigin();
 
-        track->mapPoint2MiniMap(ctf->getRedFlag(), &draw_at);
+        track->mapPoint2MiniMap(pos, &draw_at);
         core::rect<s32> rs(core::position2di(0, 0), m_red_flag->getSize());
         core::rect<s32> rp(m_map_left+(int)(draw_at.getX()-(m_minimap_player_size/1.4f)),
                                  lower_y   -(int)(draw_at.getY()+(m_minimap_player_size/2.2f)),
@@ -568,7 +548,7 @@ void RaceGUI::drawGlobalMiniMap()
                                  lower_y   -(int)(draw_at.getY()-(m_minimap_player_size/2.2f)));
         draw2DImage(m_red_flag, rp, rs, NULL, NULL, true);
 
-        if (!ctf->isBlueFlagInBase())
+        if (!ctf_world->isBlueFlagInBase())
         {
             track->mapPoint2MiniMap(Track::getCurrentTrack()->getBlueFlag().getOrigin(),
                 &draw_at);
@@ -580,7 +560,10 @@ void RaceGUI::drawGlobalMiniMap()
             draw2DImage(m_blue_flag, rp, rs, NULL, NULL, true, true);
         }
 
-        track->mapPoint2MiniMap(ctf->getBlueFlag(), &draw_at);
+        pos = ctf_world->getBlueHolder() == -1 ? ctf_world->getBlueFlag() :
+            ctf_world->getKart(ctf_world->getBlueHolder())->getSmoothedTrans().getOrigin();
+
+        track->mapPoint2MiniMap(pos, &draw_at);
         core::rect<s32> bs(core::position2di(0, 0), m_blue_flag->getSize());
         core::rect<s32> bp(m_map_left+(int)(draw_at.getX()-(m_minimap_player_size/1.4f)),
                                  lower_y   -(int)(draw_at.getY()+(m_minimap_player_size/2.2f)),
@@ -589,13 +572,37 @@ void RaceGUI::drawGlobalMiniMap()
         draw2DImage(m_blue_flag, bp, bs, NULL, NULL, true);
     }
 
-    for(unsigned int i=0; i<world->getNumKarts(); i++)
+    AbstractKart* target_kart = NULL;
+    Camera* cam = Camera::getActiveCamera();
+    auto cl = LobbyProtocol::get<ClientLobby>();
+    bool is_nw_spectate = cl && cl->isSpectator();
+    // For network spectator highlight
+    if (race_manager->getNumLocalPlayers() == 1 && cam && is_nw_spectate)
+        target_kart = cam->getKart();
+
+    // Move AI/remote players to the beginning, so that local players icons
+    // are drawn above them
+    World::KartList karts = world->getKarts();
+    std::partition(karts.begin(), karts.end(), [target_kart, is_nw_spectate]
+        (const std::shared_ptr<AbstractKart>& k)->bool
     {
-        const AbstractKart *kart = world->getKart(i);
+        if (is_nw_spectate)
+            return k.get() != target_kart;
+        else
+            return !k->getController()->isLocalPlayerController();
+    });
+
+    for (unsigned int i = 0; i < karts.size(); i++)
+    {
+        const AbstractKart *kart = karts[i].get();
         const SpareTireAI* sta =
             dynamic_cast<const SpareTireAI*>(kart->getController());
+
         // don't draw eliminated kart
-        if(kart->isEliminated() && !(sta && sta->isMoving())) continue;
+        if (kart->isEliminated() && !(sta && sta->isMoving())) 
+            continue;
+        if (!kart->isVisible())
+            continue;
         const Vec3& xyz = kart->getSmoothedTrans().getOrigin();
         Vec3 draw_at;
         track->mapPoint2MiniMap(xyz, &draw_at);
@@ -606,9 +613,11 @@ void RaceGUI::drawGlobalMiniMap()
         {
             continue;
         }
+        bool is_local = is_nw_spectate ? kart == target_kart :
+            kart->getController()->isLocalPlayerController();
         // int marker_height = m_marker->getSize().Height;
         core::rect<s32> source(core::position2di(0, 0), icon->getSize());
-        int marker_half_size = (kart->getController()->isLocalPlayerController()
+        int marker_half_size = (is_local
                                 ? m_minimap_player_size
                                 : m_minimap_ai_size                        )>>1;
         core::rect<s32> position(m_map_left+(int)(draw_at.getX()-marker_half_size),
@@ -616,15 +625,29 @@ void RaceGUI::drawGlobalMiniMap()
                                  m_map_left+(int)(draw_at.getX()+marker_half_size),
                                  lower_y   -(int)(draw_at.getY()-marker_half_size));
 
+        bool has_teams = (ctf_world || soccer_world);
+        
         // Highlight the player icons with some backgorund image.
-        if (kart->getController()->isLocalPlayerController() &&
-            m_icons_frame != NULL)
+        if ((has_teams || is_local) && m_icons_frame != NULL)
         {
-            video::SColor colors[4];
-            for (unsigned int i=0;i<4;i++)
+            video::SColor color = kart->getKartProperties()->getColor();
+            
+            if (has_teams)
             {
-                colors[i]=kart->getKartProperties()->getColor();
+                KartTeam team = world->getKartTeam(kart->getWorldKartId());
+                
+                if (team == KART_TEAM_RED)
+                {
+                    color = video::SColor(255, 200, 0, 0);
+                }
+                else if (team == KART_TEAM_BLUE)
+                {
+                    color = video::SColor(255, 0, 0, 200);
+                }
             }
+                                  
+            video::SColor colors[4] = {color, color, color, color};
+
             const core::rect<s32> rect(core::position2d<s32>(0,0),
                                         m_icons_frame->getSize());
 
@@ -635,11 +658,10 @@ void RaceGUI::drawGlobalMiniMap()
 
     }   // for i<getNumKarts
 
-    SoccerWorld *sw = dynamic_cast<SoccerWorld*>(World::getWorld());
-    if (sw)
+    if (soccer_world)
     {
         Vec3 draw_at;
-        track->mapPoint2MiniMap(sw->getBallPosition(), &draw_at);
+        track->mapPoint2MiniMap(soccer_world->getBallPosition(), &draw_at);
 
         core::rect<s32> source(core::position2di(0, 0), m_soccer_ball->getSize());
         core::rect<s32> position(m_map_left+(int)(draw_at.getX()-(m_minimap_player_size/2.5f)),
@@ -785,27 +807,6 @@ void RaceGUI::drawRank(const AbstractKart *kart,
                       int meter_height, float dt)
 {
     static video::SColor color = video::SColor(255, 255, 255, 255);
-    // Draw hit or capture limit in network game
-    if ((race_manager->getMajorMode() == RaceManager::MAJOR_MODE_FREE_FOR_ALL ||
-        race_manager->getMajorMode() == RaceManager::MAJOR_MODE_CAPTURE_THE_FLAG) &&
-        race_manager->getHitCaptureLimit() != std::numeric_limits<int>::max())
-    {
-        gui::ScalableFont* font = GUIEngine::getHighresDigitFont();
-        font->setScale(min_ratio * 1.0f);
-        font->setShadow(video::SColor(255, 128, 0, 0));
-        std::ostringstream oss;
-        oss << race_manager->getHitCaptureLimit();
-
-        core::recti pos;
-        pos.LowerRightCorner = core::vector2di(int(offset.X + 0.64f*meter_width),
-                                            int(offset.Y - 0.49f*meter_height));
-        pos.UpperLeftCorner = core::vector2di(int(offset.X + 0.64f*meter_width),
-                                            int(offset.Y - 0.49f*meter_height));
-
-        font->draw(oss.str().c_str(), pos, color, true, true);
-        font->setScale(1.0f);
-        return;
-    }
 
     // Draw rank
     WorldWithRank *world = dynamic_cast<WorldWithRank*>(World::getWorld());
@@ -861,7 +862,9 @@ void RaceGUI::drawRank(const AbstractKart *kart,
     }
 
     gui::ScalableFont* font = GUIEngine::getHighresDigitFont();
-    font->setScale(min_ratio * scale);
+    
+    int font_height = font->getDimension(L"X").Height;
+    font->setScale((float)meter_height / font_height * 0.4f * scale);
     font->setShadow(video::SColor(255, 128, 0, 0));
     std::ostringstream oss;
     oss << rank; // the current font has no . :(   << ".";
@@ -872,7 +875,9 @@ void RaceGUI::drawRank(const AbstractKart *kart,
     pos.UpperLeftCorner = core::vector2di(int(offset.X + 0.64f*meter_width),
                                           int(offset.Y - 0.49f*meter_height));
 
+    font->setBlackBorder(true);
     font->draw(oss.str().c_str(), pos, color, true, true);
+    font->setBlackBorder(false);
     font->setScale(1.0f);
 }   // drawRank
 
@@ -1011,6 +1016,8 @@ void RaceGUI::drawMeterTexture(video::ITexture *meter_texture, video::S3DVertex 
 {
 #ifndef SERVER_ONLY
     //Should be greater or equal than the greatest vertices_count used by the meter functions
+    if (count < 2)
+        return;
     short int index[12];
     for(unsigned int i=0; i<count; i++)
     {
@@ -1023,10 +1030,14 @@ void RaceGUI::drawMeterTexture(video::ITexture *meter_texture, video::S3DVertex 
     m.MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
     irr_driver->getVideoDriver()->setMaterial(m);
     glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     draw2DVertexPrimitiveList(m.getTexture(0), vertices, count,
         index, count-2, video::EVT_STANDARD, scene::EPT_TRIANGLE_FAN);
     glDisable(GL_BLEND);
+    glEnable(GL_CULL_FACE);
+
 #endif
 }   // drawMeterTexture
 
@@ -1150,36 +1161,99 @@ void RaceGUI::drawLap(const AbstractKart* kart,
         viewport.LowerRightCorner.X == (int)(irr_driver->getActualScreenSize().Width) &&
         !race_manager->getIfEmptyScreenSpaceExists()) 
     {
-        pos.UpperLeftCorner.Y += m_font_height;
+        pos.UpperLeftCorner.Y = irr_driver->getActualScreenSize().Height*12/100;
     }
     pos.LowerRightCorner.Y  = viewport.LowerRightCorner.Y+20;
     pos.UpperLeftCorner.X   = viewport.LowerRightCorner.X
                             - m_lap_width - 10;
     pos.LowerRightCorner.X  = viewport.LowerRightCorner.X;
 
-    // Draw CTF scores with red score - blue score
+    // Draw CTF / soccer scores with red score - blue score (score limit)
     CaptureTheFlag* ctf = dynamic_cast<CaptureTheFlag*>(World::getWorld());
-    if (ctf)
+    SoccerWorld* sw = dynamic_cast<SoccerWorld*>(World::getWorld());
+    FreeForAll* ffa = dynamic_cast<FreeForAll*>(World::getWorld());
+
+    static video::SColor color = video::SColor(255, 255, 255, 255);
+    int hit_capture_limit =
+        (race_manager->getHitCaptureLimit() != std::numeric_limits<int>::max()
+         && race_manager->getHitCaptureLimit() != 0)
+        ? race_manager->getHitCaptureLimit() : -1;
+    int score_limit = sw && !race_manager->hasTimeTarget() ?
+        race_manager->getMaxGoal() : ctf ? hit_capture_limit : -1;
+    if (!ctf && ffa && hit_capture_limit != -1)
     {
+        int icon_width = irr_driver->getActualScreenSize().Height/19;
+        core::rect<s32> indicator_pos(viewport.LowerRightCorner.X - (icon_width+10),
+                                    pos.UpperLeftCorner.Y,
+                                    viewport.LowerRightCorner.X - 10,
+                                    pos.UpperLeftCorner.Y + icon_width);
+        core::rect<s32> source_rect(core::position2d<s32>(0,0),
+                                                m_champion->getSize());
+        draw2DImage(m_champion, indicator_pos, source_rect,
+            NULL, NULL, true);
+
         gui::ScalableFont* font = GUIEngine::getHighresDigitFont();
-        font->setScale(scaling.Y < 1.0f ? 0.5f: 1.0f);
-        core::stringw text = StringUtils::toWString(ctf->getRedScore());
+        font->setBlackBorder(true);
+        pos.UpperLeftCorner.X += 30;
+        font->draw(StringUtils::toWString(hit_capture_limit).c_str(), pos, color);
+        font->setBlackBorder(false);
+        font->setScale(1.0f);
+        return;
+    }
+
+    if (ctf || sw)
+    {
+        int red_score = ctf ? ctf->getRedScore() : sw->getScore(KART_TEAM_RED);
+        int blue_score = ctf ? ctf->getBlueScore() : sw->getScore(KART_TEAM_BLUE);
+        gui::ScalableFont* font = GUIEngine::getHighresDigitFont();
+        font->setBlackBorder(true);
+        font->setScale(1.0f);
+        core::dimension2du d;
+        if (score_limit != -1)
+        {
+             d = font->getDimension(
+                (StringUtils::toWString(red_score) + L"-"
+                + StringUtils::toWString(blue_score) + L"     "
+                + StringUtils::toWString(score_limit)).c_str());
+            pos.UpperLeftCorner.X -= d.Width / 2;
+            int icon_width = irr_driver->getActualScreenSize().Height/19;
+            core::rect<s32> indicator_pos(viewport.LowerRightCorner.X - (icon_width+10),
+                                        pos.UpperLeftCorner.Y,
+                                        viewport.LowerRightCorner.X - 10,
+                                        pos.UpperLeftCorner.Y + icon_width);
+            core::rect<s32> source_rect(core::position2d<s32>(0,0),
+                                                    m_champion->getSize());
+            draw2DImage(m_champion, indicator_pos, source_rect,
+                NULL, NULL, true);
+        }
+
+        core::stringw text = StringUtils::toWString(red_score);
         font->draw(text, pos, video::SColor(255, 255, 0, 0));
-        core::dimension2du d = font->getDimension(text.c_str());
+        d = font->getDimension(text.c_str());
         pos += core::position2di(d.Width, 0);
         text = L"-";
         font->draw(text, pos, video::SColor(255, 255, 255, 255));
         d = font->getDimension(text.c_str());
         pos += core::position2di(d.Width, 0);
-        text = StringUtils::toWString(ctf->getBlueScore());
+        text = StringUtils::toWString(blue_score);
         font->draw(text, pos, video::SColor(255, 0, 0, 255));
-        font->setScale(1.0f);
+        pos += core::position2di(d.Width, 0);
+        if (score_limit != -1)
+        {
+            text = L"     ";
+            text += StringUtils::toWString(score_limit);
+            font->draw(text, pos, video::SColor(255, 255, 255, 255));
+        }
+        font->setBlackBorder(false);
         return;
     }
 
     if (!world->raceHasLaps()) return;
-    const int lap = world->getFinishedLapsOfKart(kart->getWorldKartId());
-
+    int lap = world->getFinishedLapsOfKart(kart->getWorldKartId());
+    // Network race has larger lap than getNumLaps near finish line
+    // due to waiting for final race result from server
+    if (lap + 1> race_manager->getNumLaps())
+        lap--;
     // don't display 'lap 0/..' at the start of a race
     if (lap < 0 ) return;
 
@@ -1199,12 +1273,13 @@ void RaceGUI::drawLap(const AbstractKart* kart,
     pos.UpperLeftCorner.X -= icon_width;
     pos.LowerRightCorner.X -= icon_width;
 
-    static video::SColor color = video::SColor(255, 255, 255, 255);
     std::ostringstream out;
     out << lap + 1 << "/" << race_manager->getNumLaps();
 
     gui::ScalableFont* font = GUIEngine::getHighresDigitFont();
+    font->setBlackBorder(true);
     font->draw(out.str().c_str(), pos, color);
+    font->setBlackBorder(false);
     font->setScale(1.0f);
 #endif
 } // drawLap

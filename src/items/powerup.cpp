@@ -18,11 +18,9 @@
 
 #include "items/powerup.hpp"
 
-#include "achievements/achievement_info.hpp"
-#include "config/player_manager.hpp"
-
 #include "audio/sfx_base.hpp"
 #include "audio/sfx_manager.hpp"
+#include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "items/attachment.hpp"
 #include "items/item_manager.hpp"
@@ -80,10 +78,7 @@ void Powerup::reset()
 void Powerup::saveState(BareNetworkString *buffer) const
 {
     buffer->addUInt8(uint8_t(m_type));
-    if(m_type!=PowerupManager::POWERUP_NOTHING)
-    {
-        buffer->addUInt8(m_number);   // number is <=255
-    }
+    buffer->addUInt8(m_number);   // number is <=255
 }   // saveState
 
 //-----------------------------------------------------------------------------
@@ -254,7 +249,9 @@ void Powerup::use()
     if (m_type != PowerupManager::POWERUP_NOTHING      &&
         m_kart->getController()->canGetAchievements()    )
     {
-        PlayerManager::increaseAchievement(AchievementInfo::ACHIEVE_POWERUP_LOVER, "poweruplover");
+        PlayerManager::increaseAchievement(AchievementsStatus::POWERUP_USED, 1);
+        if (race_manager->isLinearRaceMode())
+            PlayerManager::increaseAchievement(AchievementsStatus::POWERUP_USED_1RACE, 1);
     }
 
     // Play custom kart sound when collectible is used //TODO: what about the bubble gum?
@@ -526,6 +523,7 @@ void Powerup::hitBonusBox(const ItemState &item_state)
     // (1) The item id
     // (2) The time
     // (3) The position of the kart
+    // (4) An extra random 64bit integer
     // Using (1) means that not all boxes at a certain time for a kart
     // will give the same box. Using (2) means that the item will
     // change over time - even if the next item is displayed, it 
@@ -533,7 +531,8 @@ void Powerup::hitBonusBox(const ItemState &item_state)
     // of the time component it will also be difficult to get the
     // item at the right time. Using (3) adds another cheat-prevention
     // layer: even if a cheater is waiting for the right sequence
-    // of items, if he is overtaken the sequence will change.
+    // of items, if he is overtaken the sequence will change, using (4)
+    // to avoid same item sequence when starting
     //
     // In order to increase the probability of correct client prediction
     // in networking (where there might be 1 or 2 frames difference
@@ -544,7 +543,8 @@ void Powerup::hitBonusBox(const ItemState &item_state)
     // number to spread the random values across the (typically 200)
     // weights used in the PowerupManager - same for the position.
     uint64_t random_number = item_state.getItemId() * 31 +
-        world->getTicksSinceStart() / 10 + position * 23;
+        world->getTicksSinceStart() / 10 + position * 23 +
+        powerup_manager->getRandomSeed();
 
     // Use this random number as a seed of a PRNG (based on the one in 
     // bullet's btSequentialImpulseConstraintSolver) to avoid getting
@@ -561,11 +561,6 @@ void Powerup::hitBonusBox(const ItemState &item_state)
 
     new_powerup = powerup_manager->getRandomPowerup(position, &n, 
                                                     random_number);
-    // FIXME Disable switch and bubblegum for now in network
-    if (NetworkConfig::get()->isNetworking() &&
-        (new_powerup == PowerupManager::POWERUP_BUBBLEGUM ||
-        new_powerup == PowerupManager::POWERUP_SWITCH))
-        new_powerup = PowerupManager::POWERUP_BOWLING;
 
     // Always add a new powerup in ITEM_MODE_NEW (or if the kart
     // doesn't have a powerup atm).

@@ -26,11 +26,13 @@
 
 #include "utils/cpp2011.hpp"
 #include "utils/leak_check.hpp"
+#include "utils/log.hpp"
 #include "utils/no_copy.hpp"
 #include "utils/vec3.hpp"
 
 #include <line3d.h>
 
+class BareNetworkString;
 class AbstractKart;
 class LODNode;
 
@@ -39,19 +41,6 @@ namespace irr
     namespace scene { class IMesh; class ISceneNode; }
 }
 using namespace irr;
-
-// ============================================================================
-
-/**
- * \ingroup items
- * \brief Listener class to go with Items of type ITEM_TRIGGER
- */
-class TriggerItemListener
-{
-public:
-    virtual ~TriggerItemListener() {}
-    virtual void onTriggerItemApproached() = 0;
-};
 
 // ============================================================================
 /** \ingroup items
@@ -81,11 +70,7 @@ public:
 
         /** For easter egg mode only. */
         ITEM_EASTER_EGG,
-        /** An invisible item that can be used to trigger some behavior when
-        * approaching a point
-        */
-        ITEM_TRIGGER,
-        ITEM_LAST = ITEM_TRIGGER,
+        ITEM_LAST = ITEM_EASTER_EGG,
         ITEM_COUNT,
         ITEM_NONE
     };
@@ -118,42 +103,101 @@ private:
      *  will always reappear after a while. */
     int m_used_up_counter;
 
-    /** The original position - saves calls to m_node->getPosition()
-    * and then converting this value to a Vec3. */
+    /** The position of this ItemState. */
     Vec3 m_xyz;
 
-protected:
+    /** The original rotation of the item. While this is technically a visual
+     *  only value (atm, it could be used for collision detection), it is
+     *  required to make sure a client can display items with the right normal
+     *  (in case that a client would get a different (or no) normal from a
+     *  raycast).
+     */
+    btQuaternion m_original_rotation;
+
     /** The 'owner' of the item, i.e. the kart that dropped this item.
-     *  Is NULL if the item is part of the track. */
+    *  Is NULL if the item is part of the track. */
     const AbstractKart *m_previous_owner;
+
+protected:
 
     friend class ItemManager;
     friend class NetworkItemManager;
     // ------------------------------------------------------------------------
     virtual void setType(ItemType type) { m_type = type; }
+    // ------------------------------------------------------------------------
+    // Some convenient functions for the AI only
+    friend class SkiddingAI;
+    friend class TestAI;
+    /** Returns true if the specified line segment would come close enough
+     *  to this item so that this item would be collected.
+     *  \param line The line segment which is tested if it is close enough
+     *         to this item so that this item would be collected.
+     */
+    bool hitLine(const core::line3df &line,
+                 const AbstractKart *kart = NULL) const
+    {
+        if (getPreviousOwner() == kart && getDeactivatedTicks() > 0)
+            return false;
+
+        Vec3 closest = line.getClosestPoint(getXYZ().toIrrVector());
+        return hitKart(closest, kart);
+    }   // hitLine
 
 public:
-         /** Constructor. 
-          *  \param type Type of the item.
-          *  \param id Index of this item in the array of all items.
-          *  \param kart_id If !=-1 the kart that dropped this item; -1
-          *         indicates an item that's part of the track. */
-         ItemState(ItemType type, int id=-1, AbstractKart *kart=NULL)
-         { 
-             setType(type); 
-             m_item_id        = id;
-             m_previous_owner = kart;
-         }   // ItemState(ItemType)
-             
+    // ------------------------------------------------------------------------
+         ItemState(ItemType type, const AbstractKart *owner=NULL, int id = -1);
+    // ------------------------------------------------------------------------
+         ItemState(const BareNetworkString& buffer);
+    // ------------------------------------------------------------------------
+    void initItem(ItemType type, const Vec3& xyz, const Vec3& normal);
+    void update(int ticks);
+    void setDisappearCounter();
+    virtual void collected(const AbstractKart *kart);
     // ------------------------------------------------------------------------
     virtual ~ItemState() {}
-    void setDisappearCounter();
-    void update(int ticks);
-    virtual void collected(const AbstractKart *kart);
-
          
     // -----------------------------------------------------------------------
-    void reset()
+    /** Dummy implementation, causing an abort if it should be called to
+     *  catch any errors early. */
+    virtual void updateGraphics(float dt)
+    {
+        Log::fatal("ItemState", "updateGraphics() called for ItemState.");
+    }   // updateGraphics
+
+    // -----------------------------------------------------------------------
+    virtual bool hitKart(const Vec3 &xyz,
+                         const AbstractKart *kart = NULL) const
+    {
+        Log::fatal("ItemState", "hitKart() called for ItemState.");
+        return false;
+    }   // hitKart
+
+    // -----------------------------------------------------------------------
+    virtual int getGraphNode() const 
+    {
+        Log::fatal("ItemState", "getGraphNode() called for ItemState.");
+        return 0;
+    }   // getGraphNode
+
+    // -----------------------------------------------------------------------
+    virtual const Vec3 *getAvoidancePoint(bool left) const
+    {
+        Log::fatal("ItemState", "getAvoidancePoint() called for ItemState.");
+        // Return doesn't matter, fatal aborts
+        return &m_xyz;
+    }   // getAvoidancePoint
+
+    // -----------------------------------------------------------------------
+    virtual float getDistanceFromCenter() const
+    {
+        Log::fatal("itemState",
+                   "getDistanceFromCentre() called for ItemState.");
+        return 0;
+    }   // getDistanceFromCentre
+
+    // -----------------------------------------------------------------------
+    /** Resets an item to its start state. */
+    virtual void reset()
     {
         m_deactive_ticks    = 0;
         m_ticks_till_return = 0;
@@ -167,37 +211,24 @@ public:
     }   // reset
 
     // -----------------------------------------------------------------------
-    /** Initialises an item.
-     *  \param type Type for this item.
-     */
-    void initItem(ItemType type, const Vec3& xyz)
-    {
-        m_xyz               = xyz;
-        m_original_type     = ITEM_NONE;
-        m_deactive_ticks    = 0;
-        m_ticks_till_return = 0;
-        setDisappearCounter();
-    }   // initItem
-
-    // ------------------------------------------------------------------------
     /** Switches an item to be of a different type. Used for the switch
      *  powerup.
      *  \param type New type for this item.
      */
-    void switchTo(ItemType type)
+    virtual void switchTo(ItemType type)
     {
         // triggers and easter eggs should not be switched
-        if (m_type == ITEM_TRIGGER || m_type == ITEM_EASTER_EGG) return;
+        if (m_type == ITEM_EASTER_EGG) return;
         m_original_type = m_type;
         setType(type);
+        return;
     }   // switchTo
+
     // ------------------------------------------------------------------------
     /** Returns true if this item was not actually switched (e.g. trigger etc)
      */
-    bool switchBack()
+    virtual bool switchBack()
     {
-        // triggers should not be switched
-        if (m_type == ITEM_TRIGGER) return true;
         // If the item is not switched, do nothing. This can happen if a bubble
         // gum is dropped while items are switched - when switching back, this
         // bubble gum has no original type.
@@ -235,6 +266,8 @@ public:
     /** Returns the type of this item. */
     ItemType getType() const { return m_type; }
     // ------------------------------------------------------------------------
+    ItemType getGrahpicalType() const;
+    // ------------------------------------------------------------------------
     /** Returns the original type of this item. */
     ItemType getOriginalType() const { return m_original_type; }
     // ------------------------------------------------------------------------
@@ -267,6 +300,20 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the XYZ position of the item. */
     const Vec3& getXYZ() const { return m_xyz; }
+    // ------------------------------------------------------------------------
+    /** Returns the normal of the ItemState. */
+    const Vec3 getNormal() const
+    {
+        return quatRotate(m_original_rotation, Vec3(0.0f, 1.0f, 0.0f));
+    }
+    // ------------------------------------------------------------------------
+    /** Returns the original rotation of the item. */
+    const btQuaternion& getOriginalRotation() const
+    {
+        return m_original_rotation;
+    }
+    // ------------------------------------------------------------------------
+    void saveCompleteState(BareNetworkString* buffer) const;
 };   // class ItemState
 
 // ============================================================================
@@ -277,32 +324,14 @@ class Item : public ItemState, public NoCopy
 {
 
 private:
-
-    /** Stores the original rotation of an item. This is used in
-     *  case of a switch to restore the rotation of a bubble gum
-     *  (bubble gums don't rotate, but it will be replaced with
-     *  a nitro which rotates, and so overwrites the original
-     *  rotation). */
-    btQuaternion m_original_rotation;
-
-    /** Used when rotating the item */
-    float m_rotation_angle;
-
     /** Scene node of this item. */
     LODNode *m_node;
 
-    /** Stores the original mesh in order to reset it. */
-    scene::IMesh *m_original_mesh;
-    scene::IMesh *m_original_lowmesh;
-
-    /** Set to false if item should not rotate. */
-    bool m_rotate;
+    /** Graphical type of the mesh. */
+    ItemType m_graphical_type;
 
     /** Stores if the item was available in the previously rendered frame. */
     bool m_was_available_previously;
-
-    /** callback used if type == ITEM_TRIGGER */
-    TriggerItemListener* m_listener;
 
     /** square distance at which item is collected */
     float m_distance_2;
@@ -319,30 +348,40 @@ private:
      *  would not be collected. Used by the AI to avoid items. */
     Vec3 *m_avoidance_points[2];
 
-    /** True if this item is predicted to exists. Used in networking only. */
-    bool m_is_predicted;
-
-    void          setType(ItemType type) OVERRIDE;
-    void          initItem(ItemType type, const Vec3 &xyz);
+    void          initItem(ItemType type, const Vec3 &xyz, const Vec3 &normal);
     void          setMesh(scene::IMesh* mesh, scene::IMesh* lowres_mesh);
+    void          handleNewMesh(ItemType type);
 
 public:
                   Item(ItemType type, const Vec3& xyz, const Vec3& normal,
                        scene::IMesh* mesh, scene::IMesh* lowres_mesh,
-                       bool is_predicted=false);
-                  Item(const Vec3& xyz, float distance,
-                       TriggerItemListener* trigger);
+                       const AbstractKart *owner);
     virtual       ~Item ();
-    void          updateGraphics(float dt);
-    virtual void  collected(const AbstractKart *kart) OVERRIDE;
-    void          setParent(const AbstractKart* parent);
-    void          reset();
-    void          switchTo(ItemType type, scene::IMesh *mesh, scene::IMesh *lowmesh);
-    void          switchBack();
+    virtual void  updateGraphics(float dt) OVERRIDE;
+    virtual void  reset() OVERRIDE;
 
-
-
-        // ------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    /** Is called when the item is hit by a kart.  It sets the flag that the
+     *  item has been collected, and the time to return to the parameter.
+     *  \param kart The kart that collected the item.
+     */
+    virtual void collected(const AbstractKart *kart)  OVERRIDE
+    {
+        ItemState::collected(kart);
+    }   // isCollected
+    //-------------------------------------------------------------------------
+    /** Switch backs to the original item. Returns true if the item was not
+     *  actually switched (e.g. trigger, or bubblegum dropped during switch
+     *  time). The return value is not actually used, but necessary in order
+     *  to overwrite ItemState::switchBack()
+     */
+    virtual bool switchBack() OVERRIDE
+    {
+        if (ItemState::switchBack())
+            return true;
+        return false;
+    }   // switchBack
+    // ------------------------------------------------------------------------
     /** Returns true if the Kart is close enough to hit this item, the item is
      *  not deactivated anymore, and it wasn't placed by this kart (this is
      *  e.g. used to avoid that a kart hits a bubble gum it just dropped).
@@ -350,59 +389,40 @@ public:
      *  \param xyz Location of kart (avoiding to use kart->getXYZ() so that
      *         kart.hpp does not need to be included here).
      */
-    bool hitKart(const Vec3 &xyz, const AbstractKart *kart=NULL) const
+    virtual bool hitKart(const Vec3 &xyz, const AbstractKart *kart=NULL) const
+        OVERRIDE
     {
-        if (m_previous_owner == kart && getDeactivatedTicks() > 0)
+        if (getPreviousOwner() == kart && getDeactivatedTicks() > 0)
             return false;
-        Vec3 lc = quatRotate(m_original_rotation, xyz - getXYZ());
+        Vec3 lc = quatRotate(getOriginalRotation(), xyz - getXYZ());
         // Don't be too strict if the kart is a bit above the item
         lc.setY(lc.getY() / 2.0f);
         return lc.length2() < m_distance_2;
     }   // hitKart
-
-protected:
     // ------------------------------------------------------------------------
-    // Some convenient functions for the AI only
-    friend class SkiddingAI;
-    friend class TestAI;
-    /** Returns true if the specified line segment would come close enough
-     *  to this item so that this item would be collected.
-     *  \param line The line segment which is tested if it is close enough
-     *         to this item so that this item would be collected.
-     */
-    bool hitLine(const core::line3df &line,
-                  const AbstractKart *kart=NULL) const
-    {
-        if (m_previous_owner == kart && getDeactivatedTicks() >0) return false;
+    bool rotating() const               { return getType() != ITEM_BUBBLEGUM; }
 
-        Vec3 closest = line.getClosestPoint(getXYZ().toIrrVector());
-        return hitKart(closest, kart);
-    }   // hitLine
 public:
     // ------------------------------------------------------------------------
-    /** Sets if this is a predicted item or not. */
-    void setPredicted(bool p) { m_is_predicted = p; }
-    // ------------------------------------------------------------------------
-    /** Returns if this item is predicted or not. */
-    bool isPredicted() const { return m_is_predicted; }
-    // ------------------------------------------------------------------------
     /** Returns the index of the graph node this item is on. */
-    int getGraphNode() const { return m_graph_node; }
+    virtual int getGraphNode() const OVERRIDE { return m_graph_node; }
     // ------------------------------------------------------------------------
     /** Returns the distance from center: negative means left of center,
      *  positive means right of center. */
-    float getDistanceFromCenter() const { return m_distance_from_center; }
+    virtual float getDistanceFromCenter() const OVERRIDE
+    {
+        return m_distance_from_center;
+    }   // getDistanceFromCenter
     // ------------------------------------------------------------------------
     /** Returns a point to the left or right of the item which will not trigger
      *  a collection of this item.
      *  \param left If true, return a point to the left, else a point to
      *         the right. */
-    const Vec3 *getAvoidancePoint(bool left) const
+    virtual const Vec3 *getAvoidancePoint(bool left) const OVERRIDE
     {
         if(left) return m_avoidance_points[0];
         return m_avoidance_points[1];
     }   // getAvoidancePoint
-
     // ------------------------------------------------------------------------
     scene::ISceneNode *getSceneNode()
     {

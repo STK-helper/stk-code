@@ -114,10 +114,12 @@ private:
     /** Flag to indicate if a resolution change is pending (which will be
      *  acted upon in the next update). None means no change, yes means
      *  change to new resolution and trigger confirmation dialog.
+     *  Yes_warn means that the new resolution is unsupported and that
+     *  the confirmation dialog needs an additional warning message.
      *  Same indicates a change of the resolution (back to the original
      *  one), but no confirmation dialog. */
     enum {RES_CHANGE_NONE, RES_CHANGE_YES,
-          RES_CHANGE_SAME}                m_resolution_changing;
+          RES_CHANGE_SAME, RES_CHANGE_YES_WARN} m_resolution_changing;
 
 
 public:
@@ -150,6 +152,9 @@ private:
     /** Whether the mouse cursor is currently shown */
     bool                  m_pointer_shown;
 
+    /** Store if the scene is complex (based on polycount, etc) */
+    int                  m_scene_complexity;
+
     /** Internal method that applies the resolution in user settings. */
     void                 applyResolutionSettings();
     void                 createListOfVideoModes();
@@ -161,6 +166,7 @@ private:
     bool                 m_lightviz;
     bool                 m_boundingboxesviz;
     bool                 m_recording;
+    bool                 m_render_nw_debug;
 
     /** Background colour to reset a buffer. Can be changed by each track. */
     irr::video::SColor m_clear_color;
@@ -264,7 +270,7 @@ public:
     Camera               *addCamera(unsigned int index, AbstractKart *kart);
     void                  removeCameraSceneNode(scene::ICameraSceneNode *camera);
     void                  removeCamera(Camera *camera);
-    void                  update(float dt);
+    void                  update(float dt, bool loading=false);
     /** Call to change resolution */
     void                  changeResolution(const int w, const int h, const bool fullscreen);
   /** Call this to roll back to the previous resolution if a resolution switch attempt goes bad */
@@ -360,7 +366,20 @@ public:
     // ------------------------------------------------------------------------
     void toggleBoundingBoxesViz() { m_boundingboxesviz = !m_boundingboxesviz; }
     // ------------------------------------------------------------------------
+    void toggleRenderNetworkDebug() { m_render_nw_debug = !m_render_nw_debug; }
+    // ------------------------------------------------------------------------
+    bool getRenderNetworkDebug() const            { return m_render_nw_debug; }
+    // ------------------------------------------------------------------------
+    void renderNetworkDebug();
+    // ------------------------------------------------------------------------
     bool getBoundingBoxesViz()    { return m_boundingboxesviz;      }
+    // ------------------------------------------------------------------------
+    int getSceneComplexity() { return m_scene_complexity;           }
+    void resetSceneComplexity() { m_scene_complexity = 0;           }
+    void addSceneComplexity(int complexity)
+    {
+        if (complexity > 1) m_scene_complexity += (complexity - 1);
+    }
     // ------------------------------------------------------------------------
     bool isRecording() const { return m_recording; }
     // ------------------------------------------------------------------------

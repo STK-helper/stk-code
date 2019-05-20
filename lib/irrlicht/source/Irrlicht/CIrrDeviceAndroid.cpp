@@ -9,17 +9,57 @@
 #ifdef _IRR_COMPILE_WITH_ANDROID_DEVICE_
 
 #include <assert.h>
+#include <vector>
 #include "os.h"
 #include "CContextEGL.h"
 #include "CFileSystem.h"
 #include "COGLES2Driver.h"
+#include "../../../../src/utils/utf8/unchecked.h"
+
+std::string g_from_java_chars;
+
+// Save any String in java to g_from_java_chars (triggered by voice-text input,
+// clipboard or unicode char from keyboard) and manually postEventFromUser for
+// each character
+
+#if !defined(ANDROID_PACKAGE_CALLBACK_NAME)
+    #error
+#endif
+
+#define MAKE_ANDROID_SAVE_CHARS_CALLBACK(x) JNIEXPORT void JNICALL Java_ ## x##_SuperTuxKartActivity_saveFromJavaChars(JNIEnv* env, jobject this_obj, jstring from_java_chars)
+#define ANDROID_SAVE_CHARS_CALLBACK(PKG_NAME) MAKE_ANDROID_SAVE_CHARS_CALLBACK(PKG_NAME)
+
+extern "C"
+ANDROID_SAVE_CHARS_CALLBACK(ANDROID_PACKAGE_CALLBACK_NAME)
+{
+    if (from_java_chars == NULL)
+        return;
+    const char* chars = env->GetStringUTFChars(from_java_chars, NULL);
+    if (chars == NULL)
+        return;
+    g_from_java_chars += chars;
+    env->ReleaseStringUTFChars(from_java_chars, chars);
+}
+
+// Call when android keyboard is opened or close, and save its height for
+// moving screen
+int g_keyboard_height = 0;
+
+#define MAKE_ANDROID_SAVE_KBD_HEIGHT_CALLBACK(x) JNIEXPORT void JNICALL Java_ ## x##_SuperTuxKartActivity_saveKeyboardHeight(JNIEnv* env, jobject this_obj, jint height)
+#define ANDROID_SAVE_KBD_HEIGHT_CALLBACK(PKG_NAME) MAKE_ANDROID_SAVE_KBD_HEIGHT_CALLBACK(PKG_NAME)
+
+extern "C"
+ANDROID_SAVE_KBD_HEIGHT_CALLBACK(ANDROID_PACKAGE_CALLBACK_NAME)
+{
+    g_keyboard_height = (int)height;
+}
 
 namespace irr
 {
     namespace video
     {
         IVideoDriver* createOGLES2Driver(const SIrrlichtCreationParameters& params,
-            video::SExposedVideoData& data, io::IFileSystem* io);
+            video::SExposedVideoData& data, io::IFileSystem* io, IrrlichtDevice* device);
     }
 }
 
@@ -53,6 +93,7 @@ CIrrDeviceAndroid::CIrrDeviceAndroid(const SIrrlichtCreationParameters& param)
     AccelerometerActive(false),
     GyroscopeActive(false),
     TextInputEnabled(false),
+    HasTouchDevice(false),
     IsMousePressed(false),
     GamepadAxisX(0),
     GamepadAxisY(0),
@@ -61,7 +102,10 @@ CIrrDeviceAndroid::CIrrDeviceAndroid(const SIrrlichtCreationParameters& param)
     #ifdef _DEBUG
     setDebugName("CIrrDeviceAndroid");
     #endif
-    
+    m_screen_height = 0;
+    m_moved_height = 0;
+    m_moved_height_func = NULL;
+
     createKeyMap();
 
     CursorControl = new CCursorControl();
@@ -118,6 +162,9 @@ CIrrDeviceAndroid::CIrrDeviceAndroid(const SIrrlichtCreationParameters& param)
         ExposedVideoData.OGLESAndroid.Window = Android->window;
     
         createVideoModeList();
+        
+        int32_t touch = AConfiguration_getTouchscreen(Android->config);
+        HasTouchDevice = touch != ACONFIGURATION_TOUCHSCREEN_NOTOUCH;
     }
 
     createDriver();
@@ -179,6 +226,13 @@ void CIrrDeviceAndroid::printConfig()
     os::Printer::log("   ui_mode_night:", core::stringc(ui_mode_night).c_str(), ELL_DEBUG);
 }
 
+u32 CIrrDeviceAndroid::getOnScreenKeyboardHeight() const
+{
+    if (g_keyboard_height > 0)
+        return g_keyboard_height;
+    return 0;
+}
+
 void CIrrDeviceAndroid::createVideoModeList()
 {
     if (VideoModeList.getVideoModeCount() > 0)
@@ -186,11 +240,15 @@ void CIrrDeviceAndroid::createVideoModeList()
         
     int width = ANativeWindow_getWidth(Android->window);
     int height = ANativeWindow_getHeight(Android->window);
+
+    os::Printer::log("Window width:", core::stringc(width).c_str(), ELL_DEBUG);
+    os::Printer::log("Window height:", core::stringc(height).c_str(), ELL_DEBUG);
     
     if (width > 0 && height > 0)
     {
         CreationParams.WindowSize.Width = width;
         CreationParams.WindowSize.Height = height;
+        m_screen_height = height;
     }
 
     core::dimension2d<u32> size = core::dimension2d<u32>(
@@ -208,7 +266,7 @@ void CIrrDeviceAndroid::createDriver()
     {
     case video::EDT_OGLES2:
         #ifdef _IRR_COMPILE_WITH_OGLES2_
-        VideoDriver = video::createOGLES2Driver(CreationParams, ExposedVideoData, FileSystem);
+        VideoDriver = video::createOGLES2Driver(CreationParams, ExposedVideoData, FileSystem, this);
         #else
         os::Printer::log("No OpenGL ES 2.0 support compiled in.", ELL_ERROR);
         #endif
@@ -233,6 +291,28 @@ bool CIrrDeviceAndroid::run()
     
     while (!Close)
     {
+        if (m_moved_height_func != NULL)
+            m_moved_height = m_moved_height_func(this);
+        if (!g_from_java_chars.empty())
+        {
+            std::vector<wchar_t> utf32;
+            const char* chars = g_from_java_chars.c_str();
+            utf8::unchecked::utf8to32(chars, chars + strlen(chars), back_inserter(utf32));
+            for (wchar_t wc : utf32)
+            {
+                SEvent event;
+                event.EventType = EET_KEY_INPUT_EVENT;
+                event.KeyInput.Char = wc;
+                event.KeyInput.PressedDown = true;
+                event.KeyInput.Key = IRR_KEY_UNKNOWN;
+                event.KeyInput.Shift = false;
+                event.KeyInput.Control = false;
+                event.KeyInput.SystemKeyCode = 0;
+                event.KeyInput.Key = IRR_KEY_UNKNOWN;
+                postEventFromUser(event);
+            }
+            g_from_java_chars.clear();
+        }
         s32 Events = 0;
         android_poll_source* Source = 0;
         bool should_run = (IsStarted && IsFocused && !IsPaused);
@@ -542,6 +622,7 @@ s32 CIrrDeviceAndroid::handleTouch(AInputEvent* androidEvent)
 
     bool touchReceived = true;
     bool simulate_mouse = false;
+    int adjusted_height = getMovedHeight();
     core::position2d<s32> mouse_pos = core::position2d<s32>(0, 0);
 
     switch (eventAction & AMOTION_EVENT_ACTION_MASK)
@@ -595,7 +676,7 @@ s32 CIrrDeviceAndroid::handleTouch(AInputEvent* androidEvent)
                 
             event_data.event = event.TouchInput.Event;
             event_data.x = event.TouchInput.X;
-            event_data.y = event.TouchInput.Y;
+            event_data.y = event.TouchInput.Y + adjusted_height;
             
             postEventFromUser(event);
             
@@ -645,7 +726,7 @@ s32 CIrrDeviceAndroid::handleTouch(AInputEvent* androidEvent)
                                                             irr::EMBSM_LEFT : 0;
             irrevent.EventType = EET_MOUSE_INPUT_EVENT;
             irrevent.MouseInput.X = mouse_pos.X;
-            irrevent.MouseInput.Y = mouse_pos.Y;
+            irrevent.MouseInput.Y = mouse_pos.Y + adjusted_height;
 
             postEventFromUser(irrevent);
         }
@@ -1314,6 +1395,62 @@ void CIrrDeviceAndroid::hideNavBar(ANativeActivity* activity)
     if (was_detached)
     {
         activity->vm->DetachCurrentThread();
+    }
+}
+
+void CIrrDeviceAndroid::toggleOnScreenKeyboard(bool show)
+{
+    if (!Android)
+        return;
+
+    bool was_detached = false;
+    JNIEnv* env = NULL;
+
+    jint status = Android->activity->vm->GetEnv((void**)&env, JNI_VERSION_1_6);
+    if (status == JNI_EDETACHED)
+    {
+        JavaVMAttachArgs args;
+        args.version = JNI_VERSION_1_6;
+        args.name = "NativeThread";
+        args.group = NULL;
+
+        status = Android->activity->vm->AttachCurrentThread(&env, &args);
+        was_detached = true;
+    }
+    if (status != JNI_OK)
+    {
+        os::Printer::log("Cannot attach current thread in showKeyboard.", ELL_DEBUG);
+        return;
+    }
+
+    jobject native_activity = Android->activity->clazz;
+    jclass class_native_activity = env->GetObjectClass(native_activity);
+
+    if (class_native_activity == NULL)
+    {
+        os::Printer::log("showKeyboard unable to find object class.", ELL_ERROR);
+        if (was_detached)
+        {
+            Android->activity->vm->DetachCurrentThread();
+        }
+        return;
+    }
+
+    jmethodID method_id = env->GetMethodID(class_native_activity, show ? "showKeyboard" : "hideKeyboard", "()V");
+    if (method_id == NULL)
+    {
+        os::Printer::log("showKeyboard unable to find method id.", ELL_ERROR);
+        if (was_detached)
+        {
+            Android->activity->vm->DetachCurrentThread();
+        }
+        return;
+    }
+
+    env->CallVoidMethod(native_activity, method_id);
+    if (was_detached)
+    {
+        Android->activity->vm->DetachCurrentThread();
     }
 }
 
