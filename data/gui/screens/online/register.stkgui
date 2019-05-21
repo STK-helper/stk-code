@@ -6,11 +6,11 @@
                 I18N="In the registration dialog" />
       <spacer height="15" width="10"/>
       <tabs id="mode_tabs" height="2f" x="2%" width="98%" align="center">
-        <icon-button id="tab_new_online" width="128" height="128" icon="gui/icons/main_network.png"
+        <icon-button id="tab_new_online" width="128" height="128" icon="main_network.png"
                      I18N="Section in the register screen" text="New Online Account"/>
-        <icon-button id="tab_existing_online" width="128" height="128" icon="gui/icons/main_network.png"
+        <icon-button id="tab_existing_online" width="128" height="128" icon="main_network.png"
                      I18N="Section in the register screen" text="Existing Online Account"/>
-        <icon-button id="tab_offline" width="128" height="128" icon="gui/icons/options_players.png"
+        <icon-button id="tab_offline" width="128" height="128" icon="options_players.png"
                      I18N="Section in the register screen" text="Offline Account"/>
       </tabs>
 
@@ -61,13 +61,13 @@
             </div>
 
             <buttonbar id="options" width="40%" height="15%" align="center">
-                <icon-button id="next" width="50%" height="90%" icon="gui/icons/green_check.png"
+                <icon-button id="next" width="50%" height="90%" icon="green_check.png"
                     I18N="In the registration dialog" text="OK" label_location="none"/>
-                <icon-button id="cancel" width="50%" height="90%" icon="gui/icons/main_quit.png"
+                <icon-button id="cancel" width="50%" height="90%" icon="main_quit.png"
                     I18N="In the registration dialog"  text="Cancel" label_location="none"/>
             </buttonbar>
         </box>
     </div>
 
-    <icon-button id="back" x="0" y="0" height="8%" icon="gui/icons/back.png"/>
+    <icon-button id="back" x="0" y="0" height="8%" icon="back.png"/>
 </stkgui>

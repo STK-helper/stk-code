@@ -7,10 +7,10 @@
 
         <buttonbar id="buttons" height="30%" width="30%" align="center">
 
-            <icon-button id="confirm" icon="gui/icons/green_check.png" I18N="In a 'are you sure?' dialog"
+            <icon-button id="confirm" icon="green_check.png" I18N="In a 'are you sure?' dialog"
                 text="Yes" align="center"/>
 
-            <icon-button id="cancel" icon="gui/icons/remove.png" I18N="In a 'are you sure?' dialog"
+            <icon-button id="cancel" icon="remove.png" I18N="In a 'are you sure?' dialog"
                 text="Cancel" align="center"/>
 
         </buttonbar>

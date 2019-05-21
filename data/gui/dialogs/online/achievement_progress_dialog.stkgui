@@ -36,7 +36,7 @@
 
         <buttonbar id="options" width="100%" height="14%" align="center">
             <icon-button id="ok" width="128" height="128"
-                         icon="gui/icons/green_check.png" text="OK"
+                         icon="green_check.png" text="OK"
                          label_location="bottom"/>
         </buttonbar>
         <spacer width="20" height="3%" />

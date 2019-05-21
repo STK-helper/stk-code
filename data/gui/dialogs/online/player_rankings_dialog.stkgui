@@ -15,10 +15,10 @@
 
         <buttonbar id="options" width="90%" height="10%" align="center">
             <icon-button id="ok" width="16" height="16"
-                         icon="gui/icons/green_check.png" text="OK"
+                         icon="green_check.png" text="OK"
                          label_location="bottom"/>
             <icon-button id="refresh" width="16" height="16"
-                         icon="gui/icons/restart.png"
+                         icon="restart.png"
                          text="Refresh" label_location="bottom"/>
         </buttonbar>
         <spacer width="20" height="2%" />

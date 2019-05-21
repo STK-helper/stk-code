@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stkgui>
-    <icon-button id="back" x="0" y="0" height="8%" icon="gui/icons/back.png"/>
+    <icon-button id="back" x="0" y="0" height="8%" icon="back.png"/>
     <div x="1%" y="1%" width="98%" height="98%" layout="vertical-row" >
         <header width="80%" height="7%" align="center" text="SuperTuxKart Help" text_align="center"/>
         <spacer height="1%" width="100%"/>
@@ -8,19 +8,19 @@
         <div width="100%" height="92%" layout="horizontal-row" >
 
             <vertical-tabs id="category" height="100%" width="18%">
-                <icon-button id="page1" width="128" height="128" icon="gui/icons/track_random.png"
+                <icon-button id="page1" width="128" height="128" icon="track_random.png"
                         I18N="Tab in help menu" text="General"/>
-                <icon-button id="page2" width="128" height="128" icon="gui/icons/mode_ftl.png"
+                <icon-button id="page2" width="128" height="128" icon="mode_ftl.png"
                         I18N="Tab in help menu" text="Game Modes"/>
-                <icon-button id="page3" width="128" height="128" icon="gui/icons/gift.png"
+                <icon-button id="page3" width="128" height="128" icon="gift.png"
                         I18N="Tab in help menu" text="Powerups"/>
-                <icon-button id="page4" width="128" height="128" icon="gui/icons/banana.png"
+                <icon-button id="page4" width="128" height="128" icon="banana.png"
                         I18N="Tab in help menu" text="Bananas"/>
-                <icon-button id="page5" width="128" height="128" icon="gui/icons/story_mode_book.png"
+                <icon-button id="page5" width="128" height="128" icon="story_mode_book.png"
                         I18N="Tab in help menu" text="Story Mode"/>
-                <icon-button id="page6" width="128" height="128" icon="gui/icons/mass.png"
+                <icon-button id="page6" width="128" height="128" icon="mass.png"
                         I18N="Tab in help menu" text="Kart classes"/>
-                <icon-button id="page7" width="128" height="128" icon="gui/icons/options_input.png"
+                <icon-button id="page7" width="128" height="128" icon="options_input.png"
                         I18N="Tab in help menu" text="Multiplayer"/>
             </vertical-tabs>
 
@@ -32,7 +32,7 @@
                 <spacer height="2%" width="10"/>
 
                 <div width="100%" proportion="2" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gui/icons/mode_normal.png"/>
+                    <icon align="center" width="64" height="64" icon="mode_normal.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="1" height="100%"
                             I18N="In the help menu"
@@ -40,7 +40,7 @@
                 </div>
 
                 <div width="100%" proportion="2" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gui/icons/mode_tt.png"/>
+                    <icon align="center" width="64" height="64" icon="mode_tt.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="1" height="100%"
                             I18N="In the help menu"
@@ -48,7 +48,7 @@
                 </div>
 
                 <div width="100%" proportion="2" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gui/icons/mode_ftl.png"/>
+                    <icon align="center" width="64" height="64" icon="mode_ftl.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="1" height="100%"
                             I18N="In the help menu"
@@ -56,7 +56,7 @@
                 </div>
 
                 <div width="100%" proportion="2" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gui/icons/gift.png"/>
+                    <icon align="center" width="64" height="64" icon="gift.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="1" height="100%"
                             I18N="In the help menu"
@@ -64,7 +64,7 @@
                 </div>
 
                 <div width="100%" proportion="2" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gui/icons/mode_soccer.png"/>
+                    <icon align="center" width="64" height="64" icon="mode_soccer.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="1" height="100%"
                             I18N="In the help menu"
@@ -72,14 +72,14 @@
                 </div>
 
                 <div width="100%" proportion="2" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gui/icons/mode_easter.png"/>
+                    <icon align="center" width="64" height="64" icon="mode_easter.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="1" height="100%"
                             I18N="In the help menu"
                             text="Egg hunt: Explore tracks to find all hidden eggs."/>
                 </div>
                 <div width="100%" proportion="2" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gui/icons/mode_ghost.png"/>
+                    <icon align="center" width="64" height="64" icon="mode_ghost.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="1" height="100%"
                             I18N="In the help menu"

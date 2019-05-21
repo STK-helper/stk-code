@@ -124,7 +124,7 @@ FileManager::FileManager()
     m_subdir_name[CHALLENGE  ] = "challenges";
     m_subdir_name[GFX        ] = "gfx";
     m_subdir_name[GRANDPRIX  ] = "grandprix";
-    m_subdir_name[GUI_ICON   ] = "gui/icons";
+    m_subdir_name[GUI_ICON   ] = "gui/icons/Classic";
     m_subdir_name[GUI_SCREEN ] = "gui/screens";
     m_subdir_name[GUI_DIALOG ] = "gui/dialogs";
     m_subdir_name[LIBRARY    ] = "library";

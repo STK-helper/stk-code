@@ -165,10 +165,20 @@ public:
     std::string getAsset(AssetType type, const std::string &name) const;
     std::string getAsset(const std::string &name) const;
     // ------------------------------------------------------------------------
+    /** Returns the root directory of an asset type. */
+    std::string getAssetRootDirectory(int type) const
+    {
+        return m_root_dirs[type];
+    }
     /** Returns the directory of an asset. */
     std::string getAssetDirectory(AssetType type) const
     {
         return m_subdir_name[type];
+    }
+    /** Sets the directory of an asset. */
+    void setAssetDirectory(AssetType type, std::string path)
+    {
+        m_subdir_name[type] = path;
     }
     // ------------------------------------------------------------------------
     std::string searchMusic(const std::string& file_name) const;

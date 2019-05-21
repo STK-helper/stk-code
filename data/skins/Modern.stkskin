@@ -2,7 +2,7 @@
 <!--
 
 modern skin by Dakal and Marianne Gagnon, released under creative-commons BY-SA 3.0+
-Except background.jpg, by elisee
+Except background.png, by QwertyChouskie
 Except stars, by s@f
 
 To make your own skin, I suggest simply duplicating this file and modifying it as needed.
@@ -64,12 +64,12 @@ when the border that intersect at this corner are enabled.
 
 -->
 
-<skin name="modern" author="Dakal and Marianne Gagnon (Auria) and LCP and QwertyChouskie">
+<skin name="Modern" author="Dakal and Marianne Gagnon (Auria) and LCP and QwertyChouskie">
 
-<icontheme name="modern" />
+<icontheme name="Modern" />
 
 <!--  Stateless -->
-<element type="background" image="modern/background.jpg" />
+<element type="background" image="modern/background-hack.png" />
 
 <element type="bottom-bar" image="common/bottom_bar.png" />
 

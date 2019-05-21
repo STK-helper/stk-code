@@ -75,7 +75,7 @@ void IconButtonWidget::add()
             }
             else if (m_icon_path_type == ICON_PATH_TYPE_RELATIVE)
             {
-                std::string file = file_manager->getAsset(m_properties[PROP_ICON]);
+                std::string file = file_manager->getAsset(file_manager->GUI_ICON, m_properties[PROP_ICON]);
                 setTexture(irr_driver->getTexture(file));
             }
         }
@@ -93,7 +93,7 @@ void IconButtonWidget::add()
         setTexture(irr_driver->getTexture(file));
         if(!m_texture)
             Log::fatal("IconButtonWidget",
-                  "Can't find fallback texture 'gui/icons/main_help.png, aborting.");
+                  "Can't find fallback texture 'main_help.png', aborting.");
     }
 
     if (m_properties[PROP_FOCUS_ICON].size() > 0)
@@ -273,7 +273,7 @@ void IconButtonWidget::setImage(const char* path_to_texture, IconPathType pathTy
     }
     else if (m_icon_path_type == ICON_PATH_TYPE_RELATIVE)
     {
-        std::string file = file_manager->getAsset(m_properties[PROP_ICON]);
+        std::string file = file_manager->getAsset(FileManager::GUI_ICON, m_properties[PROP_ICON]);
         setTexture(irr_driver->getTexture(file));
     }
 

@@ -10,13 +10,13 @@
         <box width="100%" proportion="3" padding="10" layout="vertical-row">
             
             <ribbon id="difficulty" height="85%" width="100%" align="center">
-                <icon-button id="novice" width="fit" height="fit" icon="gui/icons/difficulty_easy.png"
+                <icon-button id="novice" width="fit" height="fit" icon="difficulty_easy.png"
                         I18N="Difficulty" text="Novice"/>
-                <icon-button id="intermediate" width="fit" height="fit" icon="gui/icons/difficulty_medium.png"
+                <icon-button id="intermediate" width="fit" height="fit" icon="difficulty_medium.png"
                         I18N="Difficulty" text="Intermediate"/>
-                <icon-button id="expert" width="fit" height="fit" icon="gui/icons/difficulty_hard.png"
+                <icon-button id="expert" width="fit" height="fit" icon="difficulty_hard.png"
                         I18N="Difficulty"  text="Expert"/>
-                <icon-button id="best" width="fit" height="fit" icon="gui/icons/difficulty_best.png"
+                <icon-button id="best" width="fit" height="fit" icon="difficulty_best.png"
                         I18N="Difficulty"  text="SuperTux"/>
             </ribbon>
         </box>
@@ -33,5 +33,5 @@
         </box>
     </div>
 
-    <icon-button id="back" x="0" y="0" height="8%" icon="gui/icons/back.png"/>
+    <icon-button id="back" x="0" y="0" height="8%" icon="back.png"/>
 </stkgui>

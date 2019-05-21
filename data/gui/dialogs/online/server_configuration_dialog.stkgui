@@ -6,13 +6,13 @@
 
             <label width="100%" height="8%" text_align="left" I18N="In the server configuration screen" text="Difficulty"/>
             <ribbon id="difficulty" height="25%" width="90%" align="center">
-                <icon-button id="novice" width="128" height="128" icon="gui/icons/difficulty_easy.png"
+                <icon-button id="novice" width="128" height="128" icon="difficulty_easy.png"
                         I18N="Difficulty" text="Novice"/>
-                <icon-button id="intermediate" width="128" height="128" icon="gui/icons/difficulty_medium.png"
+                <icon-button id="intermediate" width="128" height="128" icon="difficulty_medium.png"
                         I18N="Difficulty" text="Intermediate"/>
-                <icon-button id="expert" width="128" height="128" icon="gui/icons/difficulty_hard.png"
+                <icon-button id="expert" width="128" height="128" icon="difficulty_hard.png"
                         I18N="Difficulty"  text="Expert"/>
-                <icon-button id="best" width="128" height="128" icon="gui/icons/difficulty_best.png"
+                <icon-button id="best" width="128" height="128" icon="difficulty_best.png"
                         I18N="Difficulty"  text="SuperTux"/>
             </ribbon>
 
@@ -20,13 +20,13 @@
 
             <label width="100%" height="8%" text_align="left" I18N="In the server configuration screen" text="Game mode"/>
             <ribbon id="gamemode" height="25%" width="90%" align="center">
-                <icon-button id="normal" width="128" height="128" icon="gui/icons/mode_normal.png"
+                <icon-button id="normal" width="128" height="128" icon="mode_normal.png"
                         I18N="Multiplayer game mode" text="Normal Race"/>
-                <icon-button id="timetrial" width="128" height="128" icon="gui/icons/mode_tt.png"
+                <icon-button id="timetrial" width="128" height="128" icon="mode_tt.png"
                         I18N="Multiplayer game mode" text="Time Trial"/>
-                <icon-button id="3strikes" width="128" height="128" icon="gui/icons/weapons.png"
+                <icon-button id="3strikes" width="128" height="128" icon="weapons.png"
                         I18N="Multiplayer game mode" text="Battle"/>
-                <icon-button id="soccer" width="128" height="128" icon="gui/icons/mode_soccer.png"
+                <icon-button id="soccer" width="128" height="128" icon="mode_soccer.png"
                         I18N="Multiplayer game mode" text="Soccer"/>
             </ribbon>
 
@@ -40,9 +40,9 @@
             <spacer height="1%" width="20"/>
 
             <buttonbar id="options" x="0" y="0" width="40%" height="18%" align="center">
-                <icon-button id="ok" width="64" height="64" icon="gui/icons/green_check.png"
+                <icon-button id="ok" width="64" height="64" icon="green_check.png"
                              I18N="In the server configuration screen" text="OK" label_location="bottom"/>
-                <icon-button id="cancel" width="64" height="64" icon="gui/icons/main_quit.png"
+                <icon-button id="cancel" width="64" height="64" icon="main_quit.png"
                              I18N="In the server configuration screen" text="Cancel" label_location="bottom"/>
             </buttonbar>
 

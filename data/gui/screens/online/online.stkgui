@@ -16,22 +16,22 @@
         </box>
 
         <spacer height="15" width="10"/>
-        <icon id="logo" align="center" proportion="4" width="100%" icon="gui/icons/logo.png"/>
+        <icon id="logo" align="center" proportion="4" width="100%" icon="logo.png"/>
 
         <spacer height="15" width="10"/>
         
         <buttonbar id="menu_toprow" proportion="3" width="90%" align="center">
             <icon-button id="lan" width="128" height="128"
-                         icon="gui/icons/menu_multi.png" focus_icon="gui/icons/menu_multi_focus.png"
+                         icon="menu_multi.png" focus_icon="menu_multi_focus.png"
                          I18N="Networking menu button" text="Local networking"/>
             <icon-button id="wan" width="128" height="128"
-                         icon="gui/icons/menu_multi.png" focus_icon="gui/icons/menu_multi_focus.png"
+                         icon="menu_multi.png" focus_icon="menu_multi_focus.png"
                          I18N="Networking menu button" text="Global networking"/>
             <icon-button id="enter-address" width="128" height="128"
-                         icon="gui/icons/online/menu_quick_play.png" focus_icon="gui/icons/online/menu_quick_play_hover.png"
+                         icon="online/menu_quick_play.png" focus_icon="online/menu_quick_play_hover.png"
                          I18N="Networking menu button" text="Enter server address"/>
             <icon-button id="online" width="128" height="128"
-                         icon="gui/icons/menu_online.png" focus_icon="gui/icons/menu_online_focus.png"
+                         icon="menu_online.png" focus_icon="menu_online_focus.png"
                          I18N="Networking menu button" text="Your profile"/>
         </buttonbar>
 
@@ -39,5 +39,5 @@
 
     </div>
     
-    <icon-button id="back" x="0" y="0" height="8%" icon="gui/icons/back.png"/>
+    <icon-button id="back" x="0" y="0" height="8%" icon="back.png"/>
 </stkgui>

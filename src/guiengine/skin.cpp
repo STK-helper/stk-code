@@ -179,6 +179,22 @@ namespace SkinConfig
             {
                 parseColor(node);
             }
+            else if (node->getName() == "icontheme")
+            {
+                Log::info("Icon theming", "Old theme path: %s", file_manager->getAssetDirectory(file_manager->GUI_ICON).c_str());
+                std::string name;
+                node->get("name", &name);
+
+                for (unsigned int i=0; i<10; i++)
+                {
+                    if (file_manager->fileExists(file_manager->getAssetRootDirectory(i)+file_manager->getAssetDirectory(file_manager->GUI_ICON)))
+                    {
+                        file_manager->setAssetDirectory(file_manager->GUI_ICON, file_manager->getAssetRootDirectory(i)+"gui/icons/"+name+"/");
+                        break;
+                    }
+                }
+                Log::info("Icon theming", "New theme path: %s", file_manager->getAssetDirectory(file_manager->GUI_ICON).c_str());
+            }
             else
             {
                 Log::error("skin", "Unknown node in XML file '%s'.",
