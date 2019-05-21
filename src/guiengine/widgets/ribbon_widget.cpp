@@ -414,7 +414,7 @@ void RibbonWidget::add()
                 image = irr_driver->getTexture(file);
                 if(!image)
                     Log::fatal("RibbonWidget",
-                        "Can't find fallback texture 'gui/icons/main_help.png, aborting.");
+                        "Can't find fallback texture 'main_help.png', aborting.");
             }
 
             float image_h = (float)image->getSize().Height;

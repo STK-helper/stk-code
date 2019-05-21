@@ -335,7 +335,7 @@ void FileManager::init()
     if (fileExists(m_subdir_name[TEXTURE]+"deprecated/"))
         pushTextureSearchPath(m_subdir_name[TEXTURE]+"deprecated/", "deprecatedtex");
 
-    pushTextureSearchPath(m_subdir_name[GUI_ICON], "gui/icons");
+    pushTextureSearchPath(m_subdir_name[GUI_ICON], "gui/icons/Classic");
 
     pushModelSearchPath  (m_subdir_name[MODEL]);
     pushMusicSearchPath  (m_subdir_name[MUSIC]);

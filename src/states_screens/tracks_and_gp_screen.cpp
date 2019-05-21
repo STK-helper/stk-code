@@ -287,7 +287,7 @@ void TracksAndGPScreen::buildTrackList()
     }
 
     tracks_widget->addItem(_("Random Track"), "random_track",
-                           "/gui/icons/track_random.png", 0 /* no badge */,
+                           "track_random.png", 0 /* no badge */,
                            IconButtonWidget::ICON_PATH_TYPE_RELATIVE);
 
     tracks_widget->updateItemDisplay();
