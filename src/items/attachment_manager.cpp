@@ -93,7 +93,7 @@ void AttachmentManager::loadModels()
         if(iat[i].icon_file)
         {
             std::string full_icon_path     =
-                file_manager->getAsset(FileManager::MODEL, iat[i].icon_file);
+                file_manager->getAsset(FileManager::GUI_ICON, iat[i].icon_file);
             m_all_icons[iat[i].attachment] =
                 material_manager->getMaterial(full_icon_path,
                                               /* full_path */     true,
