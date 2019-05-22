@@ -190,6 +190,7 @@ namespace SkinConfig
                     if (file_manager->fileExists(file_manager->getAssetRootDirectory(i)+file_manager->getAssetDirectory(file_manager->GUI_ICON)))
                     {
                         file_manager->setAssetDirectory(file_manager->GUI_ICON, file_manager->getAssetRootDirectory(i)+"gui/icons/"+name+"/");
+                        file_manager->pushTextureSearchPath(file_manager->getAssetDirectory(file_manager->GUI_ICON), "gui/icons/"+name);
                         break;
                     }
                 }
