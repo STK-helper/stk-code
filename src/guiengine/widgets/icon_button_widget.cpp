@@ -107,7 +107,7 @@ void IconButtonWidget::add()
         {
             m_highlight_texture =
                 irr_driver->getTexture(file_manager->getAsset(
-                                       m_properties[PROP_FOCUS_ICON]));
+                                       FileManager::GUI_ICON, m_properties[PROP_FOCUS_ICON]));
         }
 
     }
