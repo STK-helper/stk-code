@@ -244,7 +244,7 @@ void RibbonWidget::add()
                                                       same_id, L"");
                 icon->setScaleImage(true);
                 std::string filename = file_manager->getAsset(
-                                     file_manager->GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
+                                     FileManager::GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
                 icon->setImage( irr_driver->getTexture(filename.c_str()) );
                 icon->setUseAlphaChannel(true);
                 icon->setDrawBorder(false);
@@ -342,7 +342,7 @@ void RibbonWidget::add()
                                                       same_id, L"");
                 icon->setScaleImage(true);
                 std::string filename = file_manager->getAsset(
-                                     file_manager->GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
+                                     FileManager::GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
                 icon->setImage( irr_driver->getTexture(filename.c_str()) );
                 icon->setUseAlphaChannel(true);
                 icon->setDrawBorder(false);
@@ -405,7 +405,7 @@ void RibbonWidget::add()
 
             // calculate the size of the image
             std::string filename =
-                file_manager->getAsset(file_manager->GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
+                file_manager->getAsset(FileManager::GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
             video::ITexture* image =
                 irr_driver->getTexture((filename).c_str());
             if(!image)

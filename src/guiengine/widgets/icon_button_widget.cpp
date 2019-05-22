@@ -75,7 +75,7 @@ void IconButtonWidget::add()
             }
             else if (m_icon_path_type == ICON_PATH_TYPE_RELATIVE)
             {
-                std::string file = file_manager->getAsset(file_manager->GUI_ICON, m_properties[PROP_ICON]);
+                std::string file = file_manager->getAsset(FileManager::GUI_ICON, m_properties[PROP_ICON]);
                 setTexture(irr_driver->getTexture(file));
             }
         }
