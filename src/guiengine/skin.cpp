@@ -22,7 +22,9 @@
 #include <iostream>
 #include <algorithm>
 
+#include "audio/music_information.hpp"
 #include "config/user_config.hpp"
+#include "config/stk_config.hpp"
 #include "graphics/2dutils.hpp"
 #include "graphics/central_settings.hpp"
 #include "guiengine/engine.hpp"
@@ -181,7 +183,7 @@ namespace SkinConfig
             }
             else if (node->getName() == "icontheme")
             {
-                Log::info("Icon theming", "Old theme path: %s", file_manager->getAssetDirectory(FileManager::GUI_ICON).c_str());
+                Log::info("Theming", "Old icon theme path: %s", file_manager->getAssetDirectory(FileManager::GUI_ICON).c_str());
                 std::string name;
                 node->get("name", &name);
 
@@ -194,7 +196,24 @@ namespace SkinConfig
                         break;
                     }
                 }
-                Log::info("Icon theming", "New theme path: %s", file_manager->getAssetDirectory(FileManager::GUI_ICON).c_str());
+                Log::info("Theming", "New icon theme path: %s", file_manager->getAssetDirectory(FileManager::GUI_ICON).c_str());
+            }
+            else if (node->getName() == "menumusic")
+            {
+                std::string title_music_filename;
+                MusicInformation *title_music;
+                node->get("name", &title_music_filename);
+                assert(title_music_filename.size() > 0);
+                title_music_filename = file_manager->getAsset(FileManager::MUSIC, title_music_filename);
+                title_music = MusicInformation::create(title_music_filename);
+                if (!title_music)
+                {
+                    Log::error("Theming", "Cannot load title music: %s", title_music_filename.c_str());
+                } else
+                {
+                    stk_config->m_title_music = title_music;
+                    Log::info("Theming", "New menu music: %s", title_music_filename.c_str());
+                }
             }
             else
             {

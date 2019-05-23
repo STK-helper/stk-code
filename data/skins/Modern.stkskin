@@ -67,6 +67,7 @@ when the border that intersect at this corner are enabled.
 <skin name="Modern" author="Dakal and Marianne Gagnon (Auria) and LCP and QwertyChouskie">
 
 <icontheme name="Modern" />
+<menumusic name="main_theme_modern.music" />
 
 <!--  Stateless -->
 <element type="background" image="modern/background-hack.png" />
