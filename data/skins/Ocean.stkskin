@@ -66,6 +66,9 @@ when the border that intersect at this corner are enabled.
 
 <skin name="Ocean" author="Dakal & Marianne Gagnon (Auria)">
 
+<icontheme name="Classic" />
+<menumusic name="main_theme.music" />
+
 <!--  Stateless -->
 <element type="background" image="common/background.jpg" />
 

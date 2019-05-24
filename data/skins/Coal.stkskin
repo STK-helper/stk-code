@@ -67,6 +67,9 @@ when the border that intersect at this corner are enabled.
 
 <skin name="Coal" author="Alayan">
 
+<icontheme name="Classic" />
+<menumusic name="main_theme.music" />
+
 <!--  Stateless -->
 <element type="background" image="coal/background.jpg" />
 

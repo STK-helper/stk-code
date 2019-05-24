@@ -166,6 +166,7 @@ void OptionsScreenUI::init()
     
     font_size->setValue((int)roundf(UserConfigParams::m_fonts_size));
     m_prev_font_size = UserConfigParams::m_fonts_size;
+    m_prev_icon_theme = file_manager->getAssetDirectory(FileManager::GUI_ICON);
 
     // ---- video modes
     CheckBoxWidget* splitscreen_method = getWidget<CheckBoxWidget>("split_screen_horizontally");
@@ -280,7 +281,7 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
 
 void OptionsScreenUI::tearDown()
 {
-    if (m_prev_font_size != UserConfigParams::m_fonts_size)
+    if (m_prev_font_size != UserConfigParams::m_fonts_size || m_prev_icon_theme != file_manager->getAssetDirectory(FileManager::GUI_ICON))
     {
         irr_driver->sameRestart();
     }
