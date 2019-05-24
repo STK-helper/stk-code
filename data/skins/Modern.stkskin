@@ -127,33 +127,33 @@ when the border that intersect at this corner are enabled.
 <element type="tab" state="neutral" image="modern/glasstab.png"
       left_border="75" right_border="75" top_border="0" bottom_border="15"
       hborder_out_portion="0.2"
-      h_inner_padding="0.6" v_inner_padding="0" />
+      h_inner_padding="0" v_inner_padding="0" />
       
 <element type="tab" state="focused" image="modern/glasstab_focus.png"
       left_border="75" right_border="75" top_border="0" bottom_border="15"
       hborder_out_portion="0.2"
-      h_inner_padding="0.6" v_inner_padding="0" />
+      h_inner_padding="0" v_inner_padding="0" />
 
 <element type="tab" state="down" image="modern/glasstab_down.png"
       left_border="75" right_border="75" top_border="0" bottom_border="15"
       hborder_out_portion="0.2"
-      h_inner_padding="0.6" v_inner_padding="0" />
+      h_inner_padding="0" v_inner_padding="0" />
 
 
 <element type="verticalTab" state="neutral" image="modern/tab_vert.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
       hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.6" v_inner_padding="0" />
+      h_inner_padding="0" v_inner_padding="0" />
       
 <element type="verticalTab" state="focused" image="modern/tab_vert_focus.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
       hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.6" v_inner_padding="0" />
+      h_inner_padding="0" v_inner_padding="0" />
 
 <element type="verticalTab" state="down" image="modern/tab_vert_down.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
       hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.6" v_inner_padding="0" />
+      h_inner_padding="0" v_inner_padding="0" />
 
 <!-- Stateless -->
 <element type="squareFocusHaloBW" image="common/glass_square_focused_bw.png"
