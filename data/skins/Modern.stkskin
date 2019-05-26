@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-modern skin by Dakal and Marianne Gagnon, released under creative-commons BY-SA 3.0+
+modern skin by Dakal and Marianne Gagnon, released under creative-moderns BY-SA 3.0+
 Except background.png, by QwertyChouskie
 Except stars, by s@f
 
@@ -119,24 +119,24 @@ when the border that intersect at this corner are enabled.
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       preserve_h_aspect_ratios="false" />
 
-<element type="progress" state="neutral" image="common/scrollbar_bg.png"
+<element type="progress" state="neutral" image="modern/scrollbar_bg.png"
       left_border="31" right_border="31" top_border="15" bottom_border="15"
       preserve_h_aspect_ratios="true" />
       
       
-<element type="tab" state="neutral" image="modern/glasstab.png"
-      left_border="75" right_border="75" top_border="0" bottom_border="15"
-      hborder_out_portion="0.2"
+<element type="tab" state="neutral" image="modern/tab.png"
+      left_border="0" right_border="0" top_border="0" bottom_border="0"
+      hborder_out_portion="0.2" vborder_put_portion="0"
       h_inner_padding="0" v_inner_padding="0" />
       
-<element type="tab" state="focused" image="modern/glasstab_focus.png"
-      left_border="75" right_border="75" top_border="0" bottom_border="15"
-      hborder_out_portion="0.2"
+<element type="tab" state="focused" image="modern/tab_focus.png"
+      left_border="0" right_border="0" top_border="0" bottom_border="0"
+      hborder_out_portion="0.2" vborder_put_portion="0"
       h_inner_padding="0" v_inner_padding="0" />
 
-<element type="tab" state="down" image="modern/glasstab_down.png"
-      left_border="75" right_border="75" top_border="0" bottom_border="15"
-      hborder_out_portion="0.2"
+<element type="tab" state="down" image="modern/tab_down.png"
+      left_border="0" right_border="0" top_border="0" bottom_border="0"
+      hborder_out_portion="0.2" vborder_put_portion="0"
       h_inner_padding="0" v_inner_padding="0" />
 
 
@@ -179,7 +179,7 @@ when the border that intersect at this corner are enabled.
 <element type="selectionHalo" image="modern/bubble.png"  />
 <element type="focusHalo" image="modern/glass_iconhighlight_focus.png"  />
 
-<element type="spinner" state="neutral" image="common/glassspinner.png"
+<element type="spinner" state="neutral" image="modern/glassspinner.png"
     left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
@@ -187,7 +187,7 @@ when the border that intersect at this corner are enabled.
     left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
-<element type="spinner" state="deactivated" image="common/glassspinner_deactivated.png"
+<element type="spinner" state="deactivated" image="modern/glassspinner_deactivated.png"
     left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
@@ -215,19 +215,19 @@ when the border that intersect at this corner are enabled.
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
 <!-- For checkboxes, no splitting into 9 areas is done; the image is just stretched -->
-<element type="checkbox" state="neutral+unchecked" image="modern/glasscheckbox.png"/>
-<element type="checkbox" state="neutral+checked" image="modern/glasscheckbox_checked.png"/>
-<element type="checkbox" state="focused+unchecked" image="modern/glasscheckbox_focus.png"/>
-<element type="checkbox" state="focused+checked" image="modern/glasscheckbox_checked_focus.png"/>
-<element type="checkbox" state="deactivated+unchecked" image="common/glasscheckbox_deactivated.png"/>
-<element type="checkbox" state="deactivated+checked" image="common/glasscheckbox_checked_deactivated.png"/>
+<element type="checkbox" state="neutral+unchecked" image="modern/checkbox.png"/>
+<element type="checkbox" state="neutral+checked" image="modern/checkbox_checked.png"/>
+<element type="checkbox" state="focused+unchecked" image="modern/checkbox_focus.png"/>
+<element type="checkbox" state="focused+checked" image="modern/checkbox_checked_focus.png"/>
+<element type="checkbox" state="deactivated+unchecked" image="modern/checkbox_deactivated.png"/>
+<element type="checkbox" state="deactivated+checked" image="modern/checkbox_checked_deactivated.png"/>
 
 <!-- are always in neutral state for now. No splitting into 9 areas is done; the image is just stretched.
      Note: the body of a guage is the same as for for spinners. -->
 <element type="gaugefill" image="modern/glasssgauge_fill.png" />
 
 <!-- Lists are always in neutral state for now -->
-<element type="list" image="common/glass_section.png"
+<element type="list" image="modern/glass_section.png"
     left_border="15" right_border="15" top_border="7" bottom_border="7"
     hborder_out_portion="0.0" vborder_out_portion="0.0" />
     
@@ -240,42 +240,42 @@ when the border that intersect at this corner are enabled.
      be mirrorred for bottom. Buttons can be in neutral or down state.
      Advanced stretching is not used here.
       -->
-<element type="scrollbar_background"          image="common/scrollbar_bg.png" />
+<element type="scrollbar_background"          image="modern/scrollbar_bg.png" />
 <element type="scrollbar_thumb"               image="modern/scrollbar_thumb.png" />
-<element type="scrollbar_button"              image="common/scrollbar_btn.png" />
-<element type="scrollbar_button" state="down" image="modern/scrollbar_btn_down.png" />
+<element type="scrollbar_button"              image="modern/up_arrow.png" />
+<element type="scrollbar_button" state="down" image="modern/up_arrow.png" />
 
-<element type="left_arrow"  state="neutral" image="common/left_arrow.png" />
-<element type="right_arrow" state="neutral" image="common/right_arrow.png" />
+<element type="left_arrow"  state="neutral" image="modern/left_arrow.png" />
+<element type="right_arrow" state="neutral" image="modern/right_arrow.png" />
 <element type="left_arrow"  state="focus"   image="modern/left_arrow_focus.png" />
 <element type="right_arrow" state="focus"   image="modern/right_arrow_focus.png" />
 
-<element type="list_header"  state="neutral" image="common/table_header.png" />
-<element type="list_sort_up" state="neutral" image="common/list_sort_up.png" />
-<element type="list_sort_down" state="neutral" image="common/list_sort_down.png" />
+<element type="list_header"  state="neutral" image="modern/table_header.png" />
+<element type="list_sort_up" state="neutral" image="modern/up_arrow.png" />
+<element type="list_sort_down" state="neutral" image="modern/down_arrow.png" />
 <element type="list_header"  state="down"    image="modern/table_header_down.png" />
 
 <!-- Stateless -->
-<element type="section" image="common/glass_section.png"
+<element type="section" image="modern/glass_section.png"
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       hborder_out_portion="0.0" vborder_out_portion="0.0" />
 
-<element type="section" state="selected" image="modern/glassbutton_focused.png"
-      left_border="15" right_border="15" top_border="15" bottom_border="15"
-      hborder_out_portion="0.0" vborder_out_portion="0.0" />
-
-<!-- Stateless -->
-<element type="rounded_section" image="common/glass_rsection.png"
+<element type="section" state="selected" image="modern/button_focused.png"
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       hborder_out_portion="0.0" vborder_out_portion="0.0" />
 
 <!-- Stateless -->
-<element type="window" image="common/dialog.png"
+<element type="rounded_section" image="modern/glass_rsection.png"
+      left_border="15" right_border="15" top_border="15" bottom_border="15"
+      hborder_out_portion="0.0" vborder_out_portion="0.0" />
+
+<!-- Stateless -->
+<element type="window" image="modern/dialog.png"
       left_border="7" right_border="7" top_border="50" bottom_border="50"
       hborder_out_portion="1.0" vborder_out_portion="0.2" />
 
 <!-- Stateless -->
-<element type="tooltip" image="common/tooltip.png"
+<element type="tooltip" image="modern/tooltip.png"
     left_border="10" right_border="10" top_border="10" bottom_border="10"
     hborder_out_portion="1.0" vborder_out_portion="1.0" />
     
@@ -309,7 +309,7 @@ when the border that intersect at this corner are enabled.
 <color type="text_field" state="deactivated" a="255" r="138" g="138" b="138" />
 
 <!-- Rating star image -->
-<element type="rating" state="neutral" image="common/rating_star.png" />
+<element type="rating" state="neutral" image="modern/rating_star.png" />
 
 <!-- Font color -->
 <color type="font" state="top" a="255" r="255" g="128" b="0" />
