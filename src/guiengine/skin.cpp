@@ -235,7 +235,7 @@ namespace SkinConfig
         {
             case WTYPE_SPINNER:     type = "spinner"; break;
             case WTYPE_BUTTON:      type = "button"; break;
-            case WTYPE_CHECKBOX:    type = "checkbox"; break;
+            case WTYPE_CHECKBOX:    type = "checkbox"; state = "neutral+unchecked"; break;
             case WTYPE_BUBBLE:      type = "textbubble"; break;
             case WTYPE_LIST:        type = "list"; break;
             case WTYPE_PROGRESS:    type = "progress"; break;
