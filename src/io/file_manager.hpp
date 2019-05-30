@@ -164,6 +164,7 @@ public:
                                 bool abort_on_error=false) const;
     std::string getAsset(AssetType type, const std::string &name) const;
     std::string getAsset(const std::string &name) const;
+    int getAssetRootDirectoriesCount() const { return m_root_dirs.size(); }
     // ------------------------------------------------------------------------
     /** Returns the root directory of an asset type. */
     std::string getAssetRootDirectory(int type) const
