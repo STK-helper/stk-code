@@ -187,9 +187,9 @@ namespace SkinConfig
                 std::string name;
                 node->get("name", &name);
 
-                for (unsigned int i=0; i<file_manager->getAssetRootDirectoriesCount(); i++)
+                for (int i=0; i<file_manager->getAssetRootDirectoriesCount(); i++)
                 {
-                    if (file_manager->fileExists(file_manager->getAssetRootDirectory(i)+file_manager->getAssetDirectory(FileManager::GUI_ICON)))
+                    if (file_manager->fileExists(file_manager->getAssetRootDirectory(i)+"gui/icons/"+name+"/"))
                     {
                         file_manager->setAssetDirectory(FileManager::GUI_ICON, file_manager->getAssetRootDirectory(i)+"gui/icons/"+name+"/");
                         file_manager->pushTextureSearchPath(file_manager->getAssetDirectory(FileManager::GUI_ICON), "gui/icons/"+name);
