@@ -125,18 +125,18 @@ when the border that intersect at this corner are enabled.
       
       
 <element type="tab" state="neutral" image="modern/tab.png"
-      left_border="0" right_border="0" top_border="0" bottom_border="0"
-      hborder_out_portion="0.2" vborder_put_portion="0"
+      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
       h_inner_padding="0" v_inner_padding="0" />
       
 <element type="tab" state="focused" image="modern/tab_focus.png"
-      left_border="0" right_border="0" top_border="0" bottom_border="0"
-      hborder_out_portion="0.2" vborder_put_portion="0"
+      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
       h_inner_padding="0" v_inner_padding="0" />
 
 <element type="tab" state="down" image="modern/tab_down.png"
-      left_border="0" right_border="0" top_border="0" bottom_border="0"
-      hborder_out_portion="0.2" vborder_put_portion="0"
+      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
       h_inner_padding="0" v_inner_padding="0" />
 
 
