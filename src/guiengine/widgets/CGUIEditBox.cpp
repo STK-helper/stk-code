@@ -23,6 +23,8 @@
 #include "../../../lib/irrlicht/include/IrrCompileConfig.h"
 #include "../../../lib/irrlicht/source/Irrlicht/CIrrDeviceLinux.h"
 
+#include <cstdlib>
+
 #ifdef ANDROID
 #include "../../../lib/irrlicht/source/Irrlicht/CIrrDeviceAndroid.h"
 #endif
@@ -69,6 +71,10 @@ CGUIEditBox::CGUIEditBox(const wchar_t* text, bool border,
     // FIXME quick hack to enable mark movement with keyboard and mouse for rtl language,
     // don't know why it's disabled in the first place, because STK fail
     // to input unicode characters before?
+    m_from_android_edittext = false;
+    m_composing_start = 0;
+    m_composing_end = 0;
+    m_type = (GUIEngine::TextBoxType)0;
 
     #ifdef _DEBUG
     setDebugName("CGUIEditBox");
@@ -120,15 +126,8 @@ CGUIEditBox::~CGUIEditBox()
         dl->setIMEEnable(false);
     }
 #endif
-#ifdef ANDROID
-    if (irr_driver->getDevice()->getType() == irr::EIDT_ANDROID)
-    {
-        CIrrDeviceAndroid* dl = dynamic_cast<CIrrDeviceAndroid*>(
-                                                       irr_driver->getDevice());
-        dl->setTextInputEnabled(false);
-    }
     irr_driver->getDevice()->toggleOnScreenKeyboard(false);
-#endif
+
 #endif
 }
 
@@ -260,6 +259,9 @@ bool CGUIEditBox::OnEvent(const SEvent& event)
 #ifndef SERVER_ONLY
     if (isEnabled())
     {
+        // Ignore key input if we only fromAndroidEditText
+        if (m_from_android_edittext && event.EventType == EET_KEY_INPUT_EVENT)
+            return true;
         switch(event.EventType)
         {
         case EET_GUI_EVENT:
@@ -278,17 +280,13 @@ bool CGUIEditBox::OnEvent(const SEvent& event)
                     dl->setIMEEnable(false);
                 }
 #endif
-#ifdef ANDROID
-                if (irr_driver->getDevice()->getType() == irr::EIDT_ANDROID)
-                {
-                    CIrrDeviceAndroid* dl = dynamic_cast<CIrrDeviceAndroid*>(
-                                                       irr_driver->getDevice());
-                    dl->setTextInputEnabled(false);
-                }
-#endif
+                m_from_android_edittext = false;
+                m_composing_start = 0;
+                m_composing_end = 0;
             }
             else if (event.GUIEvent.EventType == EGET_ELEMENT_FOCUSED)
             {
+                MarkBegin = MarkEnd = CursorPos = (u32)Text.size();
 #ifdef _IRR_COMPILE_WITH_X11_DEVICE_
                 if (irr_driver->getDevice()->getType() == irr::EIDT_X11)
                 {
@@ -299,13 +297,22 @@ bool CGUIEditBox::OnEvent(const SEvent& event)
                 }
 #endif
 #ifdef ANDROID
-                if (irr_driver->getDevice()->getType() == irr::EIDT_ANDROID)
+                if (GUIEngine::ScreenKeyboard::shouldUseScreenKeyboard() &&
+                    irr_driver->getDevice()->hasOnScreenKeyboard() &&
+                    irr_driver->getDevice()->getType() == irr::EIDT_ANDROID)
                 {
+                    // If user toggle with hacker keyboard with arrows, keep
+                    // using only text from STKEditTex
+                    m_from_android_edittext = true;
                     CIrrDeviceAndroid* dl = dynamic_cast<CIrrDeviceAndroid*>(
                                                        irr_driver->getDevice());
-                    dl->setTextInputEnabled(true);
+                    dl->fromSTKEditBox(getID(), Text, MarkBegin, MarkEnd, m_type);
                 }
+                else
 #endif
+                {
+                    m_from_android_edittext = false;
+                }
             }
             break;
 #if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
@@ -610,9 +617,7 @@ bool CGUIEditBox::processKey(const SEvent& event)
         }
         else
         {
-#ifdef ANDROID
             irr_driver->getDevice()->toggleOnScreenKeyboard(false);
-#endif
             sendGuiEvent( EGET_EDITBOX_ENTER );
         }
         break;
@@ -1074,6 +1079,26 @@ void CGUIEditBox::draw()
                 // it will return the input pointer if (this->isRTLLanguage()) from Translations::isRTLText
                 // is false
 
+                // draw composing text underline
+                if (!PasswordBox && focus && m_composing_start != m_composing_end && i == hlineStart)
+                {
+                    s = txtLine->subString(0, m_composing_start);
+                    s32 underline_begin = font->getDimension(s.c_str()).Width;
+                    core::rect<s32> underline = CurrentTextRect;
+                    underline.UpperLeftCorner.X += underline_begin;
+                    s32 end_length = m_composing_end - m_composing_start;
+                    if (end_length > 0 && end_length != (s32)Text.size())
+                    {
+                        s = txtLine->subString(m_composing_start, end_length);
+                        s32 underline_end = font->getDimension(s.c_str()).Width;
+                        underline.LowerRightCorner.X = underline.UpperLeftCorner.X + underline_end;
+                    }
+                    s32 height = underline.LowerRightCorner.Y - underline.UpperLeftCorner.Y;
+                    underline.UpperLeftCorner.Y += s32(std::abs(height) * 0.9f);
+                    underline.LowerRightCorner.Y -= s32(std::abs(height) * 0.08f);
+                    GL32_draw2DRectangle(video::SColor(255, 0, 0, 0), underline);
+                }
+
                 // draw mark and marked text
                 if (focus && MarkBegin != MarkEnd && i >= hlineStart && i < hlineStart + hlineCount)
                 {
@@ -1168,10 +1193,19 @@ void CGUIEditBox::draw()
 void CGUIEditBox::setText(const wchar_t* text)
 {
     Text = text;
-    if (u32(CursorPos) > Text.size())
-        CursorPos = Text.size();
+    MarkBegin = MarkEnd = CursorPos = (u32)Text.size();
     HScrollPos = 0;
     breakText();
+#ifdef ANDROID
+        if (GUIEngine::ScreenKeyboard::shouldUseScreenKeyboard() &&
+            irr_driver->getDevice()->hasOnScreenKeyboard() &&
+            irr_driver->getDevice()->getType() == irr::EIDT_ANDROID)
+        {
+            CIrrDeviceAndroid* dl = dynamic_cast<CIrrDeviceAndroid*>(
+                                                irr_driver->getDevice());
+            dl->fromSTKEditBox(getID(), Text, MarkBegin, MarkEnd, m_type);
+        }
+#endif
 }
 
 
@@ -1305,14 +1339,12 @@ bool CGUIEditBox::processMouse(const SEvent& event)
             
             if (GUIEngine::ScreenKeyboard::shouldUseScreenKeyboard())
             {
-                openScreenKeyboard();
+                if (irr_driver->getDevice()->hasOnScreenKeyboard())
+                    irr_driver->getDevice()->toggleOnScreenKeyboard(true, m_type);
+                else
+                    openScreenKeyboard();
             }
-#ifdef ANDROID
-            else if (UserConfigParams::m_screen_keyboard == 3)
-            {
-                irr_driver->getDevice()->toggleOnScreenKeyboard(true);
-            }
-#endif
+
             // move cursor
             CursorPos = getCursorPos(event.MouseInput.X, event.MouseInput.Y);
 
@@ -1706,6 +1738,16 @@ void CGUIEditBox::setTextMarkers(s32 begin, s32 end)
         MarkBegin = begin;
         MarkEnd = end;
         sendGuiEvent(EGET_EDITBOX_MARKING_CHANGED);
+#ifdef ANDROID
+        if (GUIEngine::ScreenKeyboard::shouldUseScreenKeyboard() &&
+            irr_driver->getDevice()->hasOnScreenKeyboard() &&
+            irr_driver->getDevice()->getType() == irr::EIDT_ANDROID)
+        {
+            CIrrDeviceAndroid* dl = dynamic_cast<CIrrDeviceAndroid*>(
+                                                irr_driver->getDevice());
+            dl->fromSTKEditBox(getID(), Text, MarkBegin, MarkEnd, m_type);
+        }
+#endif
     }
 }
 
@@ -1773,12 +1815,45 @@ void CGUIEditBox::deserializeAttributes(io::IAttributes* in, io::SAttributeReadW
 
 void CGUIEditBox::openScreenKeyboard()
 {
-    if (UserConfigParams::m_screen_keyboard == 3)
+    // If the device has native on screen keyboard, always use it
+    if (irr_driver->getDevice()->hasOnScreenKeyboard())
         return;
-    
+
     if (GUIEngine::ScreenKeyboard::getCurrent() != NULL)
         return;
     
     new GUIEngine::ScreenKeyboard(1.0f, 0.40f, this);
 }
 
+// Real copying is happening in text_box_widget.cpp with static function
+void CGUIEditBox::fromAndroidEditText(const core::stringw& text, int start,
+                                      int end, int composing_start,
+                                      int composing_end)
+{
+    // When focus of this element is lost, this will be set to false again
+    m_from_android_edittext = true;
+    Text = text;
+    // Prevent invalid start or end
+    if ((unsigned)end > Text.size())
+    {
+        end = (int)Text.size();
+        start = end;
+    }
+
+    CursorPos = end;
+    m_composing_start = 0;
+    m_composing_end = 0;
+
+    MarkBegin = start;
+    MarkEnd = end;
+
+    if (composing_start != composing_end)
+    {
+        if (composing_start < 0)
+            composing_start = 0;
+        if (composing_end > end)
+            composing_end = end;
+        m_composing_start = composing_start;
+        m_composing_end = composing_end;
+    }
+}

@@ -73,9 +73,13 @@ namespace irr
         virtual bool deactivateGyroscope();
         virtual bool isGyroscopeActive();
         virtual bool isGyroscopeAvailable();
-        virtual void setTextInputEnabled(bool enabled) {TextInputEnabled = enabled;}
-        virtual void toggleOnScreenKeyboard(bool show);
-        virtual bool supportsTouchDevice() { return HasTouchDevice; }
+        void fromSTKEditBox(int widget_id, const core::stringw& text, int selection_start, int selection_end, int type);
+        virtual void toggleOnScreenKeyboard(bool show, s32 type = 0);
+        virtual bool supportsTouchDevice() const { return HasTouchDevice; }
+        virtual bool hasHardwareKeyboard() const;
+        // ATM if there is touch device we assume native screen keyboard is
+        // available which for example android tv doesn't
+        virtual bool hasOnScreenKeyboard() const { return HasTouchDevice; }
         virtual u32 getScreenHeight() const { return m_screen_height; }
         virtual u32 getOnScreenKeyboardHeight() const;
         virtual s32 getMovedHeight() const { return m_moved_height; }
@@ -137,7 +141,6 @@ namespace irr
         const ASensor* Gyroscope;
         bool AccelerometerActive;
         bool GyroscopeActive;
-        bool TextInputEnabled;
         static AndroidApplicationInfo ApplicationInfo;
 
         static bool IsPaused;
@@ -169,15 +172,11 @@ namespace irr
         void createKeyMap();
         void createVideoModeList();
         wchar_t getKeyChar(SEvent& event);
-        wchar_t getUnicodeChar(AInputEvent* event);
-        static void hideNavBar(ANativeActivity* activity);
         static void readApplicationInfo(ANativeActivity* activity);
         int getRotation();
         DeviceOrientation getDefaultOrientation();
         video::SExposedVideoData& getExposedVideoData();
         
-        static void handleAndroidCommandDirect(ANativeActivity* activity, 
-                                               int32_t cmd);
         static void handleAndroidCommand(android_app* app, int32_t cmd);
         static s32 handleInput(android_app* app, AInputEvent* event);
 
