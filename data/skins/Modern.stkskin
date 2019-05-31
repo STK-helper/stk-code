@@ -70,7 +70,7 @@ when the border that intersect at this corner are enabled.
 <menumusic name="main_theme_modern.music" />
 
 <!--  Stateless -->
-<element type="background" image="modern/background-hack.png" />
+<element type="background" image="modern/background.png" />
 
 <element type="bottom-bar" image="common/bottom_bar.png" />
 
