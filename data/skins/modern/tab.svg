@@ -31,7 +31,7 @@
      id="namedview12"
      showgrid="false"
      inkscape:zoom="4.0159203"
-     inkscape:cx="42.086144"
+     inkscape:cx="39.310278"
      inkscape:cy="28.900396"
      inkscape:window-x="0"
      inkscape:window-y="29"
@@ -60,26 +60,26 @@
      id="layer1">
     <path
        transform="matrix(1,0,0,1.0000064,-16.422853,266.82393)"
-       d="m 23.201172,118.80272 c -2.699365,4.3e-4 -3.075247,-0.21943 -3.833984,2.37111 l 9.300781,36.51953 c 1.245045,3.73511 1.272215,4.79238 3.833984,5.78907 H 186.23438 c 2.69936,-4.3e-4 3.07524,0.21943 3.83398,-2.3711 l 6.69726,-36.51953 c -1.10108,-3.89232 -1.02319,-4.04537 -3.83398,-5.78908 z"
+       d="m 23.201172,114.80274 c -2.699365,4.3e-4 -3.075247,-0.21943 -3.833984,2.37111 l 9.300781,40.51951 c 1.245045,3.73511 1.272215,4.79238 3.833984,5.78907 H 186.23438 c 2.69936,-4.3e-4 3.07524,0.21943 3.83398,-2.3711 l 6.09883,-42.5195 c -1.10108,-3.89232 -0.42476,-2.04538 -3.23555,-3.78909 z"
        id="path823-3"
        style="fill:#000000;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccccccc" />
     <path
        id="path823"
-       d="M 16.079655,426.22763 6.777569,389.70693 H 176.50849 l -6.69791,36.5207 z"
+       d="M 16.079655,426.22763 6.777569,385.70693 H 176.50849 l -6.69791,40.5207 z"
        style="fill:#ff6600;stroke:none;stroke-width:0.26458415px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
     <path
        id="path842"
-       d="m 6.777569,389.70693 1.695507,3.65188 156.035414,-3.65188 z"
+       d="m 6.777569,385.70693 1.695507,3.65188 156.035414,-3.65188 z"
        style="fill:#ff9955;stroke:none;stroke-width:0.26500082;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
     <path
        id="path844"
-       d="m 10.473077,393.35881 5.606578,32.86882 -9.302086,-36.5207 z"
+       d="m 10.473077,389.35881 5.606578,36.86882 -9.302086,-40.5207 z"
        style="fill:#ff7f2a;stroke:none;stroke-width:0.26500082;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
@@ -91,7 +91,7 @@
        sodipodi:nodetypes="cccc" />
     <path
        id="path848"
-       d="m 165.08364,421.01109 11.42485,-31.30416 -6.69791,36.5207 z"
+       d="m 165.08364,421.01109 11.42485,-35.30416 -6.69791,38.5207 z"
        style="fill:#d45500;stroke:none;stroke-width:0.26458415px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />

@@ -70,7 +70,7 @@ when the border that intersect at this corner are enabled.
 <menumusic name="main_theme_modern.music" />
 
 <!--  Stateless -->
-<element type="background" image="modern/background.png" />
+<element type="background" image="modern/background_with_flag.png" />
 
 <element type="bottom-bar" image="common/bottom_bar.png" />
 
@@ -134,7 +134,7 @@ when the border that intersect at this corner are enabled.
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
       h_inner_padding="0" v_inner_padding="0" />
 
-<element type="tab" state="down" image="modern/tab_down.png"
+<element type="tab" state="down" image="modern/tab.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
       h_inner_padding="0" v_inner_padding="0" />
@@ -179,7 +179,7 @@ when the border that intersect at this corner are enabled.
 <element type="selectionHalo" image="modern/bubble.png"  />
 <element type="focusHalo" image="modern/glass_iconhighlight_focus.png"  />
 
-<element type="spinner" state="neutral" image="modern/glassspinner.png"
+<element type="spinner" state="neutral" image="modern/spinner.png"
     left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
@@ -227,7 +227,7 @@ when the border that intersect at this corner are enabled.
 <element type="gaugefill" image="modern/glasssgauge_fill.png" />
 
 <!-- Lists are always in neutral state for now -->
-<element type="list" image="modern/glass_section.png"
+<element type="list" image="modern/section.png"
     left_border="15" right_border="15" top_border="7" bottom_border="7"
     hborder_out_portion="0.0" vborder_out_portion="0.0" />
     
@@ -256,7 +256,7 @@ when the border that intersect at this corner are enabled.
 <element type="list_header"  state="down"    image="modern/table_header_down.png" />
 
 <!-- Stateless -->
-<element type="section" image="modern/glass_section.png"
+<element type="section" image="modern/section.png"
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       hborder_out_portion="0.0" vborder_out_portion="0.0" />
 
@@ -265,7 +265,7 @@ when the border that intersect at this corner are enabled.
       hborder_out_portion="0.0" vborder_out_portion="0.0" />
 
 <!-- Stateless -->
-<element type="rounded_section" image="modern/glass_rsection.png"
+<element type="rounded_section" image="modern/rsection.png"
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       hborder_out_portion="0.0" vborder_out_portion="0.0" />
 
