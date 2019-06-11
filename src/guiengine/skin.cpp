@@ -1472,14 +1472,17 @@ void Skin::drawSpinnerBody(const core::recti &rect, Widget* widget,
     else if (widget->m_deactivated)
     {
         params=&SkinConfig::m_render_params["spinner::deactivated"];
+        params->areas = BoxRenderParams::ALL;
     }
     else if (focused || pressed)
     {
         params=&SkinConfig::m_render_params["spinner::focused"];
+        params->areas = BoxRenderParams::ALL;
     }
     else
     {
         params=&SkinConfig::m_render_params["spinner::neutral"];
+        params->areas = BoxRenderParams::ALL;
     }
 
     for (unsigned i = 1; i < MAX_PLAYER_COUNT + 1; i++)
@@ -1532,6 +1535,14 @@ void Skin::drawSpinnerBody(const core::recti &rect, Widget* widget,
     drawBoxFromStretchableTexture(widget, sized_rect, *params,
                                   widget->m_deactivated);
 
+    if (focused || pressed)
+    {
+        params = &SkinConfig::m_render_params["spinner::neutral"];
+        params->areas = BoxRenderParams::RIGHT+BoxRenderParams::LEFT;
+
+        drawBoxFromStretchableTexture(widget, sized_rect, *params,
+                                      widget->m_deactivated);
+    }
 
     // ---- If this spinner is of "gauge" type, draw filling
     const SpinnerWidget* w = dynamic_cast<const SpinnerWidget*>(widget);
@@ -1606,9 +1617,15 @@ void Skin::drawSpinnerChild(const core::recti &rect, Widget* widget,
                           spinner->m_x + spinner->m_w,
                           spinner->m_y + spinner->m_h  );
 
-        BoxRenderParams& params = SkinConfig::m_render_params["spinner::down"];
-        params.areas = areas;
-        drawBoxFromStretchableTexture(widget, rect, params,
+        BoxRenderParams* params;
+
+        if (pressed)
+            params = &SkinConfig::m_render_params["spinner::down"];
+        else
+            params = &SkinConfig::m_render_params["spinner::focused"];
+
+        params->areas = areas;
+        drawBoxFromStretchableTexture(widget, rect, *params,
                                       widget->m_deactivated);
     }
 

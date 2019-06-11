@@ -221,6 +221,7 @@ namespace GUIEngine
         static const int RIGHT = 4;
         static const int TOP = 8;
         static const int BOTTOM = 16;
+        static const int ALL = BODY+LEFT+RIGHT+TOP+BOTTOM;
 
         core::rect<s32> m_source_area_left;
         core::rect<s32> m_source_area_center;

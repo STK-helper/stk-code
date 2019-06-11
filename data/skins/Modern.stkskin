@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-modern skin by Dakal and Marianne Gagnon, released under creative-moderns BY-SA 3.0+
-Except background.png, by QwertyChouskie
+modern skin by LCP and QwertyChouskie, released under creative-moderns BY-SA 3.0+
 Except stars, by s@f
 
 To make your own skin, I suggest simply duplicating this file and modifying it as needed.
@@ -57,14 +56,14 @@ that take a float from 0 to 1, representing the percentage of each border that g
 area (this might include stuff like shadows, etc.). The 'h' one is for horizontal borders,
 the 'v' one is for vertical borders.
 
-Finnally : the image is split, as shown above, into 9 areas. In osme cases, you may not want
+Finnally : the image is split, as shown above, into 9 areas. In some cases, you may not want
 all areas to be rendered. Then you can pass parameter areas="body+left+right+top+bottom"
 and explicitely specify which parts you want to see. The 4 corner areas are only visible
 when the border that intersect at this corner are enabled.
 
 -->
 
-<skin name="Modern" author="Dakal and Marianne Gagnon (Auria) and LCP and QwertyChouskie">
+<skin name="Modern" author="LCP and QwertyChouskie">
 
 <icontheme name="Modern" />
 <menumusic name="main_theme_modern.music" />
@@ -115,7 +114,7 @@ when the border that intersect at this corner are enabled.
       left_border="13" right_border="13" top_border="13" bottom_border="13"
       hborder_out_portion="0.7" vborder_out_portion="0.3" />
 
-<element type="progress" state="fill" image="modern/glasssgauge_fill.png"
+<element type="progress" state="fill" image="modern/gauge_fill.png"
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       preserve_h_aspect_ratios="false" />
 
@@ -142,17 +141,17 @@ when the border that intersect at this corner are enabled.
 
 <element type="verticalTab" state="neutral" image="modern/tab_vert.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
-      hborder_out_portion="0" vborder_out_portion="0"
+      hborder_out_portion="0.2" vborder_out_portion="0.5"
       h_inner_padding="0" v_inner_padding="0" />
       
 <element type="verticalTab" state="focused" image="modern/tab_vert_focus.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
-      hborder_out_portion="0" vborder_out_portion="0"
+      hborder_out_portion="0.2" vborder_out_portion="0.5"
       h_inner_padding="0" v_inner_padding="0" />
 
 <element type="verticalTab" state="down" image="modern/tab_vert_down.png"
       left_border="60" right_border="60" top_border="10" bottom_border="10"
-      hborder_out_portion="0" vborder_out_portion="0"
+      hborder_out_portion="0.2" vborder_out_portion="0.5"
       h_inner_padding="0" v_inner_padding="0" />
 
 <!-- Stateless -->
@@ -183,11 +182,11 @@ when the border that intersect at this corner are enabled.
     left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
-<element type="spinner" state="focused" image="modern/glassspinner_focus.png"
+<element type="spinner" state="focused" image="modern/spinner_focus.png"
     left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
-<element type="spinner" state="deactivated" image="modern/glassspinner_deactivated.png"
+<element type="spinner" state="deactivated" image="modern/spinner_deactivated.png"
     left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
@@ -210,7 +209,7 @@ when the border that intersect at this corner are enabled.
 
 <!-- This one is a bit special. Only area(s) LEFT and/or RIGHT will be rendered. They will be overlaid
      on top of the spinner's background -->
-<element type="spinner" state="down" image="modern/glassspinner_down.png"
+<element type="spinner" state="down" image="modern/spinner_down.png"
     left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
@@ -224,7 +223,7 @@ when the border that intersect at this corner are enabled.
 
 <!-- are always in neutral state for now. No splitting into 9 areas is done; the image is just stretched.
      Note: the body of a guage is the same as for for spinners. -->
-<element type="gaugefill" image="modern/glasssgauge_fill.png" />
+<element type="gaugefill" image="modern/gauge_fill.png" />
 
 <!-- Lists are always in neutral state for now -->
 <element type="list" image="modern/section.png"
