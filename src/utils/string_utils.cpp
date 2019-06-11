@@ -21,9 +21,12 @@
 #include "utils/string_utils.hpp"
 
 #include "config/stk_config.hpp"
+#include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/time.hpp"
+#include "utils/types.hpp"
 #include "utils/utf8.h"
+#include "irrArray.h"
 
 #include "coreutil.h"
 
@@ -207,6 +210,67 @@ namespace StringUtils
             for (int n=0; n<(int)result.size(); n++)
             {
                 Log::error("StringUtils", "Split : %s", result[n].c_str());
+            }
+
+            assert(false); // in debug mode, trigger debugger
+            exit(1);
+        }
+    }   // split
+
+    //-------------------------------------------------------------------------
+    /** Splits a string into substrings separated by a certain character, and
+     *  returns a std::vector of all those substring. E.g.:
+     *  split("a b=c d=e",' ')  --> ["a", "b=c", "d=e"]
+     *  \param s The string to split.
+     *  \param c The character  by which the string is split.
+     */
+    std::vector<std::u32string> split(const std::u32string& s, char32_t c,
+                                      bool keepSplitChar)
+    {
+        std::vector<std::u32string> result;
+
+        try
+        {
+            std::u32string::size_type start=0;
+            while(start < (unsigned int) s.size())
+            {
+                std::u32string::size_type i=s.find(c, start);
+                if (i!=std::u32string::npos)
+                {
+                    if (keepSplitChar)
+                    {
+                        int from = (int)start-1;
+                        if (from < 0) from = 0;
+
+                        result.push_back(std::u32string(s, from, i-from));
+                    }
+                    else result.push_back(std::u32string(s,start, i-start));
+
+                    start=i+1;
+                }
+                else   // end of string reached
+                {
+                    if (keepSplitChar && start != 0)
+                        result.push_back(std::u32string(s,start-1));
+                    else
+                        result.push_back(std::u32string(s,start));
+                    return result;
+                }
+            }
+            return result;
+        }
+        catch (std::exception& e)
+        {
+            Log::error("StringUtils",
+                       "Error in split(std::string) : %s @ line %i : %s.",
+                     __FILE__, __LINE__, e.what());
+            Log::error("StringUtils", "Splitting '%s'.",
+                       wideToUtf8(utf32ToWide(s)).c_str());
+
+            for (int n=0; n<(int)result.size(); n++)
+            {
+                Log::error("StringUtils", "Split : %s",
+                           wideToUtf8(utf32ToWide(result[n])).c_str());
             }
 
             assert(false); // in debug mode, trigger debugger
@@ -681,7 +745,7 @@ namespace StringUtils
      */
     irr::core::stringw xmlDecode(const std::string& input)
     {
-        irr::core::stringw output;
+        std::u32string output;
         std::string entity;
         bool isHex = false;
 
@@ -705,15 +769,15 @@ namespace StringUtils
                     }
                     else
                     {
-                        output += wchar_t(input[n]);
+                        output += char32_t(input[n]);
                     }
                     break;
 
                 case ENTITY_PREAMBLE:
                     if (input[n] != '#')
                     {
-                        output += L"&";
-                        output += wchar_t(input[n]);
+                        output += U"&";
+                        output += char32_t(input[n]);
                         // This is actually an error, but we can't print a
                         // warning here: irrxml replaces &amp; in (e.g.)
                         // attribute values with '&' - so we can have a single
@@ -741,7 +805,7 @@ namespace StringUtils
                         const char* format = (isHex ? "%x" : "%i");
                         if (sscanf(entity.c_str(), format, &c) == 1)
                         {
-                            output += wchar_t(c);
+                            output += char32_t(c);
                         }
                         else
                         {
@@ -753,13 +817,20 @@ namespace StringUtils
                     }
                     else
                     {
-                        entity += wchar_t(input[n]);
+                        entity += char32_t(input[n]);
                     }
                     break;
             }
         }
-
-        return output;
+        if (sizeof(wchar_t) == 2)
+        {
+            return utf32ToWide(output);
+        }
+        else
+        {
+            const wchar_t* ptr = (const wchar_t*)output.c_str();
+            return irr::core::stringw(ptr);
+        }
     }   // xmlDecode
 
     // ------------------------------------------------------------------------
@@ -770,16 +841,17 @@ namespace StringUtils
     std::string xmlEncode(const irr::core::stringw &s)
     {
         std::ostringstream output;
-        for(unsigned int i=0; i<s.size(); i++)
+        const std::u32string& utf32 = wideToUtf32(s);
+        for(unsigned i = 0; i < utf32.size(); i++)
         {
-            if (s[i] >= 128 || s[i] == '&' || s[i] == '<' || s[i] == '>' ||
-                s[i] == '\"' || s[i] == ' ')
+            if (utf32[i] >= 128 || utf32[i] == '&' || utf32[i] == '<' ||
+                utf32[i] == '>' || utf32[i] == '\"' || utf32[i] == ' ')
             {
-                output << "&#x" << std::hex << std::uppercase << s[i] << ";";
+                output << "&#x" << std::hex << std::uppercase << utf32[i] << ";";
             }
             else
             {
-                irr::c8 c = (char)(s[i]);
+                irr::c8 c = (char)(utf32[i]);
                 output << c;
             }
         }
@@ -791,7 +863,16 @@ namespace StringUtils
     std::string wideToUtf8(const wchar_t* input)
     {
         std::vector<char> utf8line;
-        utf8::utf16to8(input, input + wcslen(input), back_inserter(utf8line));
+        if (sizeof(wchar_t) == 2)
+        {
+            utf8::utf16to8(input, input + wcslen(input),
+                back_inserter(utf8line));
+        }
+        else if (sizeof(wchar_t) == 4)
+        {
+            utf8::utf32to8(input, input + wcslen(input),
+                back_inserter(utf8line));
+        }
         utf8line.push_back(0);
         return std::string(&utf8line[0]);
     }   // wideToUtf8
@@ -808,10 +889,19 @@ namespace StringUtils
     /** Converts the irrlicht wide string to an utf8-encoded std::string. */
     irr::core::stringw utf8ToWide(const char* input)
     {
-        std::vector<wchar_t> utf16line;
-        utf8::utf8to16(input, input + strlen(input), back_inserter(utf16line));
-        utf16line.push_back(0);
-        return irr::core::stringw(&utf16line[0]);
+        std::vector<wchar_t> wchar_line;
+        if (sizeof(wchar_t) == 2)
+        {
+            utf8::utf8to16(input, input + strlen(input),
+                back_inserter(wchar_line));
+        }
+        else if (sizeof(wchar_t) == 4)
+        {
+            utf8::utf8to32(input, input + strlen(input),
+                back_inserter(wchar_line));
+        }
+        wchar_line.push_back(0);
+        return irr::core::stringw(&wchar_line[0]);
     }   // utf8ToWide
 
     // ------------------------------------------------------------------------
@@ -1163,6 +1253,59 @@ namespace StringUtils
     } // partOfLongUnicodeChar
 
     // ------------------------------------------------------------------------
+    irr::core::stringw utf32ToWide(const std::u32string& input)
+    {
+        std::vector<wchar_t> wchar_line;
+        if (sizeof(wchar_t) == 2)
+        {
+            const uint32_t* chars = (const uint32_t*)input.c_str();
+            utf8::utf32to16(chars, chars + input.size(),
+                back_inserter(wchar_line));
+        }
+        else if (sizeof(wchar_t) == sizeof(char32_t))
+        {
+            wchar_line.resize(input.size());
+            memcpy(wchar_line.data(), input.c_str(),
+                input.size() * sizeof(char32_t));
+        }
+        wchar_line.push_back(0);
+        return irr::core::stringw(&wchar_line[0]);
+    }   // utf32ToWide
+
+    // ------------------------------------------------------------------------
+    std::u32string utf8ToUtf32(const std::string &input)
+    {
+        std::u32string result;
+        utf8::utf8to32(input.c_str(), input.c_str() + input.size(),
+            back_inserter(result));
+        return result;
+    }   // utf8ToUtf32
+
+    // ------------------------------------------------------------------------
+    std::string utf32ToUtf8(const std::u32string& input)
+    {
+        std::string result;
+        utf8::utf32to8(input.c_str(), input.c_str() + input.size(),
+            back_inserter(result));
+        return result;
+    }   // utf32ToUtf8
+
+    // ------------------------------------------------------------------------
+    std::u32string wideToUtf32(const irr::core::stringw& input)
+    {
+        std::u32string utf32_line;
+        if (sizeof(wchar_t) != sizeof(char32_t))
+        {
+            const uint16_t* chars = (const uint16_t*)input.c_str();
+            utf8::utf16to32(chars, chars + input.size(),
+                back_inserter(utf32_line));
+        }
+        else if (sizeof(wchar_t) == sizeof(char32_t))
+            utf32_line = (const char32_t*)input.c_str();
+        return utf32_line;
+    }   // wideToUtf32
+
+    // ------------------------------------------------------------------------
     /** At the moment only versionToInt is tested. 
      */
     void unitTesting()
@@ -1181,8 +1324,26 @@ namespace StringUtils
         assert(versionToInt("1-rc9"           ) ==  10000029);
         assert(versionToInt("1.0-rc1"         ) ==  10000021);   // same as 1-rc1
     }   // unitTesting
+    // ------------------------------------------------------------------------
+    std::string getUserAgentString()
+    {
+        std::string uagent(std::string("SuperTuxKart/") + STK_VERSION);
+#ifdef WIN32
+        uagent += (std::string)" (Windows)";
+#elif defined(__APPLE__)
+        uagent += (std::string)" (Macintosh)";
+#elif defined(__FreeBSD__)
+        uagent += (std::string)" (FreeBSD)";
+#elif defined(ANDROID)
+        uagent += (std::string)" (Android)";
+#elif defined(linux)
+        uagent += (std::string)" (Linux)";
+#else
+        // Unknown system type
+#endif
+        return uagent;
+    }   // getUserAgentString
 
 } // namespace StringUtils
-
 
 /* EOF */

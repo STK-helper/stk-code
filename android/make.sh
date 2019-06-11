@@ -152,7 +152,6 @@ if [ -z "$BUILD_TYPE" ]; then
 fi
 
 if [ "$BUILD_TYPE" = "debug" ] || [ "$BUILD_TYPE" = "Debug" ]; then
-    export ANT_BUILD_TYPE="debug"
     export GRADLE_BUILD_TYPE="assembleDebug"
     export IS_DEBUG_BUILD=1
     export APP_NAME="$APP_NAME_DEBUG"
@@ -161,7 +160,6 @@ if [ "$BUILD_TYPE" = "debug" ] || [ "$BUILD_TYPE" = "Debug" ]; then
     export APP_DIR_NAME="$APP_DIR_NAME_DEBUG"
     export APP_ICON="$APP_ICON_DEBUG"
 elif [ "$BUILD_TYPE" = "release" ] || [ "$BUILD_TYPE" = "Release" ]; then
-    export ANT_BUILD_TYPE="release"
     export GRADLE_BUILD_TYPE="assembleRelease"
     export IS_DEBUG_BUILD=0
     export APP_NAME="$APP_NAME_RELEASE"
@@ -170,7 +168,6 @@ elif [ "$BUILD_TYPE" = "release" ] || [ "$BUILD_TYPE" = "Release" ]; then
     export APP_DIR_NAME="$APP_DIR_NAME_RELEASE"
     export APP_ICON="$APP_ICON_RELEASE"
 elif [ "$BUILD_TYPE" = "beta" ] || [ "$BUILD_TYPE" = "Beta" ]; then
-    export ANT_BUILD_TYPE="release"
     export GRADLE_BUILD_TYPE="assembleRelease"
     export IS_DEBUG_BUILD=0
     export APP_NAME="$APP_NAME_BETA"
@@ -181,17 +178,6 @@ elif [ "$BUILD_TYPE" = "beta" ] || [ "$BUILD_TYPE" = "Beta" ]; then
 else
     echo "Unsupported BUILD_TYPE: $BUILD_TYPE. Possible values are: " \
          "debug, release"
-    exit
-fi
-
-# Check selected build tool
-if [ -z "$BUILD_TOOL" ]; then
-    BUILD_TOOL="gradle"
-fi
-
-if [ "$BUILD_TOOL" != "gradle" ] && [ "$BUILD_TOOL" != "ant" ]; then
-    echo "Unsupported BUILD_TOOL: $BUILD_TOOL. Possible values are: " \
-         "gradle, ant"
     exit
 fi
 
@@ -292,22 +278,6 @@ fi
 
 echo "$PROJECT_VERSION" > "$DIRNAME/obj/project_version"
 
-# Freetype
-if [ ! -f "$DIRNAME/obj/freetype.stamp" ]; then
-    echo "Compiling freetype"
-    mkdir -p "$DIRNAME/obj/freetype"
-    cp -a -f "$DIRNAME/../lib/freetype/"* "$DIRNAME/obj/freetype"
-
-    cd "$DIRNAME/obj/freetype"
-    ./configure --host=$HOST          \
-                --without-zlib        \
-                --without-png         \
-                --without-harfbuzz &&
-    make $@
-    check_error
-    touch "$DIRNAME/obj/freetype.stamp"
-fi
-
 # Zlib
 if [ ! -f "$DIRNAME/obj/zlib.stamp" ]; then
     echo "Compiling zlib"
@@ -338,6 +308,73 @@ if [ ! -f "$DIRNAME/obj/libpng.stamp" ]; then
     make $@
     check_error
     touch "$DIRNAME/obj/libpng.stamp"
+fi
+
+# Fribidi
+if [ ! -f "$DIRNAME/obj/fribidi.stamp" ]; then
+    echo "Compiling fribidi"
+    mkdir -p "$DIRNAME/obj/fribidi"
+    cp -a -f "$DIRNAME/../lib/fribidi/"* "$DIRNAME/obj/fribidi"
+
+    cd "$DIRNAME/obj/fribidi"
+    ./configure --host=$HOST --enable-static=yes &&
+    make $@
+    mkdir -p "$DIRNAME/obj/fribidi/include/fribidi"
+    cp $DIRNAME/obj/fribidi/lib/*.h "$DIRNAME/obj/fribidi/include/fribidi"
+    check_error
+    touch "$DIRNAME/obj/fribidi.stamp"
+fi
+
+# Freetype bootstrap
+if [ ! -f "$DIRNAME/obj/freetype_bootstrap.stamp" ]; then
+    echo "Compiling freetype"
+    mkdir -p "$DIRNAME/obj/freetype"
+    cp -a -f "$DIRNAME/../lib/freetype/"* "$DIRNAME/obj/freetype"
+
+    cd "$DIRNAME/obj/freetype"
+    ZLIB_CFLAGS="-I$DIRNAME/obj/zlib/" ZLIB_LIBS="$DIRNAME/obj/zlib/libz.a"\
+    LIBPNG_CFLAGS="-I$DIRNAME/obj/libpng/" LIBPNG_LIBS="$DIRNAME/obj/libpng/libpng.a"\
+    ./configure --host=$HOST --enable-shared=no \
+                --without-harfbuzz &&
+    make $@
+    check_error
+    # We need to rebuild freetype after harfbuzz is compiled
+    touch "$DIRNAME/obj/freetype_bootstrap.stamp"
+fi
+
+# Harfbuzz
+if [ ! -f "$DIRNAME/obj/harfbuzz.stamp" ]; then
+    echo "Compiling harfbuzz"
+    mkdir -p "$DIRNAME/obj/harfbuzz"
+    cp -a -f "$DIRNAME/../lib/harfbuzz/"* "$DIRNAME/obj/harfbuzz"
+
+    cd "$DIRNAME/obj/harfbuzz"
+    FREETYPE_CFLAGS="-I$DIRNAME/obj/freetype/include" \
+    FREETYPE_LIBS="$DIRNAME/obj/freetype/objs/.libs/libfreetype.a $DIRNAME/obj/zlib/libz.a $DIRNAME/obj/libpng/libpng.a"\
+    ./configure --host=$HOST --enable-shared=no \
+                --with-glib=no --with-gobject=no --with-cairo=no \
+                --with-fontconfig=no --with-icu=no --with-graphite2=no &&
+    make $@
+    mkdir -p "$DIRNAME/obj/harfbuzz/include/harfbuzz"
+    cp $DIRNAME/obj/harfbuzz/src/*.h "$DIRNAME/obj/harfbuzz/include/harfbuzz"
+    check_error
+    touch "$DIRNAME/obj/harfbuzz.stamp"
+fi
+
+# Freetype
+if [ ! -f "$DIRNAME/obj/freetype.stamp" ]; then
+    echo "Compiling freetype"
+    mkdir -p "$DIRNAME/obj/freetype"
+    cp -a -f "$DIRNAME/../lib/freetype/"* "$DIRNAME/obj/freetype"
+
+    cd "$DIRNAME/obj/freetype"
+    ZLIB_CFLAGS="-I$DIRNAME/obj/zlib/" ZLIB_LIBS="$DIRNAME/obj/zlib/libz.a" \
+    LIBPNG_CFLAGS="-I$DIRNAME/obj/libpng/" LIBPNG_LIBS="$DIRNAME/obj/libpng/libpng.a" \
+    HARFBUZZ_CFLAGS="-I$DIRNAME/obj/harfbuzz/src/" HARFBUZZ_LIBS="$DIRNAME/obj/harfbuzz/src/.libs/libharfbuzz.a" \
+    ./configure --host=$HOST --enable-shared=no
+    make $@
+    check_error
+    touch "$DIRNAME/obj/freetype.stamp"
 fi
 
 # Openal
@@ -507,15 +544,9 @@ if [ -f "/usr/lib/jvm/java-8-openjdk-amd64/bin/java" ]; then
     export PATH=$JAVA_HOME/bin:$PATH
 fi
 
-if [ "$BUILD_TOOL" = "gradle" ]; then
-    export ANDROID_HOME="$SDK_PATH"
-    gradle -Pcompile_sdk_version=$COMPILE_SDK_VERSION \
-           -Pbuild_tools_ver="$BUILD_TOOLS_VER"       \
-           $GRADLE_BUILD_TYPE
-elif [ "$BUILD_TOOL" = "ant" ]; then
-    ant -Dsdk.dir="$SDK_PATH"  \
-        -Dtarget="android-$TARGET_SDK_VERSION" \
-        $ANT_BUILD_TYPE
-fi
+export ANDROID_HOME="$SDK_PATH"
+./gradlew -Pcompile_sdk_version=$COMPILE_SDK_VERSION \
+          -Pbuild_tools_ver="$BUILD_TOOLS_VER"       \
+          $GRADLE_BUILD_TYPE
 
 check_error

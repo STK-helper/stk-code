@@ -17,7 +17,7 @@ msgstr ""
 "Project-Id-Version: SuperTuxKart\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-14 15:17+0800\n"
-"PO-Revision-Date: 2019-05-15 08:31+0000\n"
+"PO-Revision-Date: 2019-06-05 02:14+0000\n"
 "Last-Translator: Mensious Mensious <ektoras@tutanota.com>\n"
 "Language-Team: Greek (http://www.transifex.com/supertuxkart/supertuxkart/language/el/)\n"
 "MIME-Version: 1.0\n"
@@ -2436,28 +2436,28 @@ msgstr "Δοκιμασία-χρόνου (Πρωτάθλημα) "
 
 #: src/challenges/challenge_data.cpp:308
 msgid "Time-Trial - beat the replay"
-msgstr ""
+msgstr "Δοκιμασία-Χρόνου - Νίκησε το High score"
 
 #: src/challenges/challenge_data.cpp:310
 msgid "Time-Trial - nitro challenge"
-msgstr ""
+msgstr "Δοκιμασία-Χρόνου - nitro πρόκληση"
 
 #: src/challenges/challenge_data.cpp:312
 msgid "Normal Race (single race)"
-msgstr "Κανονικός Αγώνας (ατομικό αγώνα)"
+msgstr "Κανονικός Αγώνας (ατομικός αγώνας)"
 
 #: src/challenges/challenge_data.cpp:314
 msgid "Time-Trial (single race)"
-msgstr ""
+msgstr "Δοκιμασία-χρόνου (ατομικός αγώνας)"
 
 #: src/challenges/challenge_data.cpp:316
 msgid "Follow the Leader (single race)"
-msgstr ""
+msgstr "Ακολούθησε τον αρχηγό (ατομικό παιχνίδι)"
 
 #: src/challenges/challenge_data.cpp:322
 #: src/states_screens/dialogs/select_challenge.cpp:170
 msgid "Mode: Reverse"
-msgstr ""
+msgstr "Mode: Ανάποδα"
 
 #: src/challenges/challenge_data.cpp:599
 #, c-format
@@ -3538,7 +3538,7 @@ msgstr "Πάτηστε <%s> ή <%s> για να αλλάξετε τον παίκ
 #: src/network/protocols/client_lobby.cpp:1462
 #, c-format
 msgid "Successfully reported %s."
-msgstr ""
+msgstr "Πετύχε το παράπονο %s."
 
 #: src/network/protocols/connect_to_server.cpp:50
 msgid "No quick play server available."
@@ -4342,20 +4342,20 @@ msgstr "Διάλεξε χρώμα από την παλέτα χρωμάτων"
 #. I18N: In the network player dialog
 #: src/states_screens/dialogs/network_player_dialog.cpp:48
 msgid "Player info"
-msgstr ""
+msgstr "Πληροφορίες πάικτη"
 
 #. I18N: In the network player dialog
 #: src/states_screens/dialogs/network_player_dialog.cpp:53
 #, c-format
 msgid "Player name: %s"
-msgstr ""
+msgstr "Όνομα παίκτη: %s"
 
 #. I18N: In the network player dialog, show the player location with
 #. country name (based on IP geolocation)
 #: src/states_screens/dialogs/network_player_dialog.cpp:62
 #, c-format
 msgid "Player location: %s"
-msgstr ""
+msgstr "Διεύθυνση παίκτη: %s"
 
 #. I18N: In the network player dialog
 #: src/states_screens/dialogs/network_player_dialog.cpp:105
@@ -4381,7 +4381,7 @@ msgstr "Απενεργοποίηση μειωμένης ταχύτητας"
 #. report player about for example abusive behaviour in game
 #: src/states_screens/dialogs/network_player_dialog.cpp:156
 msgid "Report player"
-msgstr ""
+msgstr "Παραπονό στον Παίκτη"
 
 #. I18N: In the network player dialog, showing when waiting for
 #. the result of the ranking info of a player
@@ -4490,7 +4490,7 @@ msgstr "Τρέχον πίστα: %s"
 #: src/states_screens/dialogs/server_info_dialog.cpp:116
 #, c-format
 msgid "Server location: %s"
-msgstr ""
+msgstr "Διεύθυνση Server: %s"
 
 #: src/states_screens/dialogs/server_info_dialog.cpp:130
 msgid "Rank"
@@ -4527,7 +4527,7 @@ msgstr "Δεν υπάρχει διαθέσιμος παίκτης για να σ
 #: src/states_screens/dialogs/user_info_dialog.cpp:54
 #, c-format
 msgid "Username: %s"
-msgstr ""
+msgstr "Όνομα Χρήστη: %s"
 
 #: src/states_screens/dialogs/user_info_dialog.cpp:58
 msgid "Cancel Request"

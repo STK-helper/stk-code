@@ -5,11 +5,11 @@
         Older version will be ignored. -->
   <kart-version min="2" max="3"/>
 
-  <!-- Minimum and maxium track versions that be be read by this binary.
+  <!-- Minimum and maximum track versions that be be read by this binary.
        Older versions will be ignored. -->
   <track-version min="6" max="7"/>
 
-  <!-- Minimum and maxium server versions that be be read by this binary.
+  <!-- Minimum and maximum server versions that be be read by this binary.
        Older versions will be ignored. -->
   <server-version min="6" max="6"/>
 
@@ -543,8 +543,10 @@
   which leads to crash with STK), but the fonts are to blame, what's the point of not
   using industry standard nowadays...
   -->
-  <fonts-list normal-ttf="Inter-UI-Black.ttf Cantarell-Regular.otf wqy-microhei.ttf NotoSansHebrew-Regular.ttf NotoNaskhArabicUI-Regular.ttf"
-              digit-ttf="SigmarOne.otf" />
+
+  <fonts-list normal-ttf="Inter-UI-Black.ttf Cantarell-Regular.otf wqy-microhei.ttf NotoSansThai-Regular.ttf NotoSansHebrew-Regular.ttf NotoNaskhArabicUI-Regular.ttf"
+              digit-ttf="SigmarOne.otf"
+              color-emoji-ttf="NotoColorEmoji.ttf"/>
 
   <!-- Maximum bones from all animated meshes in each frame to be uploaded for
        hardware skinning, For gles 3.0 the specification guarantees at least 2048, for

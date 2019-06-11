@@ -29,6 +29,7 @@
 #include "graphics/glwrap.hpp"
 #include "graphics/irr_driver.hpp"
 #include "online/http_request.hpp"
+#include "utils/log.hpp"
 #include "utils/random_generator.hpp"
 
 #include <fstream>
@@ -156,7 +157,7 @@ bool readEtcReleaseFile(const std::string &filename)
 
 // ----------------------------------------------------------------------------
 /** Identify more details about the OS, e.g. on linux which distro
- *  and which verison; on windows the version number.
+ *  and which version; on windows the version number.
  *  \param json Json data structure to store the os info in.
  */
 void determineOSVersion()
