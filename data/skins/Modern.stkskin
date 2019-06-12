@@ -286,7 +286,7 @@ when the border that intersect at this corner are enabled.
 <color type="text" state="focused" r="255" g="255" b="255" />
 
 <!-- Color used in the credits -->
-<color type="credits_text" state="neutral" r="65" g="15" b="0" />
+<color type="credits_text" state="neutral" r="0" g="0" b="0" />
 
 <!-- Color used for emphasized items in e.g. lists -->
 <color type="emphasis_text" state="neutral" r="0" g="0" b="180" />
