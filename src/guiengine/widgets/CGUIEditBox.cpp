@@ -245,7 +245,9 @@ CGUIEditBox::~CGUIEditBox()
         dl->setIMEEnable(false);
     }
 #endif
-    irr_driver->getDevice()->toggleOnScreenKeyboard(false);
+    if (GUIEngine::ScreenKeyboard::shouldUseScreenKeyboard() &&
+        irr_driver->getDevice()->hasOnScreenKeyboard())
+        irr_driver->getDevice()->toggleOnScreenKeyboard(false);
 
 #endif
 }
@@ -675,7 +677,9 @@ bool CGUIEditBox::processKey(const SEvent& event)
         break;
     case IRR_KEY_RETURN:
         {
-            irr_driver->getDevice()->toggleOnScreenKeyboard(false);
+            if (GUIEngine::ScreenKeyboard::shouldUseScreenKeyboard() &&
+                irr_driver->getDevice()->hasOnScreenKeyboard())
+                irr_driver->getDevice()->toggleOnScreenKeyboard(false);
             sendGuiEvent( EGET_EDITBOX_ENTER );
         }
         break;
@@ -1025,7 +1029,7 @@ void CGUIEditBox::draw()
 
 
 //! Sets the new caption of this element.
-void CGUIEditBox::setText(const wchar_t* text)
+void CGUIEditBox::setText(const core::stringw& text)
 {
     m_edit_text = StringUtils::wideToUtf32(text);
     updateGlyphLayouts();
@@ -1382,8 +1386,11 @@ void CGUIEditBox::calculateScrollPos()
 void CGUIEditBox::setTextMarkers(s32 begin, s32 end)
 {
     if (GUIEngine::ScreenKeyboard::isActive())
+    {
+        m_mark_begin = m_mark_end = 0;
         return;
-        
+    }
+
     if (begin != m_mark_begin || end != m_mark_end)
     {
         m_mark_begin = begin;

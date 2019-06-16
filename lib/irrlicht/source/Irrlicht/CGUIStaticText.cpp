@@ -17,7 +17,7 @@ namespace gui
 {
 
 //! constructor
-CGUIStaticText::CGUIStaticText(const wchar_t* text, bool border,
+CGUIStaticText::CGUIStaticText(const core::stringw& text, bool border,
 			IGUIEnvironment* environment, IGUIElement* parent,
 			s32 id, const core::rect<s32>& rectangle,
 			bool background)
@@ -302,8 +302,10 @@ void CGUIStaticText::breakText()
 
 
 //! Sets the new caption of this element.
-void CGUIStaticText::setText(const wchar_t* text)
+void CGUIStaticText::setText(const core::stringw& text)
 {
+	if (text == Text)
+		return;
 	IGUIElement::setText(text);
 	breakText();
 }

@@ -71,6 +71,8 @@
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/profiler.hpp"
+#include "utils/string_utils.hpp"
+#include "utils/translation.hpp"
 #include "utils/vs.hpp"
 
 #include <irrlicht.h>

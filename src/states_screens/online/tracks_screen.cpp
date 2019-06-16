@@ -43,6 +43,7 @@
 #include "states_screens/track_info_screen.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
+#include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
 
 #include <iostream>
@@ -589,7 +590,7 @@ void TracksScreen::buildTrackList()
         }
         else
         {
-            tracks_widget->addItem(translations->fribidize(curr->getName()),
+            tracks_widget->addItem(curr->getName(),
                 curr->getIdent(),
                 curr->getScreenshotFile(), 0,
                 IconButtonWidget::ICON_PATH_TYPE_ABSOLUTE);

@@ -85,8 +85,10 @@
 #include "tracks/track_sector.hpp"
 #include "utils/constants.hpp"
 #include "utils/log.hpp" //TODO: remove after debugging is done
-#include "utils/vs.hpp"
 #include "utils/profiler.hpp"
+#include "utils/string_utils.hpp"
+#include "utils/translation.hpp"
+#include "utils/vs.hpp"
 
 #include <ICameraSceneNode.h>
 #include <ISceneManager.h>
@@ -3422,7 +3424,7 @@ btQuaternion Kart::getVisualRotation() const
  *  output.
  *  \param text The text to display
  */
-void Kart::setOnScreenText(const wchar_t *text)
+void Kart::setOnScreenText(const core::stringw& text)
 {
 #ifndef SERVER_ONLY
     if (ProfileWorld::isNoGraphics())

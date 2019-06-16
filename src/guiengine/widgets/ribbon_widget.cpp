@@ -269,7 +269,6 @@ void RibbonWidget::add()
                 label->setTextAlignment(EGUIA_CENTER, EGUIA_CENTER);
                 label->setTabStop(false);
                 label->setNotClipped(true);
-                label->setRightToLeft(translations->isRTLText(message));
                 m_labels.push_back(label);
 
                 subbtn->setTabStop(false);
@@ -367,7 +366,6 @@ void RibbonWidget::add()
                 label->setTextAlignment(EGUIA_CENTER, EGUIA_CENTER);
                 label->setTabStop(false);
                 label->setNotClipped(true);
-                label->setRightToLeft(translations->isRTLText(message));
                 m_labels.push_back(label);
 
                 subbtn->setTabStop(false);
@@ -481,7 +479,7 @@ void RibbonWidget::add()
 
 // ----------------------------------------------------------------------------
 
-void RibbonWidget::addTextChild(const wchar_t* text, const std::string &id)
+void RibbonWidget::addTextChild(const core::stringw& text, const std::string &id)
 {
     // This method should only be called BEFORE a widget is added
     assert(m_element == NULL);
@@ -495,7 +493,7 @@ void RibbonWidget::addTextChild(const wchar_t* text, const std::string &id)
 
 // ----------------------------------------------------------------------------
 
-void RibbonWidget::addIconChild(const wchar_t* text, const std::string &id,
+void RibbonWidget::addIconChild(const core::stringw& text, const std::string &id,
                          const int w, const int h,
                          const std::string &icon,
                          const IconButtonWidget::IconPathType icon_path_type)

@@ -75,6 +75,9 @@ private:
     /** Index of kart in world. */
     unsigned int m_world_kart_id;
 
+    /** Name of the kart with translation. */
+    core::stringw m_name;
+
     // ------------------------------------------------------------------------
     void loadKartProperties(const std::string& new_ident,
                             PerPlayerDifficulty difficulty,
@@ -113,7 +116,10 @@ public:
                                 PerPlayerDifficulty difficulty,
                                 std::shared_ptr<RenderInfo> ri);
     virtual       ~AbstractKart();
-    virtual core::stringw getName() const;
+    // ------------------------------------------------------------------------
+    /** Returns a name to be displayed for this kart. */
+    const core::stringw& getName() const                     { return m_name; }
+    // ------------------------------------------------------------------------
     virtual void   reset();
     virtual void   init(RaceManager::KartType type) = 0;
     // ========================================================================
@@ -511,7 +517,7 @@ public:
     // -------------------------------------------------------------------------
     /** Set a text that is displayed on top of a kart.
      */
-    virtual void setOnScreenText(const wchar_t *text) = 0;
+    virtual void setOnScreenText(const core::stringw& text) = 0;
     // ------------------------------------------------------------------------
     /** Returns whether this kart wins or loses. */
     virtual bool getRaceResult() const = 0;

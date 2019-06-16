@@ -405,16 +405,16 @@ void FontWithFace::setDPI()
                              irr_driver->getActualScreenSize().Width)  / 720.0f;
     int factorTwo = getScalingFactorTwo();
     
-    if (UserConfigParams::m_fonts_size < 0)
+    if (UserConfigParams::m_font_size < 0)
     {
-        UserConfigParams::m_fonts_size = 0;
+        UserConfigParams::m_font_size = 0;
     }
-    else if (UserConfigParams::m_fonts_size > 6)
+    else if (UserConfigParams::m_font_size > 6)
     {
-        UserConfigParams::m_fonts_size = 6;
+        UserConfigParams::m_font_size = 6;
     }
     
-    factorTwo += UserConfigParams::m_fonts_size * 5 - 10;
+    factorTwo += UserConfigParams::m_font_size * 5 - 10;
     m_face_dpi = int(factorTwo * getScalingFactorOne() * scale);
 #ifndef SERVER_ONLY
     if (!disableTextShaping())
@@ -598,12 +598,22 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
     if (width_per_line.empty())
         return;
 
+    bool too_long_broken_text = false;
+    float next_line_height = m_font_max_height * scale;
+    if (width_per_line.size() > 1 &&
+        width_per_line.size() * next_line_height > position.getHeight())
+    {
+        // Make too long broken text draw as fit as possible
+        next_line_height = (float)position.getHeight() / width_per_line.size();
+        too_long_broken_text = true;
+    }
+
     // The offset must be round to integer when setting the offests
     // or * m_inverse_shaping, so the glyph is drawn without blurring effects
     if (hcenter || vcenter || clip)
     {
         text_dimension = gui::getGlyphLayoutsDimension(
-            gl, m_font_max_height * scale, m_inverse_shaping, scale);
+            gl, next_line_height, m_inverse_shaping, scale);
 
         if (hcenter)
         {
@@ -612,8 +622,14 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
         }
         if (vcenter)
         {
-            offset.Y += (s32)(
-                (position.getHeight() - text_dimension.Height) / 2.0f);
+            if (too_long_broken_text)
+                offset.Y -= (s32)
+                    ((m_font_max_height - m_glyph_max_height) * scale);
+            else
+            {
+                offset.Y += (s32)(
+                    (position.getHeight() - text_dimension.Height) / 2.0f);
+            }
         }
         if (clip)
         {
@@ -644,8 +660,7 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
         const gui::GlyphLayout& glyph_layout = gl[i];
         if ((glyph_layout.flags & gui::GLF_NEWLINE) != 0)
         {
-            // Y doesn't matter because we don't use advance y in harfbuzz
-            offset.Y += m_font_max_height * scale;
+            offset.Y += (s32)next_line_height;
             cur_line++;
             line_changed = true;
             continue;
@@ -821,9 +836,11 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
                 m_fallback_font->m_spritebank->getTexture(tex_id) :
                 m_spritebank->getTexture(tex_id));
 
-            const bool thin_border = font_settings ?
+            bool thin_border = font_settings ?
                 font_settings->useThinBorder() : false;
 
+            if (fallback[n])
+                thin_border = true;
             int thickness = (thin_border) ? 1 : 2;
 
             for (int x_delta = -thickness; x_delta <= thickness; x_delta++)
@@ -858,7 +875,7 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
     video::SColor text_marked = GUIEngine::getSkin()->getColor(
         "text_field::background_marked");
     video::SColor text_neutral = GUIEngine::getSkin()->getColor(
-        "text_field::neutral");
+        "text::neutral");
 
     for (int n = 0; n < indice_amount; n++)
     {

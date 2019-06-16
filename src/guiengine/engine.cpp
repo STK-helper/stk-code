@@ -684,6 +684,8 @@ namespace GUIEngine
 #include "modes/world.hpp"
 #include "states_screens/race_gui_base.hpp"
 #include "utils/debug.hpp"
+#include "utils/string_utils.hpp"
+#include "utils/translation.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -743,7 +745,7 @@ namespace GUIEngine
         irr::core::stringw m_message;
         float m_time;
 
-        MenuMessage(const wchar_t* message, const float time)
+        MenuMessage(const core::stringw& message, const float time)
                    : m_message(message), m_time(time)
         {
         }
@@ -752,7 +754,7 @@ namespace GUIEngine
     std::vector<MenuMessage> gui_messages;
 
     // ------------------------------------------------------------------------
-    void showMessage(const wchar_t* message, const float time)
+    void showMessage(const core::stringw& message, const float time)
     {
         // check for duplicates
         const int count = (int) gui_messages.size();
@@ -1188,11 +1190,36 @@ namespace GUIEngine
             ul.unlock();
 #endif
 
+        const GameState gamestate = g_state_manager->getGameState();
+
+        // ---- some menus may need updating
+        bool dialog_opened = false;
+        
+        if (ScreenKeyboard::isActive())
+        {
+            ScreenKeyboard::getCurrent()->onUpdate(dt);
+            dialog_opened = true;
+        }
+        else if (ModalDialog::isADialogActive())
+        {
+            ModalDialog::getCurrent()->onUpdate(dt);
+            dialog_opened = true;
+        }
+            
+        if (gamestate != GAME || is_loading)
+        {
+            Screen* screen = getCurrentScreen();
+
+            if (screen != NULL && 
+                (!dialog_opened || screen->getUpdateInBackground()))
+            {
+                screen->onUpdate(elapsed_time);
+            }
+        }
+
         // ---- menu drawing
 
         // draw background image and sections
-
-        const GameState gamestate = g_state_manager->getGameState();
 
         if ( (gamestate == MENU &&
               GUIEngine::getCurrentScreen() != NULL &&
@@ -1216,45 +1243,10 @@ namespace GUIEngine
         // further render)
         g_env->drawAll();
 
-        // ---- some menus may need updating
-        if (gamestate != GAME || is_loading)
+        if (gamestate == GAME && !is_loading && !dialog_opened)
         {
-            bool dialog_opened = false;
-            
-            if (ScreenKeyboard::isActive())
-            {
-                ScreenKeyboard::getCurrent()->onUpdate(dt);
-                dialog_opened = true;
-            }
-            else if (ModalDialog::isADialogActive())
-            {
-                ModalDialog::getCurrent()->onUpdate(dt);
-                dialog_opened = true;
-            }
-            
-            Screen* screen = getCurrentScreen();
-
-            if (screen != NULL && 
-                (!dialog_opened || screen->getUpdateInBackground()))
-            {
-                screen->onUpdate(elapsed_time);
-            }
-        }
-        else
-        {
-            if (ScreenKeyboard::isActive())
-            {
-                ScreenKeyboard::getCurrent()->onUpdate(dt);
-            }
-            else if (ModalDialog::isADialogActive())
-            {
-                ModalDialog::getCurrent()->onUpdate(dt);
-            }
-            else
-            {
-                RaceGUIBase* rg = World::getWorld()->getRaceGUI();
-                if (rg != NULL) rg->renderGlobal(elapsed_time);
-            }
+            RaceGUIBase* rg = World::getWorld()->getRaceGUI();
+            if (rg != NULL) rg->renderGlobal(elapsed_time);
         }
 
         MessageQueue::update(elapsed_time);
@@ -1265,10 +1257,18 @@ namespace GUIEngine
             if (rg != NULL) rg->renderGlobal(elapsed_time);
         }
 
-        if (gamestate == MENU || gamestate == INGAME_MENU)
+        if (gamestate != GAME || is_loading)
         {
-            g_skin->drawTooltips();
+            Screen* screen = getCurrentScreen();
+
+            if (screen != NULL && 
+                (!dialog_opened || screen->getUpdateInBackground()))
+            {
+                screen->onDraw(elapsed_time);
+            }
         }
+
+        g_skin->drawTooltips();
 
         if (gamestate != GAME && !gui_messages.empty())
         {

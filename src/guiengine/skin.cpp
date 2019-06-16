@@ -36,6 +36,7 @@
 #include "io/file_manager.hpp"
 #include "states_screens/state_manager.hpp"
 #include "utils/log.hpp"
+#include "utils/string_utils.hpp"
 
 using namespace GUIEngine;
 using namespace irr;
@@ -1551,8 +1552,10 @@ void Skin::drawSpinnerBody(const core::recti &rect, Widget* widget,
     {
         const int handle_size = (int)( widget->m_h*params->m_left_border
                                  /(float)params->getImage()->getSize().Height );
-        const float value = (float)(w->getValue() - w->getMin())
+        float value = (float)(w->getValue() - w->getMin())
                           / (w->getMax() - w->getMin());
+                          
+        if (value > 1.0f) value = 1.0f;
 
         if (value > 0.0f)
         {
