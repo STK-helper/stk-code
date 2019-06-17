@@ -80,6 +80,7 @@ NetworkingLobby::NetworkingLobby() : Screen("online/networking_lobby.stkgui")
     m_chat_box = NULL;
     m_send_button = NULL;
     m_icon_bank = NULL;
+    m_reload_server_info = false;
 
     // Allows one to update chat and counter even if dialog window is opened
     setUpdateInBackground(true);
@@ -252,7 +253,14 @@ void NetworkingLobby::addMoreServerInfo(core::stringw info)
     gui::GlyphLayout new_line = { 0 };
     new_line.flags = gui::GLF_NEWLINE;
     m_server_info.push_back(new_line);
+    updateServerInfos();
+#endif
+}   // addMoreServerInfo
 
+// ----------------------------------------------------------------------------
+void NetworkingLobby::updateServerInfos()
+{
+#ifndef SERVER_ONLY
     if (GUIEngine::getCurrentScreen() != this)
         return;
 
@@ -261,13 +269,19 @@ void NetworkingLobby::addMoreServerInfo(core::stringw info)
     st->setUseGlyphLayoutsOnly(true);
     st->setGlyphLayouts(m_server_info);
 #endif
-}   // addMoreServerInfo
+}   // updateServerInfos
 
 // ----------------------------------------------------------------------------
 void NetworkingLobby::onUpdate(float delta)
 {
     if (NetworkConfig::get()->isServer() || !STKHost::existHost())
         return;
+
+    if (m_reload_server_info)
+    {
+        m_reload_server_info = false;
+        updateServerInfos();
+    }
 
     if (m_has_auto_start_in_server)
     {
@@ -495,6 +509,13 @@ void NetworkingLobby::updatePlayerPings()
     for (auto& p : m_player_names)
     {
         core::stringw name_with_ping = p.second.m_user_name;
+        const core::stringw& flag = StringUtils::getCountryFlag(
+            p.second.m_country_code);
+        if (!flag.empty())
+        {
+            name_with_ping += L" ";
+            name_with_ping += flag;
+        }
         auto host_online_ids = StringUtils::splitToUInt(p.first, '_');
         if (host_online_ids.size() != 3)
             continue;
@@ -669,7 +690,15 @@ void NetworkingLobby::updatePlayers()
             StringUtils::toString(player.m_host_id) + "_" +
             StringUtils::toString(player.m_online_id) + "_" +
             StringUtils::toString(player.m_local_player_id);
-        m_player_list->addItem(internal_name, player.m_user_name,
+        core::stringw player_name = player.m_user_name;
+        const core::stringw& flag = StringUtils::getCountryFlag(
+            player.m_country_code);
+        if (!flag.empty())
+        {
+            player_name += L" ";
+            player_name += flag;
+        }
+        m_player_list->addItem(internal_name, player_name,
             player.m_icon_id);
         // Don't show chosen team color for spectator
         if (player.isSpectator())

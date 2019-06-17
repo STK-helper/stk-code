@@ -640,6 +640,13 @@ void LinearWorld::getKartsDisplayInfo(
         else if (kart->hasFinishedRace())
         {
             rank_info.m_text = kart->getController()->getName();
+            const core::stringw& flag = StringUtils::getCountryFlag(
+                race_manager->getKartInfo(i).getCountryCode());
+            if (!flag.empty())
+            {
+                rank_info.m_text += L" ";
+                rank_info.m_text += flag;
+            }
         }
         else
         {
@@ -1109,7 +1116,7 @@ void LinearWorld::KartInfo::restoreCompleteState(const BareNetworkString& b)
 }   // restoreCompleteState
 
 // ----------------------------------------------------------------------------
-void LinearWorld::saveCompleteState(BareNetworkString* bns)
+void LinearWorld::saveCompleteState(BareNetworkString* bns, STKPeer* peer)
 {
     bns->addUInt32(m_fastest_lap_ticks);
     bns->addFloat(m_distance_increase);

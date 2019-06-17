@@ -127,6 +127,22 @@ public:
     {
         CIrrDeviceWayland* device = static_cast<CIrrDeviceWayland*>(data);
 
+        if (!device->m_decoration && !device->CreationParams.Fullscreen &&
+            state == WL_POINTER_BUTTON_STATE_PRESSED &&
+            device->m_xkb_alt_pressed)
+        {
+            if (device->m_xdg_toplevel)
+            {
+                xdg_toplevel_move(device->m_xdg_toplevel, device->m_seat, serial);
+            }
+            else if (device->m_shell_surface)
+            {
+                wl_shell_surface_move(device->m_shell_surface, device->m_seat, serial);
+            }
+            
+            return;
+        }
+        
         SEvent irrevent;
         irrevent.EventType = irr::EET_MOUSE_INPUT_EVENT;
         irrevent.MouseInput.X = device->getCursorControl()->getPosition().X;
@@ -538,6 +554,7 @@ public:
 
         if ((caps & WL_SEAT_CAPABILITY_KEYBOARD) && !device->m_keyboard)
         {
+            device->m_has_hardware_keyboard = true;
             device->m_keyboard = wl_seat_get_keyboard(seat);
             wl_keyboard_add_listener(device->m_keyboard, &keyboard_listener,
                                      device);
@@ -870,6 +887,7 @@ CIrrDeviceWayland::CIrrDeviceWayland(const SIrrlichtCreationParameters& params)
     m_height = params.WindowSize.Height;
     m_touches_count = 0;
     m_has_touch_device = false;
+    m_has_hardware_keyboard = false;
     m_window_has_focus = false;
     m_window_minimized = false;
     
