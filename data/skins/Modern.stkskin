@@ -276,7 +276,7 @@ when the border that intersect at this corner are enabled.
 <!-- Stateless -->
 <element type="tooltip" image="modern/tooltip.png"
     left_border="10" right_border="10" top_border="10" bottom_border="10"
-    hborder_out_portion="1.0" vborder_out_portion="1.0" />
+    hborder_out_portion="1.5" vborder_out_portion="1.0" />
     
 <!--                   Colors                  -->
 <color type="text" state="neutral" r="0" g="0" b="0" />

@@ -1,0 +1,20 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: SuperTuxKart
+Upstream-Contact:
+ Marianne Gagnon <auria.mg@gmail.com>
+ Jean-Manuel Clémençon <sam.un@protonmail.com>
+Source: https://supertuxkart.net
+
+Files:
+ friend.png
+ error.png
+ achievement.png
+ generic.png
+Copyright: Copyright 20?? Magne Djupvik
+License: CC-BY-SA 3.0
+Comment: Based on cup_gold.png licensed under CC-BY-SA 3+ from Open Game Art (art by onyum.com, comissionned by Bart Kelsey)
+
+Files: *
+Copyright: Copyright 2018-2019 LCP and QwertyChouskie
+License: CC-BY-SA 4.0
+Comment: Original style and some elements by LCP, skin finished by QwertyChouskie
