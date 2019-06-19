@@ -1127,7 +1127,7 @@ void Skin::drawRibbonChild(const core::recti &rect, Widget* widget,
         // automatically guess from position on-screen if tabs go up or down
         const bool vertical_flip =
             (unsigned int)rect.UpperLeftCorner.Y <
-                irr_driver->getActualScreenSize().Height / 2;
+                irr_driver->getActualScreenSize().Height / 2.5f;
         params->m_vertical_flip = vertical_flip;
 
         core::recti rect2 = rect;
