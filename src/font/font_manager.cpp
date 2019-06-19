@@ -395,6 +395,7 @@ void FontManager::shape(const std::u32string& text,
             rtl_char.resize(str.size(), false);
             breakable.resize(str.size(), false);
             LineBreakingRules::insertBreakMark(str, breakable);
+            translations->insertThaiBreakMark(str, breakable);
             RTLRules::insertRTLMark(str, rtl_line, rtl_char);
             size_t count = 0;
             raqm_glyph_t* glyphs = raqm_get_glyphs(rq, &count);
@@ -412,8 +413,6 @@ void FontManager::shape(const std::u32string& text,
                     gl.flags |= gui::GLF_RTL_LINE;
                 if (rtl_char[glyphs[idx].cluster])
                     gl.flags |= gui::GLF_RTL_CHAR;
-                if (breakable[glyphs[idx].cluster])
-                    gl.flags |= gui::GLF_BREAKABLE;
                 if (FT_HAS_COLOR(glyphs[idx].ftface))
                     gl.flags |= gui::GLF_COLORED;
                 cur_line.push_back(gl);
@@ -454,6 +453,14 @@ void FontManager::shape(const std::u32string& text,
                 {
                     return a_gi.original_index < b_gi.original_index;
                 });
+            // Use last cluster to determine link breaking, so ligatures can be
+            // handled
+            for (gui::GlyphLayout& gl : cur_line)
+            {
+                int last_cluster = gl.cluster.back();
+                if (breakable[last_cluster])
+                    gl.flags |= gui::GLF_BREAKABLE;
+            }
             gls.insert(gls.end(), cur_line.begin(), cur_line.end());
             raqm_destroy(rq);
             if (line_data)
