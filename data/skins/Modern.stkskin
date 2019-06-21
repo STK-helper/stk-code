@@ -69,7 +69,7 @@ when the border that intersect at this corner are enabled.
 <menumusic name="main_theme_modern.music" />
 
 <!--  Stateless -->
-<element type="background" image="modern/background_with_flag.png" />
+<element type="background" image="modern/background.jpg" />
 
 <element type="bottom-bar" image="common/bottom_bar.png" />
 
@@ -90,17 +90,17 @@ when the border that intersect at this corner are enabled.
       preserve_h_aspect_ratios="true" hborder_out_portion="0" vborder_out_portion="0"/>
 
 <element type="button" state="neutral" image="modern/button.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="60" right_border="60" top_border="12" bottom_border="12"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
       h_inner_padding="0.15" v_inner_padding="0.35"/>
 
 <element type="button" state="focused" image="modern/button_focused.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="60" right_border="60" top_border="12" bottom_border="12"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
       h_inner_padding="0.15" v_inner_padding="0.35"/>
 
 <element type="button" state="deactivated" image="modern/button_inactive.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="60" right_border="60" top_border="12" bottom_border="12"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
       h_inner_padding="0.15" v_inner_padding="0.35"/>
 
@@ -140,17 +140,17 @@ when the border that intersect at this corner are enabled.
 
 
 <element type="verticalTab" state="neutral" image="modern/tab_vert.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="60" right_border="60" top_border="12" bottom_border="12"
       hborder_out_portion="0.2" vborder_out_portion="0.5"
       h_inner_padding="0" v_inner_padding="0" />
       
 <element type="verticalTab" state="focused" image="modern/tab_vert_focus.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="60" right_border="60" top_border="12" bottom_border="12"
       hborder_out_portion="0.2" vborder_out_portion="0.5"
       h_inner_padding="0" v_inner_padding="0" />
 
 <element type="verticalTab" state="down" image="modern/tab_vert_down.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="60" right_border="60" top_border="12" bottom_border="12"
       hborder_out_portion="0.2" vborder_out_portion="0.5"
       h_inner_padding="0" v_inner_padding="0" />
 
@@ -259,7 +259,7 @@ when the border that intersect at this corner are enabled.
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       hborder_out_portion="0.0" vborder_out_portion="0.0" />
 
-<element type="section" state="selected" image="modern/button_focused.png"
+<element type="section" state="selected" image="modern/section.png"
       left_border="15" right_border="15" top_border="15" bottom_border="15"
       hborder_out_portion="0.0" vborder_out_portion="0.0" />
 
