@@ -115,12 +115,12 @@ when the border that intersect at this corner are enabled.
       hborder_out_portion="0.7" vborder_out_portion="0.3" />
 
 <element type="progress" state="fill" image="modern/gauge_fill.png"
-      left_border="15" right_border="15" top_border="15" bottom_border="18"
+      left_border="7" right_border="7" top_border="7" bottom_border="7"
       preserve_h_aspect_ratios="false" />
 
 <element type="progress" state="neutral" image="modern/section.png"
-      left_border="28" right_border="28" top_border="15" bottom_border="15"
-      preserve_h_aspect_ratios="true" />
+      left_border="7" right_border="7" top_border="7" bottom_border="7"
+      preserve_h_aspect_ratios="false" />
       
       
 <element type="tab" state="neutral" image="modern/tab.png"
@@ -223,7 +223,7 @@ when the border that intersect at this corner are enabled.
 
 <!-- are always in neutral state for now. No splitting into 9 areas is done; the image is just stretched.
      Note: the body of a guage is the same as for for spinners. -->
-<element type="gaugefill" image="modern/gauge_fill.png" />
+<element type="gaugefill" image="modern/spinner_fill.png" />
 
 <!-- Lists are always in neutral state for now -->
 <element type="list" image="modern/section.png"
