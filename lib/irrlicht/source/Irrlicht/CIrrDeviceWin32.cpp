@@ -7,9 +7,16 @@
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 
 #include "CIrrDeviceWin32.h"
+#include "IGUIEditBox.h"
+#include "IGUIEnvironment.h"
+#include "IGUIFont.h"
+#include "IGUISkin.h"
 #include "IEventReceiver.h"
 #include "irrList.h"
 #include "os.h"
+
+#include "utils/string_utils.hpp"
+#include "utils/utf8.h"
 
 #include "CTimer.h"
 #include "irrString.h"
@@ -143,7 +150,7 @@ struct SJoystickWin32Control
     
         activeJoystick.Index=ActiveJoysticks.size();
         activeJoystick.guid=guid;
-        activeJoystick.Name=lpddi->tszProductName;
+        activeJoystick.Name=StringUtils::wideToUtf8(lpddi->tszProductName).c_str();
         if (FAILED(DirectInputDevice->CreateDevice(guid, &activeJoystick.lpdijoy, NULL)))
         {
             os::Printer::log("Could not create DirectInput device", ELL_WARNING);
@@ -593,39 +600,39 @@ void setJoystickName(int index, const JOYCAPS &caps, SJoystickInfo *joystick)
 {
     // As a default use the name given in the joystick structure
     // - though that is always the same name, independent of joystick :(
-    joystick->Name              = caps.szPname;
+    joystick->Name              = StringUtils::wideToUtf8(caps.szPname).c_str();
     joystick->HasGenericName = true;
 
-    core::stringc key = core::stringc(REGSTR_PATH_JOYCONFIG)+"\\"+caps.szRegKey
+    core::stringw key = core::stringw(REGSTR_PATH_JOYCONFIG)+"\\"+caps.szRegKey
                       + "\\"+REGSTR_KEY_JOYCURR;
     HKEY hTopKey = HKEY_LOCAL_MACHINE;
     HKEY hKey;
-    long regresult = RegOpenKeyExA(hTopKey, key.c_str(), 0, KEY_READ, &hKey);
+    long regresult = RegOpenKeyEx(hTopKey, key.c_str(), 0, KEY_READ, &hKey);
     if (regresult != ERROR_SUCCESS)
     {
         hTopKey = HKEY_CURRENT_USER;
-        regresult = RegOpenKeyExA(hTopKey, key.c_str(), 0, KEY_READ, &hKey);
+        regresult = RegOpenKeyEx(hTopKey, key.c_str(), 0, KEY_READ, &hKey);
     }
     if (regresult != ERROR_SUCCESS) return;
 
     /* find the registry key name for the joystick's properties */
-    char regname[256];
+    wchar_t regname[256];
     DWORD regsize = sizeof(regname);
-    core::stringc regvalue = core::stringc("Joystick")+core::stringc(index+1)
+    core::stringw regvalue = core::stringw(L"Joystick")+core::stringw(index+1)
                            + REGSTR_VAL_JOYOEMNAME;
-    regresult = RegQueryValueExA(hKey, regvalue.c_str(), 0, 0,
+    regresult = RegQueryValueEx(hKey, regvalue.c_str(), 0, 0,
                                  (LPBYTE)regname, &regsize);
     RegCloseKey(hKey);
     if (regresult != ERROR_SUCCESS) return;
 
     /* open that registry key */
-    core::stringc regkey = core::stringc(REGSTR_PATH_JOYOEM)+"\\"+regname;
-    regresult = RegOpenKeyExA(hTopKey, regkey.c_str(), 0, KEY_READ, &hKey);
+    core::stringw regkey = core::stringw(REGSTR_PATH_JOYOEM)+"\\"+regname;
+    regresult = RegOpenKeyEx(hTopKey, regkey.c_str(), 0, KEY_READ, &hKey);
     if (regresult != ERROR_SUCCESS) return;
 
     /* find the size for the OEM name text */
     regsize = sizeof(regvalue);
-    regresult = RegQueryValueExA(hKey, REGSTR_VAL_JOYOEMNAME, 0, 0,
+    regresult = RegQueryValueEx(hKey, REGSTR_VAL_JOYOEMNAME, 0, 0,
                                  NULL, &regsize);
     if (regresult == ERROR_SUCCESS)
     {
@@ -635,7 +642,7 @@ void setJoystickName(int index, const JOYCAPS &caps, SJoystickInfo *joystick)
         if (name)
         {
             /* ... and read it from the registry */
-            regresult = RegQueryValueExA(hKey, REGSTR_VAL_JOYOEMNAME, 0, 0,
+            regresult = RegQueryValueEx(hKey, REGSTR_VAL_JOYOEMNAME, 0, 0,
                                          (LPBYTE)name, &regsize            );
             joystick->Name = name;
             joystick->HasGenericName = false;
@@ -949,28 +956,14 @@ irr::CIrrDeviceWin32* getDeviceFromHWnd(HWND hWnd)
     return 0;
 }
 
-
-namespace irr
+static void updateIMECompositonPosition(irr::core::position2di pos, HWND hwnd, HIMC himc)
 {
-    void updateICPos(void* hWnd, s32 x, s32 y, s32 height)
-    {
-        COMPOSITIONFORM cf;
-        HWND hwnd = (HWND)hWnd;
-        HIMC hIMC = ImmGetContext(hwnd);
-
-        if(hIMC)
-        {
-            cf.dwStyle = CFS_POINT;
-            cf.ptCurrentPos.x = x;
-            cf.ptCurrentPos.y = y - height;
-
-            ImmSetCompositionWindow(hIMC, &cf);
-
-            ImmReleaseContext(hwnd, hIMC);
-        }
-    }
-} // end of namespace irr
-
+    COMPOSITIONFORM cf;
+    cf.dwStyle = CFS_POINT;
+    cf.ptCurrentPos.x = pos.X;
+    cf.ptCurrentPos.y = pos.Y;
+    ImmSetCompositionWindow(himc, &cf);
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1063,7 +1056,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
 
         dev = getDeviceFromHWnd(hWnd);
-        if (dev)
+        if (dev && !dev->isIMEComposingStarted())
         {
             dev->postEventFromUser(event);
 
@@ -1083,15 +1076,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
-        if (m->irrMessage == irr::EMIE_LMOUSE_PRESSED_DOWN || m->irrMessage == irr::EMIE_LMOUSE_LEFT_UP)
-        {
-            event.EventType = irr::EET_IMPUT_METHOD_EVENT;
-            event.InputMethodEvent.Event = irr::EIME_CHANGE_POS;
-            event.InputMethodEvent.Handle = hWnd;
-
-            if (dev)
-                dev->postEventFromUser(event);
-        }
         return 0;
     }
 
@@ -1107,31 +1091,116 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_ERASEBKGND:
         return 0;
-
-    case WM_IME_CHAR:
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
         {
-            event.EventType = irr::EET_IMPUT_METHOD_EVENT;
-            event.InputMethodEvent.Event = irr::EIME_CHAR_INPUT;
-            event.InputMethodEvent.Handle = hWnd;
-
-            event.KeyInput.Char = 0;
-            event.KeyInput.Key = irr::IRR_KEY_OEM_CLEAR;
-            event.KeyInput.Shift = 0;
-            event.KeyInput.Control = 0;
-
-            char bits[2] = { (char)((wParam & 0xff00) >> 8), (char)(wParam & 0xff) };
-            if (bits[0] == 0)
-                event.InputMethodEvent.Char = (wchar_t)wParam;
-            else
-                MultiByteToWideChar(CP_OEMCP, MB_PRECOMPOSED, bits, 2, &event.InputMethodEvent.Char, 1);
-
             dev = getDeviceFromHWnd(hWnd);
             if (dev)
-                dev->postEventFromUser(event);
-
+                dev->setIMEComposingStarted(false);
             return 0;
         }
+    case WM_IME_SETCONTEXT:
+        {
+            // application wants to draw composition text by itself.
+            lParam &= ~(ISC_SHOWUICOMPOSITIONWINDOW);
+            break;
+        }
+    case WM_IME_STARTCOMPOSITION:
+    case WM_IME_ENDCOMPOSITION:
+        {
+            dev = getDeviceFromHWnd(hWnd);
+            if (!dev)
+                return 0;
 
+            irr::gui::IGUIEnvironment* env = dev->getGUIEnvironment();
+            if (!env)
+                return 0;
+
+            irr::gui::IGUISkin* skin = env->getSkin();
+            if (!skin)
+                return 0;
+
+            irr::gui::IGUIFont* font = skin->getFont();
+            if (!font)
+                return 0;
+
+            irr::gui::IGUIEditBox* box = dynamic_cast<irr::gui::IGUIEditBox*>(env->getFocus());
+            if (!box)
+                return 0;
+
+            box->clearComposingText();
+            dev->setIMEComposingStarted(message == WM_IME_STARTCOMPOSITION);
+            HIMC imc = ImmGetContext(hWnd);
+            if (!imc)
+                return 0;
+            if (message == WM_IME_STARTCOMPOSITION)
+            {
+                updateIMECompositonPosition(box->getICPos(), hWnd, imc);
+                // Same height as system font so the composition window is
+                // positioned correctly vertically
+                LOGFONT lFont = {0};
+                lFont.lfHeight = font->getHeightPerLine();
+                lFont.lfCharSet = OEM_CHARSET;
+                ImmSetCompositionFont(imc, &lFont);
+            }
+            ImmReleaseContext(hWnd, imc);
+            return 0;
+        }
+    case WM_IME_COMPOSITION:
+        {
+            dev = getDeviceFromHWnd(hWnd);
+            if (!dev)
+                return 0;
+
+            irr::gui::IGUIEnvironment* env = dev->getGUIEnvironment();
+            if (!env)
+                return 0;
+
+            irr::gui::IGUIEditBox* box = dynamic_cast<irr::gui::IGUIEditBox*>(env->getFocus());
+            if (!box)
+                return 0;
+            bool get_comp_str = (lParam & GCS_COMPSTR) != 0;
+            bool get_result_str = (lParam & GCS_RESULTSTR) != 0;
+            if (get_comp_str || get_result_str)
+            {
+                HIMC imc = ImmGetContext(hWnd);
+                if (!imc)
+                    return 0;
+                LONG vec_size = ImmGetCompositionString(imc, get_comp_str ? GCS_COMPSTR : GCS_RESULTSTR, (void*)NULL, 0);
+                if ((vec_size == IMM_ERROR_NODATA) ||
+                    (vec_size == IMM_ERROR_GENERAL))
+                {
+                    ImmReleaseContext(hWnd, imc);
+                    return 0;
+                }
+                std::vector<wchar_t> ct;
+                // NULL terminator
+                ct.resize(vec_size / sizeof(wchar_t) + 1, 0);
+                ImmGetCompositionString(imc, get_comp_str ? GCS_COMPSTR : GCS_RESULTSTR, ct.data(), vec_size);
+                std::u32string result = StringUtils::wideToUtf32(ct.data());
+                if (get_comp_str)
+                {
+                    box->setComposingText(result);
+                }
+                else
+                {
+                    for (char32_t c : result)
+                    {
+                        event.EventType = irr::EET_KEY_INPUT_EVENT;
+                        event.KeyInput.PressedDown = true;
+                        event.KeyInput.Char = (char32_t)c;
+                        event.KeyInput.Key = irr::IRR_KEY_UNKNOWN;
+                        event.KeyInput.Shift = false;
+                        event.KeyInput.Control = false;
+                        dev->postEventFromUser(event);
+                    }
+                }
+                if (get_result_str)
+                    updateIMECompositonPosition(box->getICPos(), hWnd, imc);
+                ImmReleaseContext(hWnd, imc);
+            }
+            return 0;
+        }
     case WM_SYSKEYDOWN:
     case WM_SYSKEYUP:
     case WM_KEYDOWN:
@@ -1167,41 +1236,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             event.KeyInput.Shift = ((allKeys[VK_SHIFT] & 0x80)!=0);
             event.KeyInput.Control = ((allKeys[VK_CONTROL] & 0x80)!=0);
+            event.KeyInput.Char = 0;
 
-            // Handle unicode and deadkeys in a way that works since Windows 95 and nt4.0
-            // Using ToUnicode instead would be shorter, but would to my knowledge not run on 95 and 98.
-            WORD keyChars[2];
+            wchar_t keyChars[10] = {0};
             UINT scanCode = HIWORD(lParam);
-            int conversionResult = ToAsciiEx(wParam,scanCode,allKeys,keyChars,0,KEYBOARD_INPUT_HKL);
-            if (conversionResult == 1)
-            {
-                WORD unicodeChar;
-                MultiByteToWideChar(
-                        KEYBOARD_INPUT_CODEPAGE,
-                        MB_PRECOMPOSED, // default
-                        (LPCSTR)keyChars,
-                        sizeof(keyChars),
-                        (WCHAR*)&unicodeChar,
-                        1 );
-                event.KeyInput.Char = unicodeChar;
-            }
-            else
-                event.KeyInput.Char = 0;
-
+            int conversionResult = ToUnicodeEx((UINT)wParam,scanCode,allKeys,keyChars,_countof(keyChars),0,KEYBOARD_INPUT_HKL);
             // allow composing characters like '@' with Alt Gr on non-US keyboards
             if ((allKeys[VK_MENU] & 0x80) != 0)
                 event.KeyInput.Control = 0;
 
             dev = getDeviceFromHWnd(hWnd);
-            if (dev)
-                dev->postEventFromUser(event);
-
-            event.EventType = irr::EET_IMPUT_METHOD_EVENT;
-            event.InputMethodEvent.Event = irr::EIME_CHANGE_POS;
-            event.InputMethodEvent.Handle = hWnd;
-
-            if (dev)
-                dev->postEventFromUser(event);
+            if (dev && !dev->isIMEComposingStarted())
+            {
+                if (conversionResult >= 1)
+                {
+                    for (int i = 0; i < conversionResult; i++)
+                    {
+                        event.KeyInput.Char = keyChars[i];
+                        dev->postEventFromUser(event);
+                    }
+                }
+                else
+                   dev->postEventFromUser(event);
+            }
 
             if (message == WM_SYSKEYDOWN || message == WM_SYSKEYUP)
                 return DefWindowProc(hWnd, message, wParam, lParam);
@@ -1253,12 +1310,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 dev->switchToFullScreen();
             }
         }
-        event.EventType = irr::EET_IMPUT_METHOD_EVENT;
-        event.InputMethodEvent.Event = irr::EIME_CHANGE_POS;
-        event.InputMethodEvent.Handle = hWnd;
-
-        if (dev)
-            dev->postEventFromUser(event);
         break;
 
     case WM_USER:
@@ -1304,6 +1355,7 @@ CIrrDeviceWin32::CIrrDeviceWin32(const SIrrlichtCreationParameters& params)
     setDebugName("CIrrDeviceWin32");
     #endif
 
+    m_ime_composing_started = false;
     // get windows version and create OS operator
     core::stringc winversion;
     getWindowsVersion(winversion);
@@ -1323,7 +1375,7 @@ CIrrDeviceWin32::CIrrDeviceWin32(const SIrrlichtCreationParameters& params)
     // create the window if we need to and we do not use the null device
     if (!CreationParams.WindowId && CreationParams.DriverType != video::EDT_NULL)
     {
-        const fschar_t* ClassName = __TEXT("CIrrDeviceWin32");
+        const wchar_t* ClassName = L"CIrrDeviceWin32";
 
         // Register Class
         WNDCLASSEX wcex;
@@ -1443,8 +1495,6 @@ CIrrDeviceWin32::CIrrDeviceWin32(const SIrrlichtCreationParameters& params)
     // inform driver about the window size etc.
     resizeIfNecessary();
 
-    // for reset the position of composition window
-    updateICPos(HWnd, 0, 0, 0);
 }
 
 
@@ -1693,7 +1743,7 @@ void CIrrDeviceWin32::closeDevice()
     if (!ExternalWindow)
     {
         DestroyWindow(HWnd);
-        const fschar_t* ClassName = __TEXT("CIrrDeviceWin32");
+        const wchar_t* ClassName = L"CIrrDeviceWin32";
         HINSTANCE hInstance = GetModuleHandle(0);
         UnregisterClass(ClassName, hInstance);
     }
