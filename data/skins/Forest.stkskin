@@ -234,7 +234,9 @@ when the border that intersect at this corner are enabled.
      be mirrorred for bottom. Buttons can be in neutral or down state.
      Advanced stretching is not used here.
       -->
-<element type="scrollbar_background"          image="common/scrollbar_bg.png" />
+<element type="scrollbar_background"          image="common/scrollbar_bg.png"
+    left_border="7" right_border="7" top_border="7" bottom_border="7"
+    hborder_out_portion="0.0" vborder_out_portion="0.0" />
 <element type="scrollbar_thumb"               image="forest/scrollbar_thumb.png" />
 <element type="scrollbar_button"              image="common/scrollbar_btn.png" />
 <element type="scrollbar_button" state="down" image="forest/scrollbar_btn_down.png" />
