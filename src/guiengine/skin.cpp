@@ -249,32 +249,14 @@ namespace SkinConfig
 
                     if (rtype == RIBBON_VERTICAL_TABS)
                     {
-                        type = "verticalTab"; printf("verticalTab detected \n");
+                        type = "verticalTab";
                     }
                     if (rtype == RIBBON_TABS)
                     {
-                        type = "tab"; printf("tab detected \n");
+                        type = "tab";
                     }
                 }
                 break;
-//                if (widget != nullptr)
-//                {
-//                    RibbonWidget* parentRibbon = (RibbonWidget*)widget->m_event_handler;
-//                    if (parentRibbon != nullptr)
-//                    {
-//                        RibbonType rtype = parentRibbon->getRibbonType();
-//
-//                        if (rtype == RIBBON_VERTICAL_TABS)
-//                        {
-//                            type = "verticalTab"; printf("verticalTab detected \n");
-//                        }
-//                        if (rtype == RIBBON_TABS)
-//                        {
-//                            type = "tab"; printf("tab detected \n");
-//                        }
-//                    }
-//                }
-//                break;
         }
 
         if (type == "none")
@@ -308,11 +290,11 @@ namespace SkinConfig
 
                     if (rtype == RIBBON_VERTICAL_TABS)
                     {
-                        type = "verticalTab"; printf("verticalTab detected \n");
+                        type = "verticalTab";
                     }
                     if (rtype == RIBBON_TABS)
                     {
-                        type = "tab"; printf("tab detected \n");
+                        type = "tab";
                     }
                 }
                 break;
