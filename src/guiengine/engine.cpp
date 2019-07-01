@@ -1082,6 +1082,8 @@ namespace GUIEngine
             }
         }
 
+        font_manager->loadFonts();
+
         RegularFace* regular = font_manager->getFont<RegularFace>();
         BoldFace* bold = font_manager->getFont<BoldFace>();
         DigitFace* digit = font_manager->getFont<DigitFace>();

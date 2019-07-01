@@ -216,6 +216,15 @@ namespace SkinConfig
                     Log::info("Theming", "New menu music: %s", title_music_filename.c_str());
                 }
             }
+            else if (node->getName() == "fonts-list")
+            {
+                stk_config->m_normal_ttf.clear();
+                stk_config->m_digit_ttf.clear();
+                node->get("normal-ttf", &stk_config->m_normal_ttf);
+                node->get("digit-ttf",  &stk_config->m_digit_ttf );
+                node->get("color-emoji-ttf", &stk_config->m_color_emoji_ttf);
+                Log::info("Theming", "New fonts list set");
+            }
             else
             {
                 Log::error("skin", "Unknown node in XML file '%s'.",

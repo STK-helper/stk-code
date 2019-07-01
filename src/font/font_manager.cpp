@@ -586,6 +586,9 @@ FT_Face FontManager::loadColorEmoji()
  */
 void FontManager::loadFonts()
 {
+    if (!m_fonts.empty())
+        return; // Fonts already inited
+
 #ifndef SERVER_ONLY
     // First load the TTF files required by each font
     std::vector<FT_Face> normal_ttf = loadTTF(stk_config->m_normal_ttf);

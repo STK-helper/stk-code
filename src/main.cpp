@@ -760,7 +760,7 @@ int handleCmdLinePreliminary()
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_GUI;
     if(CommandLine::has("--debug=flyable"))
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_FLYABLE;
-    if(CommandLine::has("--debug=mist"))
+    if(CommandLine::has("--debug=misc"))
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_MISC;
     if(CommandLine::has("--debug=all") )
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_ALL;
@@ -1694,7 +1694,6 @@ void initRest()
     }
 
     font_manager = new FontManager();
-    font_manager->loadFonts();
     GUIEngine::init(device, driver, StateManager::get());
 
     // This only initialises the non-network part of the add-ons manager. The
