@@ -993,8 +993,10 @@ void IrrDriver::applyResolutionSettings()
     }
 #endif
 
+    stk_config->m_has_been_loaded = false;
+    stk_config->load(stk_config->getSTKConfigPath());
+
     font_manager = new FontManager();
-    font_manager->loadFonts();
     // Re-init GUI engine
     GUIEngine::init(m_device, m_video_driver, StateManager::get());
 

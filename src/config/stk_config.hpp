@@ -235,16 +235,18 @@ public:
      *  version. */
     std::set<std::string> m_network_capabilities;
 
-private:
     /** True if stk_config has been loaded. This is necessary if the
      *  --stk-config command line parameter has been specified to avoid
      *  that stk loads the default configuration after already having
      *  loaded a user specified config file. */
-    bool  m_has_been_loaded;
+    bool m_has_been_loaded;
 
+private:
     /** Default FPS rate for physics. */
     int m_physics_fps;
 
+    /** String of the currently loaded stk_config.xml */
+    std::string m_stk_config_file;
 
 public:
     STKConfig();
@@ -279,6 +281,9 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the physics frame per seconds rate. */
     int getPhysicsFPS() const { return m_physics_fps; }
+    // ------------------------------------------------------------------------
+    /** Returns the path of the loaded stk_config. */
+    std::string getSTKConfigPath() const { return m_stk_config_file; }
 }
 ;   // STKConfig
 
