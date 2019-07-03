@@ -67,7 +67,7 @@ when the border that intersect at this corner are enabled.
 
 <icontheme name="Modern" />
 <menumusic name="main_theme_modern.music" />
-<fonts-list normal-ttf="Inter-UI-Black.ttf NotoSansCJK-Black.ttc NotoSansThai-Black.ttf NotoSansHebrew-Black.ttf NotoNaskhArabicUI-Bold.ttf wqy-microhei.ttf"
+<fonts-list normal-ttf="Inter-UI-Black.ttf NotoSansCJK-Black.ttc NotoSansThai-Black.ttf NotoSansHebrew-Black.ttf NotoSansArabicUI-Black.ttf wqy-microhei.ttf"
     digit-ttf="SigmarOne.otf"
     color-emoji-ttf="NotoColorEmoji.ttf" />
 
