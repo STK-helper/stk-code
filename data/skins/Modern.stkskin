@@ -195,19 +195,19 @@ when the border that intersect at this corner are enabled.
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
 <!-- player name spinner color in multiplayer-->
-<element type="spinner1" state="neutral" image="common/glass_square_red.png"
+<element type="spinner1" state="neutral" image="modern/spinner_red.png"
       left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
-<element type="spinner2" state="neutral" image="common/glass_square_cyan.png"
+<element type="spinner2" state="neutral" image="modern/spinner_cyan.png"
       left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
-<element type="spinner3" state="neutral" image="common/glass_square_green.png"
+<element type="spinner3" state="neutral" image="modern/spinner_green.png"
       left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
-<element type="spinner4" state="neutral" image="common/glass_square_yellow.png"
+<element type="spinner4" state="neutral" image="modern/spinner_yellow.png"
       left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
-<element type="spinner5" state="neutral" image="common/glass_square_pink.png"
+<element type="spinner5" state="neutral" image="modern/spinner_pink.png"
       left_border="110" right_border="110" top_border="0" bottom_border="36"
     preserve_h_aspect_ratios="true" hborder_out_portion="0.0" />
 
