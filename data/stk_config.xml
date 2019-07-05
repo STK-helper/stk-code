@@ -545,6 +545,7 @@
   -->
 
   <fonts-list normal-ttf="Cantarell-Regular.otf wqy-microhei.ttf NotoSansThai-Regular.ttf NotoSansHebrew-Regular.ttf NotoNaskhArabicUI-Regular.ttf"
+              is-bold-font="false"
               digit-ttf="SigmarOne.otf"
               color-emoji-ttf="NotoColorEmoji.ttf"/>
 

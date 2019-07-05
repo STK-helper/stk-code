@@ -17,6 +17,8 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "font/bold_face.hpp"
+
+#include "config/stk_config.hpp"
 #include "font/font_manager.hpp"
 #include "font/regular_face.hpp"
 
@@ -64,6 +66,9 @@ void BoldFace::reset()
 #ifndef SERVER_ONLY
 int BoldFace::shapeOutline(FT_Outline* outline) const
 {
-    return FT_Outline_Embolden(outline, getDPI() * 2);
+    if (stk_config->m_is_bold_font)
+        return FT_Outline_Embolden(outline, getDPI() * -1.0f);
+    else
+        return FT_Outline_Embolden(outline, getDPI() * 2);
 }   // shapeOutline
 #endif
