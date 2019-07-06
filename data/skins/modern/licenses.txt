@@ -6,9 +6,10 @@ Upstream-Contact:
 Source: https://supertuxkart.net
 
 Files:
- glass*
+ glass_iconhighlight_focus.png
  bubble.png
-Copyright: Copyright ????
+ table_header*
+Copyright: ???
 License: CC-BY-SA 3.0
 Comment: From peach skin
 
