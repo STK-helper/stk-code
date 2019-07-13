@@ -488,7 +488,7 @@ CIrrDeviceMacOSX::CIrrDeviceMacOSX(const SIrrlichtCreationParameters& param)
 	setDebugName("CIrrDeviceMacOSX");
 	#endif
 
-	if (firstLaunch)
+	if (CreationParams.DriverType != video::EDT_NULL && firstLaunch)
 	{
 		firstLaunch = false;
 
@@ -512,11 +512,12 @@ CIrrDeviceMacOSX::CIrrDeviceMacOSX(const SIrrlichtCreationParameters& param)
 
 	initKeycodes();
 
-	VideoModeList.setDesktop(CreationParams.Bits, core::dimension2d<u32>([[NSScreen mainScreen] frame].size.width, [[NSScreen mainScreen] frame].size.height));
-
 	bool success = true;
 	if (CreationParams.DriverType != video::EDT_NULL)
+	{
+		VideoModeList.setDesktop(CreationParams.Bits, core::dimension2d<u32>([[NSScreen mainScreen] frame].size.width, [[NSScreen mainScreen] frame].size.height));
 		success = createWindow();
+	}
 
 	// in case of failure, one can check VideoDriver for initialization
 	if (!success)
@@ -549,6 +550,7 @@ CIrrDeviceMacOSX::~CIrrDeviceMacOSX()
 
 void CIrrDeviceMacOSX::closeDevice()
 {
+#ifndef SERVER_ONLY
 	if (Window != NULL)
 	{
 		[Window setIsVisible:FALSE];
@@ -586,7 +588,7 @@ void CIrrDeviceMacOSX::closeDevice()
 			}
 		}
 	}
-
+#endif
 	IsFullscreen = false;
 	IsActive = false;
 	CGLContext = NULL;
@@ -594,8 +596,9 @@ void CIrrDeviceMacOSX::closeDevice()
 
 bool CIrrDeviceMacOSX::createWindow()
 {
-	CGDisplayErr error;
 	bool result=false;
+#ifndef SERVER_ONLY
+	CGDisplayErr error;
 	CGDirectDisplayID display=CGMainDisplayID();
 	CGLPixelFormatObj pixelFormat;
 	CGRect displayRect;
@@ -905,7 +908,7 @@ bool CIrrDeviceMacOSX::createWindow()
 			CGLSetParameter(CGLContext,kCGLCPSwapInterval,&newSwapInterval);
 		}
 	}
-
+#endif
 	return (result);
 }
 
@@ -980,11 +983,13 @@ void CIrrDeviceMacOSX::createDriver()
 
 void CIrrDeviceMacOSX::flush()
 {
+#ifndef SERVER_ONLY
 	if (CGLContext != NULL)
 	{
 		glFinish();
 		CGLFlushDrawable(CGLContext);
 	}
+#endif
 }
 
 bool CIrrDeviceMacOSX::run()

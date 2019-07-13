@@ -320,7 +320,8 @@ namespace SkinConfig
 
 };   // Namespace SkinConfig
 
-namespace GUIEngine {
+namespace GUIEngine
+{
     /** The widget used to hold the scrollbar BG */
     SkinWidgetContainer* g_bg_container = NULL;
     /** The widget used to hold the scrollbar thumb */
