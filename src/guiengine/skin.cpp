@@ -239,46 +239,33 @@ namespace SkinConfig
     // ------------------------------------------------------------------------
     float getVerticalInnerPadding(int wtype, Widget* widget)
     {
-        std::string state = "neutral"; //FIXME: support all states?
-        std::string type = "none";
-
-        switch (wtype)
+        if (widget != nullptr)
         {
-            case WTYPE_SPINNER:     type = "spinner"; break;
-            case WTYPE_BUTTON:      type = "button"; break;
-            case WTYPE_CHECKBOX:    type = "checkbox"; state = "neutral+unchecked"; break;
-            case WTYPE_BUBBLE:      type = "textbubble"; break;
-            case WTYPE_LIST:        type = "list"; break;
-            case WTYPE_PROGRESS:    type = "progress"; break;
-            case WTYPE_RATINGBAR:   type = "rating"; break;
-            case WTYPE_RIBBON:
-                if (widget != nullptr)
-                {
-                    RibbonWidget* ribbon = (RibbonWidget*)widget;
-                    RibbonType rtype = ribbon->getRibbonType();
+            RibbonWidget* ribbon = (RibbonWidget*)widget;
+            RibbonType rtype = ribbon->getRibbonType();
 
-                    if (rtype == RIBBON_VERTICAL_TABS)
-                    {
-                        type = "verticalTab";
-                    }
-                    if (rtype == RIBBON_TABS)
-                    {
-                        type = "tab";
-                    }
-                }
-                break;
+            return getInnerPadding(wtype, rtype, false);
         }
-
-        if (type == "none")
-        {
-            return 0.0f;
-        }
-
-        return m_render_params[type+"::"+state].m_vertical_inner_padding;
+        else
+            return getInnerPadding(wtype, 0, false);
     } // getVerticalInnerPadding
 
     // ------------------------------------------------------------------------
     float getHorizontalInnerPadding(int wtype, Widget* widget)
+    {
+        if (widget != nullptr)
+        {
+            RibbonWidget* ribbon = (RibbonWidget*)widget;
+            RibbonType rtype = ribbon->getRibbonType();
+
+            return getInnerPadding(wtype, rtype, true);
+        }
+        else
+            return getInnerPadding(wtype, 0, true);
+    } // getHorizontalInnerPadding
+
+    // ------------------------------------------------------------------------
+    float getInnerPadding(int wtype, int rtype, bool horizontal)
     {
         std::string state = "neutral"; //FIXME: support all states?
         std::string type = "none";
@@ -293,20 +280,11 @@ namespace SkinConfig
             case WTYPE_PROGRESS:    type = "progress"; break;
             case WTYPE_RATINGBAR:   type = "rating"; break;
             case WTYPE_RIBBON:
-                if (widget != nullptr)
-                {
-                    RibbonWidget* ribbon = (RibbonWidget*)widget;
-                    RibbonType rtype = ribbon->getRibbonType();
+                if (rtype == RIBBON_VERTICAL_TABS)
+                    type = "verticalTab";
+                else if (rtype == RIBBON_TABS)
+                    type = "tab";
 
-                    if (rtype == RIBBON_VERTICAL_TABS)
-                    {
-                        type = "verticalTab";
-                    }
-                    if (rtype == RIBBON_TABS)
-                    {
-                        type = "tab";
-                    }
-                }
                 break;
         }
 
@@ -315,8 +293,11 @@ namespace SkinConfig
             return 0.0f;
         }
 
-        return m_render_params[type+"::"+state].m_horizontal_inner_padding;
-    } // getHorizontalInnerPadding
+        if (horizontal)
+            return m_render_params[type+"::"+state].m_horizontal_inner_padding;
+        else
+            return m_render_params[type+"::"+state].m_vertical_inner_padding;
+    } // getInnerPadding
 
 };   // Namespace SkinConfig
 
@@ -344,6 +325,8 @@ BoxRenderParams::BoxRenderParams()
 
     m_hborder_out_portion = 0.5;
     m_vborder_out_portion = 1.0;
+    m_horizontal_inner_padding = 0.0f;
+    m_vertical_inner_padding = 0.0f;
 
     areas = BODY | LEFT | RIGHT | TOP | BOTTOM;
     m_vertical_flip = false;
