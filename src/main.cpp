@@ -1857,7 +1857,11 @@ void main_abort()
 #endif
 
 // ----------------------------------------------------------------------------
-int main(int argc, char *argv[] )
+#ifdef IOS_STK
+int ios_main(int argc, char *argv[])
+#else
+int main(int argc, char *argv[])
+#endif
 {
     CommandLine::init(argc, argv);
 
@@ -2088,18 +2092,21 @@ int main(int argc, char *argv[] )
                 Log::warn("main", "Screen size is too small!");
             }
             
-            #ifdef ANDROID
+            #ifdef MOBILE_STK
             if (UserConfigParams::m_multitouch_controls == MULTITOUCH_CONTROLS_UNDEFINED)
             {
+                #ifdef ANDROID
                 int32_t touch = AConfiguration_getTouchscreen(
                                                     global_android_app->config);
-                
                 if (touch != ACONFIGURATION_TOUCHSCREEN_NOTOUCH)
                 {
+                #endif
                     InitAndroidDialog* init_android = new InitAndroidDialog(
                                                                     0.6f, 0.6f);
                     GUIEngine::DialogQueue::get()->pushDialog(init_android);
+                #ifdef ANDROID
                 }
+                #endif
             }
             #endif
 
@@ -2118,7 +2125,7 @@ int main(int argc, char *argv[] )
             }
             else if (!CVS->isGLSL())
             {
-                #if !defined(ANDROID)
+                #if !defined(MOBILE_STK)
                 if (UserConfigParams::m_old_driver_popup)
                 {
                     #ifdef USE_GLES2

@@ -34,13 +34,20 @@ CMAKE_DEPENDENT_OPTION(USE_SYSTEM_SQUISH "Use system Squish library instead of t
 CMAKE_DEPENDENT_OPTION(USE_WIIUSE "Support for wiimote input devices" ON
     "NOT SERVER_ONLY;NOT MINGW;NOT CYGWIN" OFF)
 
-if(APPLE)
+if(APPLE AND NOT IOS)
     list(APPEND CMAKE_PREFIX_PATH /usr/local/opt)
     include_directories(/usr/local/opt/fribidi/include/)
     include_directories(/usr/local/opt/openssl@1.1/include/)
     include_directories(/usr/local/opt/openssl@1.1/include/openssl/)
     include_directories(/usr/local/opt/freetype/include/freetype2/)
     include_directories(/usr/local/opt/harfbuzz/include/harfbuzz/)
+endif()
+
+if (IOS)
+    ADD_DEFINITIONS(-DMOBILE_STK)
+    ADD_DEFINITIONS(-DIOS_STK)
+    set(CMAKE_XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
+    option(USE_GLES2 "Use OpenGL ES2 renderer" ON)
 endif()
 
 if((UNIX AND NOT APPLE) AND NOT SERVER_ONLY)
@@ -166,7 +173,7 @@ else()
 endif()
 
 # Find system GLEW library or build it if missing
-if (APPLE)
+if (APPLE AND NOT IOS)
     find_package(glew)
 
     if(GLEW_FOUND)
@@ -264,7 +271,7 @@ endif()
 # Set include paths
 include_directories(${STK_SOURCE_DIR})
 
-if(APPLE)
+if(APPLE AND NOT IOS)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -F/Library/Frameworks")
 elseif(MSVC)
@@ -430,7 +437,7 @@ include(cmake/SourceGroupFunctions.cmake)
 source_group_hierarchy(STK_SOURCES STK_HEADERS)
 
 
-if(APPLE)
+if(APPLE AND NOT IOS)
     # icon files to copy in the bundle
     set(OSX_ICON_FILES ${PROJECT_SOURCE_DIR}/data/supertuxkart.icns)
     set_source_files_properties(${OSX_ICON_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -479,7 +486,16 @@ else()
     endif()
 
     # Build the final executable
-    add_executable(supertuxkart ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
+    if (IOS)
+        file(GLOB IOS_ASSETS_FILES ${IOS_ASSETS})
+        set_source_files_properties(${IOS_ASSETS_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+        add_executable(supertuxkart ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS} ${IOS_ASSETS_FILES})
+        set_target_properties(supertuxkart PROPERTIES
+            MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/data/SuperTuxKart-Info-iOS.plist
+            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 9.0)
+    else()
+        add_executable(supertuxkart ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
+    endif()
     target_link_libraries(supertuxkart ${PTHREAD_LIBRARY})
 endif()
 
@@ -548,6 +564,12 @@ endif()
 if(NOT SERVER_ONLY)
     if(NOT USE_GLES2)
         target_link_libraries(supertuxkart ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES})
+    elseif (IOS)
+        target_link_libraries(supertuxkart "-framework OpenGLES
+                                            -framework UIKit
+                                            -framework CoreMotion
+                                            -framework Foundation
+                                            -framework GLKit")
     else()
         target_link_libraries(supertuxkart GLESv2)
     endif()
