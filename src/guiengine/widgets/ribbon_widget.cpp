@@ -182,8 +182,12 @@ void RibbonWidget::add()
             }
 
             IGUIButton * subbtn = NULL;
+
             rect<s32> subsize = rect<s32>(widget_x - large_tab/2+2,  0,
                                           widget_x + large_tab/2-2,  m_h);
+
+//            rect<s32> subsize = rect<s32>(widget_x - large_tab/2+2+SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), true),  SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false),
+//                                          widget_x + large_tab/2-2-SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), true),  m_h-SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false));
 
             if (message.size() == 0)
             {
@@ -211,10 +215,15 @@ void RibbonWidget::add()
             }
             else if (m_active_children[i].m_type == WTYPE_ICON_BUTTON)
             {
-                rect<s32> icon_part = rect<s32>(15,
-                                                0,
-                                                subsize.getHeight()+15,
-                                                subsize.getHeight());
+                Log::info("QCDebug", "1: %f", subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL));
+                Log::info("QCDebug", "2: %f", subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL));
+                Log::info("QCDebug", "3: %f", subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)));
+                Log::info("QCDebug", "4: %f", subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL) + subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)*2));
+
+                rect<s32> icon_part = rect<s32>(subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), true),
+                                                subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false),
+                                                subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), true) + subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false)*2),
+                                                subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false)));
 
                 if (message.size() == 0)
                 {
@@ -318,16 +327,20 @@ void RibbonWidget::add()
                 // The icon will take 1/3rd of the tab width at most, less if height is lacking
                 int icon_size = std::min(m_w/3, subbtn_rec.getHeight()+2*VERT_BORDER_MARGIN);
 
-                rect<s32> icon_part = rect<s32>(5,
-                                                one_button_height/2 - icon_size/2-VERT_BORDER_MARGIN,
-                                                icon_size+5,
-                                                one_button_height/2 + icon_size/2-VERT_BORDER_MARGIN);
+//                rect<s32> icon_part = rect<s32>(5+subbtn_rec.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL),
+//                                                one_button_height/2 - icon_size/2-VERT_BORDER_MARGIN,
+//                                                icon_size+5+subbtn_rec.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL),
+//                                                one_button_height/2 + icon_size/2-VERT_BORDER_MARGIN);
+                rect<s32> icon_part = rect<s32>(subbtn_rec.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL),
+                                                subbtn_rec.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL) - VERT_BORDER_MARGIN,
+                                                subbtn_rec.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL) + subbtn_rec.getHeight()-((subbtn_rec.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)-VERT_BORDER_MARGIN)*2),
+                                                subbtn_rec.getHeight()-(subbtn_rec.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)-VERT_BORDER_MARGIN));
 
                 // label at the *right* of the icon (for tabs)
-                rect<s32> label_part = rect<s32>(icon_size+5,
-                                                 5-VERT_BORDER_MARGIN,
-                                                 subbtn_rec.getWidth()-5,
-                                                 one_button_height-5-VERT_BORDER_MARGIN);
+                rect<s32> label_part = rect<s32>(icon_part.LowerRightCorner.X+5,
+                                                 icon_part.UpperLeftCorner.Y+5,
+                                                 subbtn_rec.getWidth()-5-(subbtn_rec.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL)),
+                                                 icon_part.LowerRightCorner.Y-5);
 
                 // use the same ID for all subcomponents; since event handling
                 // is done per-ID, no matter which one your hover, this
@@ -354,13 +367,20 @@ void RibbonWidget::add()
                                                           true /* word wrap */,
                                                           subbtn, same_id);
 
-                if ((int)GUIEngine::getFont()->getDimension(message.c_str())
-                                              .Width > label_part.getWidth()&&
-                    message.findFirst(L' ') == -1                           &&
-                    message.findFirst(L'\u00AD') == -1                        )
+Log::info("QCTest font", "Label hight: %i", (int)GUIEngine::getFont()->getDimension(message.c_str()).Height);
+Log::info("QCTest font", "Label max hight: %i", label_part.getHeight());
+
+                if (((int)GUIEngine::getFont()->getDimension(message.c_str())
+                                              .Width > label_part.getWidth() &&
+                    message.findFirst(L' ') == -1                            &&
+                    message.findFirst(L'\u00AD') == -1) || 
+                    ((int)GUIEngine::getFont()->getDimension(message.c_str())
+                                              .Width > label_part.getWidth() && 
+                    (int)GUIEngine::getFont()->getDimension(message.c_str())
+                                              .Height*2 > label_part.getHeight()))
                 {
-                    // if message too long and contains no space and no soft
-                    // hyphen, make the font smaller
+                    // if message is too long and contains no space and no soft
+                    // hyphen, or too tall, make the font smaller
                     label->setOverrideFont(GUIEngine::getSmallFont());
                 }
                 label->setTextAlignment(EGUIA_CENTER, EGUIA_CENTER);
