@@ -426,8 +426,16 @@ namespace GUIEngine
 
 namespace SkinConfig
 {
+    enum options {
+        MARGIN,
+        BORDER,
+        PADDING,
+        HORIZONTAL,
+        VERTICAL
+    };
     float getVerticalInnerPadding(int wtype, GUIEngine::Widget* widget);
     float getHorizontalInnerPadding(int wtype, GUIEngine::Widget* widget);
-    float getInnerPadding(int wtype, int rtype, bool horizontal);
+    float getInnerPadding(int wtype, int rtype, int axis);
+    float getValue(int value, int wtype, int rtype, int axis);
 }
 #endif

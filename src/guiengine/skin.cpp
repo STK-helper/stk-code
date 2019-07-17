@@ -244,10 +244,10 @@ namespace SkinConfig
             RibbonWidget* ribbon = (RibbonWidget*)widget;
             RibbonType rtype = ribbon->getRibbonType();
 
-            return getInnerPadding(wtype, rtype, false);
+            return getInnerPadding(wtype, rtype, VERTICAL);
         }
         else
-            return getInnerPadding(wtype, 0, false);
+            return getInnerPadding(wtype, 0, VERTICAL);
     } // getVerticalInnerPadding
 
     // ------------------------------------------------------------------------
@@ -258,19 +258,25 @@ namespace SkinConfig
             RibbonWidget* ribbon = (RibbonWidget*)widget;
             RibbonType rtype = ribbon->getRibbonType();
 
-            return getInnerPadding(wtype, rtype, true);
+            return getInnerPadding(wtype, rtype, HORIZONTAL);
         }
         else
-            return getInnerPadding(wtype, 0, true);
+            return getInnerPadding(wtype, 0, HORIZONTAL);
     } // getHorizontalInnerPadding
 
     // ------------------------------------------------------------------------
-    float getInnerPadding(int wtype, int rtype, bool horizontal)
+    float getInnerPadding(int wtype, int rtype, int axis)
+    {
+        return getValue(PADDING, wtype, rtype, axis);
+    } // getInnerPadding
+
+    // ------------------------------------------------------------------------
+    float getValue(int value_type, int widget_type, int ribbon_type, int axis)
     {
         std::string state = "neutral"; //FIXME: support all states?
-        std::string type = "none";
+        std::string type = "";
 
-        switch (wtype)
+        switch (widget_type)
         {
             case WTYPE_SPINNER:     type = "spinner"; break;
             case WTYPE_BUTTON:      type = "button"; break;
@@ -280,24 +286,47 @@ namespace SkinConfig
             case WTYPE_PROGRESS:    type = "progress"; break;
             case WTYPE_RATINGBAR:   type = "rating"; break;
             case WTYPE_RIBBON:
-                if (rtype == RIBBON_VERTICAL_TABS)
+                if (ribbon_type == RIBBON_VERTICAL_TABS)
                     type = "verticalTab";
-                else if (rtype == RIBBON_TABS)
+                else if (ribbon_type == RIBBON_TABS)
                     type = "tab";
 
                 break;
         }
 
-        if (type == "none")
+        if (type.empty())
         {
+            Log::error("GUI", "Invalid widget type passed to getValue!");
             return 0.0f;
         }
 
-        if (horizontal)
-            return m_render_params[type+"::"+state].m_horizontal_inner_padding;
+        if (value_type == PADDING)
+        {
+            if (axis == HORIZONTAL)
+                return m_render_params[type+"::"+state].m_horizontal_inner_padding;
+            else
+                return m_render_params[type+"::"+state].m_vertical_inner_padding;
+        }
+//        else if (value_type == BORDER)
+//        {
+//            if (axis == HORIZONTAL)
+//                return m_render_params[type+"::"+state].m_horizontal_border;
+//            else
+//                return m_render_params[type+"::"+state].m_vertical_border;
+//        }
+//        else if (value_type == MARGIN)
+//        {
+//            if (axis == HORIZONTAL)
+//                return m_render_params[type+"::"+state].m_horizontal_margin;
+//            else
+//                return m_render_params[type+"::"+state].m_vertical_margin;
+//        }
         else
-            return m_render_params[type+"::"+state].m_vertical_inner_padding;
-    } // getInnerPadding
+        {
+            Log::error("GUI", "Invalid value type passed to getValue!");
+            return 0.0f;
+        }
+    } // getValue
 
 };   // Namespace SkinConfig
 
