@@ -186,8 +186,8 @@ void RibbonWidget::add()
             rect<s32> subsize = rect<s32>(widget_x - large_tab/2+2,  0,
                                           widget_x + large_tab/2-2,  m_h);
 
-//            rect<s32> subsize = rect<s32>(widget_x - large_tab/2+2+SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), true),  SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false),
-//                                          widget_x + large_tab/2-2-SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), true),  m_h-SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false));
+//            rect<s32> subsize = rect<s32>(widget_x - large_tab/2+2+SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL),  SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL),
+//                                          widget_x + large_tab/2-2-SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL),  m_h-SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL));
 
             if (message.size() == 0)
             {
@@ -220,10 +220,10 @@ void RibbonWidget::add()
                 Log::info("QCDebug", "3: %f", subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)));
                 Log::info("QCDebug", "4: %f", subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL) + subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)*2));
 
-                rect<s32> icon_part = rect<s32>(subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), true),
-                                                subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false),
-                                                subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), true) + subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false)*2),
-                                                subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), false)));
+                rect<s32> icon_part = rect<s32>(subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL),
+                                                subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL),
+                                                subsize.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL) + subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)*2),
+                                                subsize.getHeight()-(subsize.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)));
 
                 if (message.size() == 0)
                 {

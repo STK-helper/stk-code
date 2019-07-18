@@ -430,6 +430,10 @@ namespace SkinConfig
         MARGIN,
         BORDER,
         PADDING,
+        TOP,
+        BOTTOM,
+        LEFT,
+        RIGHT,
         HORIZONTAL,
         VERTICAL
     };

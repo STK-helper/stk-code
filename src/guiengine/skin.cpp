@@ -290,14 +290,8 @@ namespace SkinConfig
                     type = "verticalTab";
                 else if (ribbon_type == RIBBON_TABS)
                     type = "tab";
-
                 break;
-        }
-
-        if (type.empty())
-        {
-            Log::error("GUI", "Invalid widget type passed to getValue!");
-            return 0.0f;
+            default: return 0.0f; // Widget type not supported
         }
 
         if (value_type == PADDING)
@@ -307,13 +301,17 @@ namespace SkinConfig
             else
                 return m_render_params[type+"::"+state].m_vertical_inner_padding;
         }
-//        else if (value_type == BORDER)
-//        {
-//            if (axis == HORIZONTAL)
-//                return m_render_params[type+"::"+state].m_horizontal_border;
-//            else
-//                return m_render_params[type+"::"+state].m_vertical_border;
-//        }
+        else if (value_type == BORDER)
+        {
+            if (axis == LEFT)
+                return m_render_params[type+"::"+state].m_left_border;
+            else if (axis == RIGHT)
+                return m_render_params[type+"::"+state].m_right_border;
+            else if (axis == TOP)
+                return m_render_params[type+"::"+state].m_top_border;
+            else if (axis == BOTTOM)
+                return m_render_params[type+"::"+state].m_bottom_border;
+        }
 //        else if (value_type == MARGIN)
 //        {
 //            if (axis == HORIZONTAL)
@@ -323,7 +321,7 @@ namespace SkinConfig
 //        }
         else
         {
-            Log::error("GUI", "Invalid value type passed to getValue!");
+            Log::error("GUI", "Invalid parameter passed to getValue!");
             return 0.0f;
         }
     } // getValue
