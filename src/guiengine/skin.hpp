@@ -208,6 +208,7 @@ namespace GUIEngine
         bool m_preserve_h_aspect_ratios;
         float m_hborder_out_portion, m_vborder_out_portion;
         float m_horizontal_inner_padding, m_vertical_inner_padding;
+        float m_horizontal_margin, m_vertical_margin;
 
         // this parameter is a bit special since it's the only one that can
         // change at runtime
@@ -440,6 +441,6 @@ namespace SkinConfig
     float getVerticalInnerPadding(int wtype, GUIEngine::Widget* widget);
     float getHorizontalInnerPadding(int wtype, GUIEngine::Widget* widget);
     float getInnerPadding(int wtype, int rtype, int axis);
-    float getValue(int value, int wtype, int rtype, int axis);
+    float getValue(int value_type, int widget_type, int ribbon_type, int axis);
 }
 #endif
