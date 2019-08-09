@@ -205,6 +205,7 @@ public:
     /* URLs for donating and reseting the password */
     std::string m_donate_url;
     std::string m_password_reset_url;
+    std::string m_assets_download_url;
 
     /** Lists of TTF files used in STK. */
     std::vector<std::string> m_normal_ttf;
@@ -249,6 +250,8 @@ private:
     /** String of the currently loaded stk_config.xml */
     std::string m_stk_config_file;
 
+    std::string m_title_music_file;
+    std::string m_default_music_file;
 public:
     STKConfig();
     ~STKConfig();
@@ -257,7 +260,7 @@ public:
     void load(const std::string &filename);
     const std::string &getMainMenuPicture(int n);
     const std::string &getBackgroundPicture(int n);
-
+    void initMusicFiles();
     void  getAllScores(std::vector<int> *all_scores, int num_karts);
     // ------------------------------------------------------------------------
     /** Returns the default kart properties for each kart. */

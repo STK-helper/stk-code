@@ -48,6 +48,7 @@ if (IOS)
     ADD_DEFINITIONS(-DIOS_STK)
     set(CMAKE_XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
     option(USE_GLES2 "Use OpenGL ES2 renderer" ON)
+    find_library(RESOLV_LIBRARY NAMES resolv libresolv)
 endif()
 
 if((UNIX AND NOT APPLE) AND NOT SERVER_ONLY)
@@ -174,10 +175,16 @@ endif()
 
 # Find system GLEW library or build it if missing
 if (APPLE AND NOT IOS)
-    find_package(glew)
-
-    if(GLEW_FOUND)
-        include_directories(${GLEW_INCLUDE_DIRS})
+    find_library(GLEW_LIBRARY NAMES glew libglew libGLEW)
+    find_path(GLEW_INCLUDEDIR NAMES GL/glew.h glew.h PATHS)
+    if (NOT GLEW_LIBRARY OR NOT GLEW_INCLUDEDIR)
+        add_subdirectory("${PROJECT_SOURCE_DIR}/lib/glew")
+        include_directories("${PROJECT_SOURCE_DIR}/lib/glew/include")
+        set(GLEW_LIBRARIES "glew")
+    else()
+        set(GLEW_LIBRARIES ${GLEW_LIBRARY})
+        include_directories(${GLEW_INCLUDEDIR})
+        MESSAGE(STATUS "Use system GLEW: ${GLEW_LIBRARIES}")
     endif()
 elseif(NOT USE_GLES2 AND NOT SERVER_ONLY)
     add_definitions(-DGLEW_NO_GLU)
@@ -492,7 +499,9 @@ else()
         add_executable(supertuxkart ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS} ${IOS_ASSETS_FILES})
         set_target_properties(supertuxkart PROPERTIES
             MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/data/SuperTuxKart-Info-iOS.plist
-            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 9.0)
+            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 9.0
+            XCODE_ATTRIBUTE_INSTALL_PATH /Applications
+            XCODE_ATTRIBUTE_SKIP_INSTALL No)
     else()
         add_executable(supertuxkart ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
     endif()
@@ -569,7 +578,7 @@ if(NOT SERVER_ONLY)
                                             -framework UIKit
                                             -framework CoreMotion
                                             -framework Foundation
-                                            -framework GLKit")
+                                            -framework GLKit ${RESOLV_LIBRARY}")
     else()
         target_link_libraries(supertuxkart GLESv2)
     endif()

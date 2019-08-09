@@ -994,6 +994,8 @@ void IrrDriver::applyResolutionSettings()
     {
         m_perf_query[i]->reset();
     }
+    if (CVS->isGLSL())
+        SP::loadShaders();
 #endif
 
     stk_config->m_has_been_loaded = false;
