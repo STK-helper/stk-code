@@ -64,6 +64,7 @@ namespace SkinConfig
         int leftborder = 0, rightborder=0, topborder=0, bottomborder=0;
         float hborder_out_portion = 0.5f, vborder_out_portion = 1.0f;
         float horizontal_inner_padding = 0.0f, vertical_inner_padding = 0.0f;
+        float horizontal_margin = 0.0f, vertical_margin = 0.0f;
         bool preserve_h_aspect_ratios = false;
         std::string areas;
 
@@ -90,6 +91,9 @@ namespace SkinConfig
 
         node->get("h_inner_padding", &horizontal_inner_padding);
         node->get("v_inner_padding", &vertical_inner_padding);
+        
+        node->get("h_margin", &horizontal_margin);
+        node->get("v_margin", &vertical_margin);
 
         node->get("preserve_h_aspect_ratios", &preserve_h_aspect_ratios);
 
@@ -105,6 +109,8 @@ namespace SkinConfig
         new_param.m_vborder_out_portion = vborder_out_portion;
         new_param.m_horizontal_inner_padding = horizontal_inner_padding;
         new_param.m_vertical_inner_padding = vertical_inner_padding;
+        new_param.m_horizontal_margin = horizontal_margin;
+        new_param.m_vertical_margin = vertical_margin;
         new_param.m_preserve_h_aspect_ratios = preserve_h_aspect_ratios;
 
         // call last since it calculates coords considering all other
@@ -298,8 +304,13 @@ namespace SkinConfig
         {
             if (axis == HORIZONTAL)
                 return m_render_params[type+"::"+state].m_horizontal_inner_padding;
-            else
+            else if (axis == VERTICAL)
                 return m_render_params[type+"::"+state].m_vertical_inner_padding;
+            else
+            {
+                Log::error("GUI", "Invalid axis type passed to getValue!");
+                return 0.0f;
+            }
         }
         else if (value_type == BORDER)
         {
@@ -311,17 +322,27 @@ namespace SkinConfig
                 return m_render_params[type+"::"+state].m_top_border;
             else if (axis == BOTTOM)
                 return m_render_params[type+"::"+state].m_bottom_border;
+            else
+            {
+                Log::error("GUI", "Invalid axis type passed to getValue!");
+                return 0.0f;
+            }
         }
-//        else if (value_type == MARGIN)
-//        {
-//            if (axis == HORIZONTAL)
-//                return m_render_params[type+"::"+state].m_horizontal_margin;
-//            else
-//                return m_render_params[type+"::"+state].m_vertical_margin;
-//        }
+        else if (value_type == MARGIN)
+        {
+            if (axis == HORIZONTAL)
+                return m_render_params[type+"::"+state].m_horizontal_margin;
+            else if (axis == VERTICAL)
+                return m_render_params[type+"::"+state].m_vertical_margin;
+            else
+            {
+                Log::error("GUI", "Invalid axis type passed to getValue!");
+                return 0.0f;
+            }
+        }
         else
         {
-            Log::error("GUI", "Invalid parameter passed to getValue!");
+            Log::error("GUI", "Invalid value_type passed to getValue!");
             return 0.0f;
         }
     } // getValue
@@ -609,8 +630,9 @@ void Skin::drawBoxFromStretchableTexture(SkinWidgetContainer* w,
         w->m_skin_dest_x2 = dest.LowerRightCorner.X;
         w->m_skin_dest_y2 = dest.LowerRightCorner.Y;
 
-        const float yscale =
+        float yscale =
             (float)(w->m_skin_dest_y2 - w->m_skin_dest_y)/texture_h;
+//        yscale = ceil(yscale * 4.0) / 4.0;
 
         int dest_left_border, dest_right_border;
 

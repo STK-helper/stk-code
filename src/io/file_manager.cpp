@@ -26,6 +26,7 @@
 #include "karts/kart_properties_manager.hpp"
 #include "tracks/track_manager.hpp"
 #include "utils/command_line.hpp"
+#include "utils/extract_mobile_assets.hpp"
 #include "utils/file_utils.hpp"
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
@@ -130,24 +131,7 @@ FileManager* file_manager = 0;
  */
 FileManager::FileManager()
 {
-    m_subdir_name.resize(ASSET_COUNT);
-    m_subdir_name[CHALLENGE  ] = "challenges";
-    m_subdir_name[GFX        ] = "gfx";
-    m_subdir_name[GRANDPRIX  ] = "grandprix";
-    m_subdir_name[GUI_ICON   ] = "gui/icons/Classic";
-    m_subdir_name[GUI_SCREEN ] = "gui/screens";
-    m_subdir_name[GUI_DIALOG ] = "gui/dialogs";
-    m_subdir_name[LIBRARY    ] = "library";
-    m_subdir_name[MODEL      ] = "models";
-    m_subdir_name[MUSIC      ] = "music";
-    m_subdir_name[REPLAY     ] = "replay";
-    m_subdir_name[SCRIPT     ] = "tracks";
-    m_subdir_name[SFX        ] = "sfx";
-    m_subdir_name[SKIN       ] = "skins";
-    m_subdir_name[SHADER     ] = "shaders";
-    m_subdir_name[TEXTURE    ] = "textures";
-    m_subdir_name[TTF        ] = "ttf";
-    m_subdir_name[TRANSLATION] = "po";
+    resetSubdir();
 #ifdef __APPLE__
     // irrLicht's createDevice method has a nasty habit of messing the CWD.
     // since the code above may rely on it, save it to be able to restore
@@ -228,7 +212,15 @@ FileManager::FileManager()
     addRootDirs(root_dir);
 
     std::string assets_dir;
+#ifdef MOBILE_STK
+    m_stk_assets_download_dir = getenv("HOME");
+#ifdef IOS_STK
+    m_stk_assets_download_dir += "/Library/Application Support/SuperTuxKart/stk-assets/";
+#elif defined (ANDROID)
+    m_stk_assets_download_dir += "/stk-assets/";
+#endif
 
+#else
     if (getenv("SUPERTUXKART_ASSETS_DIR") != NULL)
     {
         assets_dir = std::string(getenv("SUPERTUXKART_ASSETS_DIR"));
@@ -246,7 +238,7 @@ FileManager::FileManager()
         //is this needed?
         assets_dir = std::string(getenv("SUPERTUXKART_ROOT_PATH"));
     }
-
+#endif
     if (!assets_dir.empty() && assets_dir != root_dir)
     {
         addRootDirs(assets_dir);
@@ -263,10 +255,37 @@ FileManager::FileManager()
 }   // FileManager
 
 // ----------------------------------------------------------------------------
+/** Reset subdirectories to initial state, for example after download assets
+ */
+void FileManager::resetSubdir()
+{
+    m_subdir_name.clear();
+    m_subdir_name.resize(ASSET_COUNT);
+    m_subdir_name[CHALLENGE  ] = "challenges";
+    m_subdir_name[GFX        ] = "gfx";
+    m_subdir_name[GRANDPRIX  ] = "grandprix";
+    m_subdir_name[GUI_ICON   ] = "gui/icons/Classic";
+    m_subdir_name[GUI_SCREEN ] = "gui/screens";
+    m_subdir_name[GUI_DIALOG ] = "gui/dialogs";
+    m_subdir_name[LIBRARY    ] = "library";
+    m_subdir_name[MODEL      ] = "models";
+    m_subdir_name[MUSIC      ] = "music";
+    m_subdir_name[REPLAY     ] = "replay";
+    m_subdir_name[SCRIPT     ] = "tracks";
+    m_subdir_name[SFX        ] = "sfx";
+    m_subdir_name[SKIN       ] = "skins";
+    m_subdir_name[SHADER     ] = "shaders";
+    m_subdir_name[TEXTURE    ] = "textures";
+    m_subdir_name[TTF        ] = "ttf";
+    m_subdir_name[TRANSLATION] = "po";
+}   // resetSubdir
+
+// ----------------------------------------------------------------------------
 /** Detects where the assets are stored.
  */
 void FileManager::discoverPaths()
 {
+    resetSubdir();
     // We can't use _() here, since translations will only be initalised
     // after the filemanager (to get the path to the tranlsations from it)
     for(unsigned int i=0; i<m_root_dirs.size(); i++)
@@ -281,11 +300,50 @@ void FileManager::discoverPaths()
     Log::info("[FileManager]", "User-defined grand prix will be stored in '%s'.",
                m_gp_dir.c_str());
 
+    // Reset for re-downloading assets if needed
+    TrackManager::removeTrackSearchDirs();
+    KartPropertiesManager::removeKartSearchDirs();
+
     /** Now search for the path to all needed subdirectories. */
     // ==========================================================
     // This must be done here since otherwise translations will not be found.
     std::vector<bool> dir_found;
     dir_found.resize(ASSET_COUNT, false);
+#ifdef MOBILE_STK
+    assert(!m_root_dirs.empty());
+    for (unsigned j = ASSET_MIN; j <= BUILTIN_ASSETS; j++)
+    {
+        if (!dir_found[j] && fileExists(m_root_dirs[0] + m_subdir_name[j]))
+        {
+            dir_found[j] = true;
+            m_subdir_name[j] = m_root_dirs[0] + m_subdir_name[j] + "/";
+        }
+    }
+
+    // Use stk-assets-full for karts, tracks, textures..., otherwise in data/
+    std::string assets_root = ExtractMobileAssets::hasFullAssets() ?
+        m_stk_assets_download_dir : m_root_dirs[0];
+    for (unsigned j = LIBRARY; j <= ASSET_MAX; j++)
+    {
+        if (!dir_found[j] && fileExists(assets_root + m_subdir_name[j]))
+        {
+            dir_found[j] = true;
+            m_subdir_name[j] = assets_root + m_subdir_name[j] + "/";
+        }
+    }
+    if (fileExists(assets_root + "tracks/"))
+        TrackManager::addTrackSearchDir(assets_root + "tracks/");
+    if (fileExists(assets_root + "karts/"))
+        KartPropertiesManager::addKartSearchDir(assets_root + "karts/");
+
+    if (UserConfigParams::m_artist_debug_mode)
+    {
+        if (fileExists(assets_root + "wip-tracks/"))
+            TrackManager::addTrackSearchDir(assets_root + "wip-tracks/");
+        if (fileExists(assets_root + "wip-karts/"))
+            KartPropertiesManager::addKartSearchDir(assets_root + "wip-karts/");
+    }
+#else
     for(unsigned int i=0; i<m_root_dirs.size(); i++)
     {
         if(fileExists(m_root_dirs[i]+"tracks/"))
@@ -311,6 +369,7 @@ void FileManager::discoverPaths()
             }   // !dir_found && file_exist
         }   // for j=ASSET_MIN; j<=ASSET_MAX
     }   // for i<m_root_dirs
+#endif
 
     bool was_error = false;
     for(unsigned int i=ASSET_MIN; i<=ASSET_MAX; i++)
@@ -338,6 +397,14 @@ void FileManager::discoverPaths()
 void FileManager::init()
 {
     discoverPaths();
+    addAssetsSearchPath();
+    m_cert_bundle_location = m_file_system->getAbsolutePath(
+        getAsset("cacert.pem").c_str()).c_str();
+}   // init
+
+//-----------------------------------------------------------------------------
+void FileManager::addAssetsSearchPath()
+{
     // Note that we can't push the texture search path in the constructor
     // since this also adds a file archive to the file system - and
     // m_file_system is deleted (in irr_driver)
@@ -358,10 +425,18 @@ void FileManager::init()
         for(int i=0;i<(int)dirs.size(); i++)
             pushMusicSearchPath(dirs[i]);
     }
+}   // addAssetsSearchPath
 
-    m_cert_bundle_location = m_file_system->getAbsolutePath(
-        getAsset("cacert.pem").c_str()).c_str();
-}   // init
+//-----------------------------------------------------------------------------
+void FileManager::reinitAfterDownloadAssets()
+{
+    m_file_system->removeAllFileArchives();
+    m_texture_search_path.clear();
+    m_model_search_path.clear();
+    m_music_search_path.clear();
+    discoverPaths();
+    addAssetsSearchPath();
+}   // reinitAfterDownloadAssets
 
 //-----------------------------------------------------------------------------
 FileManager::~FileManager()
@@ -1429,7 +1504,7 @@ bool FileManager::removeDirectory(const std::string &name) const
             // We need to remove whole data directory on Android though, i.e.
             // when we install newer STK version and new assets are extracted.
             // So enable it only for Android for now.
-            #ifdef ANDROID
+            #ifdef MOBILE_STK
             removeDirectory(file);
             #endif
         }

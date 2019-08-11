@@ -127,35 +127,35 @@ when the border that intersect at this corner are enabled.
       
       
 <element type="tab" state="neutral" image="modern/tab.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="40" right_border="40" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.06" v_inner_padding="0.1" />
+      h_inner_padding="0.06" v_inner_padding="0.1" h_margin="0.0" v_margin="0.0" />
       
 <element type="tab" state="focused" image="modern/tab_focus.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="40" right_border="40" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.06" v_inner_padding="0.1" />
+      h_inner_padding="0.06" v_inner_padding="0.1" h_margin="0.0" v_margin="0.0" />
 
 <element type="tab" state="down" image="modern/tab.png"
-      left_border="60" right_border="60" top_border="10" bottom_border="10"
+      left_border="40" right_border="40" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.06" v_inner_padding="0.1" />
+      h_inner_padding="0.06" v_inner_padding="0.1" h_margin="0.0" v_margin="0.0" />
 
 
 <element type="verticalTab" state="neutral" image="modern/tab_vert.png"
-      left_border="60" right_border="60" top_border="12" bottom_border="12"
-      hborder_out_portion="0.2" vborder_out_portion="0.5"
-      h_inner_padding="0.06" v_inner_padding="0.18" />
+      left_border="40" right_border="40" top_border="12" bottom_border="12"
+      hborder_out_portion="0.0" vborder_out_portion="0.0"
+      h_inner_padding="-8" v_inner_padding="0" h_margin="0" v_margin="4" />
       
 <element type="verticalTab" state="focused" image="modern/tab_vert_focus.png"
-      left_border="60" right_border="60" top_border="12" bottom_border="12"
-      hborder_out_portion="0.2" vborder_out_portion="0.5"
-      h_inner_padding="0.06" v_inner_padding="0.18" />
+      left_border="40" right_border="40" top_border="12" bottom_border="12"
+      hborder_out_portion="0.0" vborder_out_portion="0.0"
+      h_inner_padding="-8" v_inner_padding="0" h_margin="0" v_margin="4" />
 
 <element type="verticalTab" state="down" image="modern/tab_vert_down.png"
-      left_border="60" right_border="60" top_border="12" bottom_border="12"
-      hborder_out_portion="0.2" vborder_out_portion="0.5"
-      h_inner_padding="0.06" v_inner_padding="0.18" />
+      left_border="40" right_border="40" top_border="12" bottom_border="12"
+      hborder_out_portion="0.0" vborder_out_portion="0.0"
+      h_inner_padding="-8" v_inner_padding="0" h_margin="0" v_margin="4" />
 
 <!-- Stateless -->
 <element type="squareFocusHaloBW" image="common/glass_square_focused_bw.png"

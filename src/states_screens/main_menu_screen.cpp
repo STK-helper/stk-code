@@ -105,7 +105,12 @@ void MainMenuScreen::loadedFromFile()
 
 void MainMenuScreen::beforeAddingWidget()
 {
-
+#ifdef IOS_STK
+    // iOS app doesn't like quit button in UI
+    Widget* w = getWidget("quit");
+    if (w)
+        w->setVisible(false);
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -162,6 +167,12 @@ void MainMenuScreen::init()
     r->setFocusForPlayer(PLAYER_ID_GAME_MASTER);
     DemoWorld::resetIdleTime();
 
+#ifdef IOS_STK
+    // iOS app doesn't like quit button in UI
+    Widget* quit = getWidget("quit");
+    if (quit)
+        quit->setVisible(false);
+#endif
 }   // init
 
 // ----------------------------------------------------------------------------

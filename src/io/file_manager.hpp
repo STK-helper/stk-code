@@ -61,9 +61,8 @@ public:
     enum AssetType {ASSET_MIN,
                     CHALLENGE=ASSET_MIN,
                     GFX, GRANDPRIX, GUI_ICON, GUI_SCREEN, GUI_DIALOG,
-                    LIBRARY, MODEL, MUSIC, REPLAY,
-                    SCRIPT, SFX, SHADER, SKIN, TEXTURE, TTF,
-                    TRANSLATION, ASSET_MAX = TRANSLATION,
+                    REPLAY, SHADER, SKIN,  TTF, TRANSLATION, BUILTIN_ASSETS=TRANSLATION,
+                    LIBRARY, MODEL, MUSIC, SFX, TEXTURE, SCRIPT, ASSET_MAX = SCRIPT,
                     ASSET_COUNT};
 
 private:
@@ -105,6 +104,9 @@ private:
     /** Location of the certificate bundle. */
     std::string       m_cert_bundle_location;
 
+    /** Mobile stk specific to download stk-assets in the first. */
+    std::string       m_stk_assets_download_dir;
+
     std::vector<TextureSearchPath> m_texture_search_path;
 
     std::vector<std::string>
@@ -128,6 +130,8 @@ private:
     void              checkAndCreateCachedTexturesDir();
     void              checkAndCreateGPDir();
     void              discoverPaths();
+    void              addAssetsSearchPath();
+    void              resetSubdir();
 #if !defined(WIN32) && !defined(__CYGWIN__) && !defined(__APPLE__)
     std::string       checkAndCreateLinuxDir(const char *env_name,
                                              const char *dir_name,
@@ -139,6 +143,7 @@ public:
                       FileManager();
                      ~FileManager();
     void              init();
+    void              reinitAfterDownloadAssets();
     static void       addRootDirs(const std::string &roots);
     static void       setStdoutName(const std::string &name);
     static void       setStdoutDir(const std::string &dir);
@@ -242,8 +247,12 @@ public:
     {
         return m_subdir_name[SHADER];
     }
-
-    const std::string& getCertBundleLocation() const { return m_cert_bundle_location; }
+    // ------------------------------------------------------------------------
+    const std::string& getSTKAssetsDownloadDir() const
+                                          { return m_stk_assets_download_dir; }
+    // ------------------------------------------------------------------------
+    const std::string& getCertBundleLocation() const
+                                             { return m_cert_bundle_location; }
 
 };   // FileManager
 
