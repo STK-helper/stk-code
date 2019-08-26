@@ -1005,6 +1005,8 @@ void IrrDriver::applyResolutionSettings()
     // Re-init GUI engine
     GUIEngine::init(m_device, m_video_driver, StateManager::get());
 
+    stk_config->initMusicFiles();
+
     setMaxTextureSize();
     //material_manager->reInit();
     material_manager = new MaterialManager();
