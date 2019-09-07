@@ -206,20 +206,19 @@ namespace SkinConfig
                 Log::info("Theming", "New icon theme path: %s", file_manager->getAssetDirectory(FileManager::GUI_ICON).c_str());
             }
             else if (node->getName() == "menumusic")
-            {
-                std::string title_music_filename;
-                MusicInformation *title_music;
-                node->get("name", &title_music_filename);
-                assert(title_music_filename.size() > 0);
-                title_music_filename = file_manager->getAsset(FileManager::MUSIC, title_music_filename);
-                title_music = MusicInformation::create(title_music_filename);
-                if (!title_music)
+            {                
+                std::string title_music_file;
+                node->get("name", &title_music_file);
+                assert(title_music_file.size() > 0);
+                title_music_file = file_manager->getAsset(FileManager::MUSIC, title_music_file);
+                if (title_music_file.size() <= 0)
                 {
-                    Log::error("Theming", "Cannot load title music: %s", title_music_filename.c_str());
-                } else
+                    Log::error("Theming", "Cannot load menu music: %s", title_music_file.c_str());
+                }
+                else
                 {
-                    stk_config->m_title_music = title_music;
-                    Log::info("Theming", "New menu music: %s", title_music_filename.c_str());
+                    stk_config->m_title_music_file = title_music_file;
+                    Log::info("Theming", "New menu music: %s", title_music_file.c_str());
                 }
             }
             else if (node->getName() == "fonts-list")
