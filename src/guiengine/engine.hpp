@@ -247,11 +247,6 @@ namespace GUIEngine
     Widget* getWidget(const int id);
 
     /**
-      * \brief call when skin in user config was updated
-      */
-    void reloadSkin();
-
-    /**
       * \brief Add gui-related function before rendering GUI (from other thread)
       */
     void addGUIFunctionBeforeRendering(std::function<void()> func);

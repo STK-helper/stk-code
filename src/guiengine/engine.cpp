@@ -1126,36 +1126,6 @@ namespace GUIEngine
     }   // init
 
     // -----------------------------------------------------------------------
-    void reloadSkin()
-    {
-        assert(g_skin != NULL);
-
-        irr::gui::IGUISkin* fallbackSkin = g_skin->getFallbackSkin();
-
-        Skin* newSkin;
-        try
-        {
-            // it's important to create the new skin before deleting the old
-            // one so that the fallback skin is not dropped
-            newSkin = new Skin(fallbackSkin);
-        }
-        catch (std::runtime_error& /*err*/)
-        {
-            Log::error("Engine::reloadSkin", "Canot load newly specified skin");
-            return;
-        }
-
-        assert(g_skin->getReferenceCount() == 1);
-
-        g_skin = newSkin;
-
-        // will also drop (and thus delete) the previous skin
-        g_env->setSkin(g_skin);
-        g_skin->drop(); // g_env grabbed it
-        assert(g_skin->getReferenceCount() == 1);
-    }   // reloadSkin
-
-    // -----------------------------------------------------------------------
     void addGUIFunctionBeforeRendering(std::function<void()> func)
     {
 #ifdef ANDROID

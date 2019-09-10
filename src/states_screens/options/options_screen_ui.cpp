@@ -173,8 +173,11 @@ void OptionsScreenUI::init()
     ribbon->setFocusForPlayer(PLAYER_ID_GAME_MASTER);
     ribbon->select( "tab_ui", PLAYER_ID_GAME_MASTER );
 
+    bool in_game = StateManager::get()->getGameState() == GUIEngine::INGAME_MENU;
+
     GUIEngine::SpinnerWidget* skinSelector = getWidget<GUIEngine::SpinnerWidget>("skinchoice");
     assert( skinSelector != NULL );
+    skinSelector->setActive(!in_game);
 
     GUIEngine::SpinnerWidget* minimap_options = getWidget<GUIEngine::SpinnerWidget>("minimap");
     assert( minimap_options != NULL );
@@ -190,12 +193,10 @@ void OptionsScreenUI::init()
     }
     minimap_options->setValue(UserConfigParams::m_minimap_display);
     
-    bool in_game = StateManager::get()->getGameState() == GUIEngine::INGAME_MENU;
-    
     GUIEngine::SpinnerWidget* font_size = getWidget<GUIEngine::SpinnerWidget>("font_size");
     assert( font_size != NULL );
 
-    m_prev_icon_theme = file_manager->getAssetDirectory(FileManager::GUI_ICON);
+    m_prev_skin = UserConfigParams::m_skin_file.c_str();
     m_prev_font_size = UserConfigParams::m_font_size;
     int size_int = (int)roundf(UserConfigParams::m_font_size);
     if (size_int < 0 || size_int > 6)
@@ -221,6 +222,9 @@ void OptionsScreenUI::init()
     assert( fps != NULL );
     fps->setState( UserConfigParams::m_display_fps );
 
+    ButtonWidget* refresh = getWidget<ButtonWidget>("refresh");
+    refresh->setActive(!in_game);
+
     // --- select the right skin in the spinner
     bool currSkinFound = false;
     const int skinCount = (int) m_skins.size();
@@ -241,9 +245,7 @@ void OptionsScreenUI::init()
         Log::warn("OptionsScreenUI",
                   "Couldn't find current skin in the list of skins!");
         skinSelector->setValue(0);
-        irr_driver->unsetMaxTextureSize();
-        GUIEngine::reloadSkin();
-        irr_driver->setMaxTextureSize();
+        irr_driver->sameRestart();
     }
 }   // init
 
@@ -285,9 +287,6 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
 
         const core::stringw selectedSkin = skinSelector->getStringValue();
         UserConfigParams::m_skin_file = core::stringc(selectedSkin.c_str()).c_str() + std::string(".stkskin");
-        irr_driver->unsetMaxTextureSize();
-        GUIEngine::reloadSkin();
-        irr_driver->setMaxTextureSize();
     }
     else if (name == "minimap")
     {
@@ -314,6 +313,10 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
         assert( fps != NULL );
         UserConfigParams::m_display_fps = fps->getState();
     }
+    else if (name == "refresh")
+    {
+        irr_driver->sameRestart();
+    }
 #endif
 }   // eventCallback
 
@@ -321,7 +324,8 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
 
 void OptionsScreenUI::tearDown()
 {
-    if (m_prev_font_size != UserConfigParams::m_font_size || m_prev_icon_theme != file_manager->getAssetDirectory(FileManager::GUI_ICON))
+    if (m_prev_font_size != UserConfigParams::m_font_size
+     || m_prev_skin != UserConfigParams::m_skin_file.c_str())
     {
         irr_driver->sameRestart();
     }
