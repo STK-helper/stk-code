@@ -226,8 +226,9 @@ namespace SkinConfig
                 stk_config->m_normal_ttf.clear();
                 stk_config->m_digit_ttf.clear();
                 node->get("normal-ttf", &stk_config->m_normal_ttf);
-                node->get("is-bold-font", &stk_config->m_is_bold_font);
                 node->get("digit-ttf",  &stk_config->m_digit_ttf );
+                node->get("regular-outline", &stk_config->m_regular_outline);
+                node->get("bold-outline", &stk_config->m_bold_outline);
                 node->get("color-emoji-ttf", &stk_config->m_color_emoji_ttf);
                 Log::info("Theming", "New fonts list set");
             }

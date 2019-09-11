@@ -66,9 +66,6 @@ void BoldFace::reset()
 #ifndef SERVER_ONLY
 int BoldFace::shapeOutline(FT_Outline* outline) const
 {
-    if (stk_config->m_is_bold_font)
-        return FT_Outline_Embolden(outline, getDPI() * -1.0f);
-    else
-        return FT_Outline_Embolden(outline, getDPI() * 2);
+    return FT_Outline_Embolden(outline, getDPI() * stk_config->m_bold_outline);
 }   // shapeOutline
 #endif

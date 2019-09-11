@@ -18,6 +18,8 @@
 
 #include "font/regular_face.hpp"
 
+#include "config/stk_config.hpp"
+
 // ----------------------------------------------------------------------------
 /** Constructor of RegularFace.
  *  \param ttf \ref FaceTTF for RegularFace to use.
@@ -49,3 +51,14 @@ void RegularFace::reset()
     insertCharacters(preload_chars.c_str());
     updateCharactersList();
 }   // reset
+
+// ----------------------------------------------------------------------------
+/** Embolden the glyph to make regular font using FT_Outline_Embolden.
+ *  \return A FT_Error value.
+ */
+#ifndef SERVER_ONLY
+int RegularFace::shapeOutline(FT_Outline* outline) const
+{
+    return FT_Outline_Embolden(outline, getDPI() * stk_config->m_regular_outline);
+}   // shapeOutline
+#endif

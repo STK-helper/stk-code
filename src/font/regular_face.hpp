@@ -34,6 +34,10 @@ private:
     virtual float getScalingFactorOne() const OVERRIDE         { return 0.7f; }
     // ------------------------------------------------------------------------
     virtual unsigned int getScalingFactorTwo() const OVERRIDE    { return 27; }
+    // ------------------------------------------------------------------------
+#ifndef SERVER_ONLY
+    virtual int shapeOutline(FT_Outline* outline) const OVERRIDE;
+#endif
 
 public:
     LEAK_CHECK()

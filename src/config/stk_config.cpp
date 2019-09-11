@@ -225,6 +225,8 @@ void STKConfig::init_defaults()
     m_disable_steer_while_unskid = false;
     m_camera_follow_skid         = false;
     m_cutscene_fov               = 0.61f;
+    m_regular_outline            = 0;
+    m_bold_outline               = 2.0f;
     m_max_skinning_bones         = 1024;
     m_tc_quality                 = 16;
     m_server_discovery_port      = 2757;
@@ -501,7 +503,8 @@ void STKConfig::getAllData(const XMLNode * root)
     if (const XMLNode *fonts_list = root->getNode("fonts-list"))
     {
         fonts_list->get("normal-ttf", &m_normal_ttf);
-        fonts_list->get("is-bold-font", &m_is_bold_font);
+		fonts_list->get("regular-outline", &m_regular_outline);
+		fonts_list->get("bold-outline", &m_bold_outline);
         fonts_list->get("digit-ttf",  &m_digit_ttf );
         fonts_list->get("color-emoji-ttf", &m_color_emoji_ttf);
     }
