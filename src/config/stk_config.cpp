@@ -503,8 +503,8 @@ void STKConfig::getAllData(const XMLNode * root)
     if (const XMLNode *fonts_list = root->getNode("fonts-list"))
     {
         fonts_list->get("normal-ttf", &m_normal_ttf);
-		fonts_list->get("regular-outline", &m_regular_outline);
-		fonts_list->get("bold-outline", &m_bold_outline);
+        fonts_list->get("regular-outline", &m_regular_outline);
+        fonts_list->get("bold-outline", &m_bold_outline);
         fonts_list->get("digit-ttf",  &m_digit_ttf );
         fonts_list->get("color-emoji-ttf", &m_color_emoji_ttf);
     }
