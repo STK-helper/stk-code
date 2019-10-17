@@ -1541,7 +1541,7 @@ void KartSelectionScreen::setKartsFromCurrentGroup()
     // add random
     if (usable_kart_count > 1)
     {
-        w->addItem(_("Random Kart"), RANDOM_KART_ID, "random_kart.png");
+        w->addItem(_("Random Kart"), RANDOM_KART_ID, "/gui/icons/random_kart.png");
     }
 
     w->updateItemDisplay();

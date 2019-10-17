@@ -282,7 +282,7 @@ void GPInfoScreen::addScreenshot()
 
     // Temporary icon, will replace it just after
     // (but it will be shown if the given icon is not found)
-    screenshot->m_properties[PROP_ICON] = "main_help.png";
+    screenshot->m_properties[PROP_ICON] = "gui/icons/main_help.png";
 
     const Track *track = track_manager->getTrack(m_gp.getTrackId(0));
     video::ITexture* image = STKTexManager::getInstance()

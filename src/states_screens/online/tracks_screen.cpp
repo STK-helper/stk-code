@@ -368,12 +368,12 @@ void TracksScreen::init()
     if (m_quit_server)
     {
         IconButtonWidget* back_button = getWidget<IconButtonWidget>("back");
-        back_button->setImage("main_quit.png");
+        back_button->setImage("gui/icons/main_quit.png");
     }
     else
     {
         IconButtonWidget* back_button = getWidget<IconButtonWidget>("back");
-        back_button->setImage("back.png");
+        back_button->setImage("gui/icons/back.png");
     }
 
     DynamicRibbonWidget* tracks_widget = getWidget<DynamicRibbonWidget>("tracks");
@@ -599,7 +599,7 @@ void TracksScreen::buildTrackList()
     }
 
     tracks_widget->addItem(_("Random Track"), "random_track",
-                           "track_random.png", 0 /* no badge */,
+                           "/gui/icons/track_random.png", 0 /* no badge */,
                            IconButtonWidget::ICON_PATH_TYPE_RELATIVE);
 
     tracks_widget->updateItemDisplay();
