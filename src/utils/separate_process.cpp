@@ -44,6 +44,7 @@
 #include <dlfcn.h>
 #include <fstream>
 
+#include "main_android.hpp"
 #include "io/assets_android.hpp"
 #endif
 
@@ -79,14 +80,15 @@ std::string SeparateProcess::getCurrentExecutableLocation()
 
 // ----------------------------------------------------------------------------
 SeparateProcess::SeparateProcess(const std::string& exe,
-                                 const std::string& argument, bool create_pipe)
+                                 const std::string& argument, bool create_pipe,
+                                 const std::string& childprocess_name)
 {
 #ifdef ANDROID
     m_child_handle = NULL;
     m_child_abort_proc = NULL;
 #endif
 
-    if (!createChildProcess(exe, argument, create_pipe))
+    if (!createChildProcess(exe, argument, create_pipe, childprocess_name))
     {
         Log::error("SeparateProcess", "Failed to run %s %s",
             exe.c_str(), argument.c_str());
@@ -184,7 +186,8 @@ SeparateProcess::~SeparateProcess()
 #if defined(WIN32)
 bool SeparateProcess::createChildProcess(const std::string& exe,
                                          const std::string& argument,
-                                         bool create_pipe)
+                                         bool create_pipe,
+                                         const std::string& childprocess_name)
 {
     // Based on: https://msdn.microsoft.com/en-us/library/windows/desktop/ms682499(v=vs.85).aspx
     SECURITY_ATTRIBUTES sec_attr;
@@ -281,7 +284,8 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
 
 bool SeparateProcess::createChildProcess(const std::string& exe,
                                          const std::string& argument,
-                                         bool create_pipe)
+                                         bool create_pipe,
+                                         const std::string& childprocess_name)
 {
     if (create_pipe)
     {
@@ -323,9 +327,10 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
     }
     
     Log::info("SeparateProcess", "Data dir found in: %s", data_path.c_str());
-    
-    std::string child_path = data_path + "/files/libchildprocess.so";
-    
+
+    std::string child_path = data_path + "/files/lib" +
+        childprocess_name + ".so";
+
     if (access(child_path.c_str(), R_OK) != 0)
     {
         Log::info("SeparateProcess", "Creating libchildprocess.so");
@@ -383,6 +388,21 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
         m_child_handle = NULL;
         return false;
     }
+
+    typedef void (*set_activity_proc_t)(ANativeActivity*);
+    set_activity_proc_t set_activity_proc = 
+        (set_activity_proc_t)dlsym(m_child_handle, "set_global_android_activity");
+    
+    if (set_activity_proc == NULL)
+    {
+        Log::error("SeparateProcess", "Error: Cannot get handle to "
+                   "set_global_android_activity()");
+        dlclose(m_child_handle);
+        m_child_handle = NULL;
+        return false;
+    }
+
+    set_activity_proc(global_android_activity);
     
     const std::string exe_file = StringUtils::getBasename(exe);
     auto rest_argv = StringUtils::split(argument, ' ');
@@ -408,7 +428,8 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
 
 bool SeparateProcess::createChildProcess(const std::string& exe,
                                          const std::string& argument,
-                                         bool create_pipe)
+                                         bool create_pipe,
+                                         const std::string& childprocess_name)
 {
     const int PIPE_READ=0;
     const int PIPE_WRITE=1;

@@ -23,6 +23,8 @@
 #include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
+#include "guiengine/engine.hpp"
+#include "guiengine/skin.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "tracks/track_manager.hpp"
 #include "utils/command_line.hpp"
@@ -62,7 +64,7 @@ namespace irr {
 #  include <direct.h>
 #  include <windows.h>
 #  include <stdio.h>
-#  if !defined(__CYGWIN__ ) && !defined(__MINGW32__)
+#  if !defined(__MINGW32__)
      /*Needed by the remove directory function */
 #    define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
 #    define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
@@ -131,6 +133,7 @@ FileManager* file_manager = 0;
  */
 FileManager::FileManager()
 {
+    m_root_dirs.clear();
     resetSubdir();
 #ifdef __APPLE__
     // irrLicht's createDevice method has a nasty habit of messing the CWD.
@@ -264,7 +267,7 @@ void FileManager::resetSubdir()
     m_subdir_name[CHALLENGE  ] = "challenges";
     m_subdir_name[GFX        ] = "gfx";
     m_subdir_name[GRANDPRIX  ] = "grandprix";
-    m_subdir_name[GUI_ICON   ] = "gui/icons/Classic";
+    m_subdir_name[GUI_ICON   ] = "gui/icons";
     m_subdir_name[GUI_SCREEN ] = "gui/screens";
     m_subdir_name[GUI_DIALOG ] = "gui/dialogs";
     m_subdir_name[LIBRARY    ] = "library";
@@ -412,7 +415,7 @@ void FileManager::addAssetsSearchPath()
     if (fileExists(m_subdir_name[TEXTURE]+"deprecated/"))
         pushTextureSearchPath(m_subdir_name[TEXTURE]+"deprecated/", "deprecatedtex");
 
-    pushTextureSearchPath(m_subdir_name[GUI_ICON], "gui/icons/Classic");
+    pushTextureSearchPath(m_subdir_name[GUI_ICON], "gui/icons");
 
     pushModelSearchPath  (m_subdir_name[MODEL]);
     pushMusicSearchPath  (m_subdir_name[MUSIC]);
@@ -775,7 +778,16 @@ std::string FileManager::getAssetChecked(FileManager::AssetType type,
 std::string FileManager::getAsset(FileManager::AssetType type,
                                   const std::string &name) const
 {
-    return m_subdir_name[type]+name;
+    if (type == GUI_ICON && GUIEngine::getSkin()->hasIconTheme())
+    {
+        const std::string test_path = GUIEngine::getSkin()->getDataPath() +
+            "data/gui/icons/" + name;
+        if (fileExists(test_path))
+            return test_path;
+        else
+            return m_subdir_name[type] + name;
+    }
+    return m_subdir_name[type] + name;
 }   // getAsset
 
 //-----------------------------------------------------------------------------
@@ -886,7 +898,7 @@ bool FileManager::checkAndCreateDirectory(const std::string &path)
     Log::info("FileManager", "Creating directory '%s'.", path.c_str());
 
     // Otherwise try to create the directory:
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32)
     bool error = _wmkdir(StringUtils::utf8ToWide(path).c_str()) != 0;
 #else
     bool error = mkdir(path.c_str(), 0755) != 0;
@@ -944,7 +956,7 @@ void FileManager::checkAndCreateConfigDir()
     else
     {
 
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
 
         // Try to use the APPDATA directory to store config files and highscore
         // lists. If not defined, used the current directory.
@@ -1048,7 +1060,7 @@ void FileManager::checkAndCreateConfigDir()
  */
 void FileManager::checkAndCreateAddonsDir()
 {
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
     m_addons_dir  = m_user_config_dir+"../addons/";
 #elif defined(__APPLE__)
     m_addons_dir  = getenv("HOME");
@@ -1085,7 +1097,7 @@ void FileManager::checkAndCreateAddonsDir()
  */
 void FileManager::checkAndCreateScreenshotDir()
 {
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
     m_screenshot_dir  = m_user_config_dir+"screenshots/";
 #elif defined(__APPLE__)
     m_screenshot_dir  = getenv("HOME");
@@ -1111,7 +1123,7 @@ void FileManager::checkAndCreateScreenshotDir()
  */
 void FileManager::checkAndCreateReplayDir()
 {
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
     m_replay_dir = m_user_config_dir + "replay/";
 #elif defined(__APPLE__)
     m_replay_dir  = getenv("HOME");
@@ -1137,7 +1149,7 @@ void FileManager::checkAndCreateReplayDir()
 */
 void FileManager::checkAndCreateCachedTexturesDir()
 {
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
     m_cached_textures_dir = m_user_config_dir + "cached-textures/";
 #elif defined(__APPLE__)
     m_cached_textures_dir = getenv("HOME");
@@ -1162,7 +1174,7 @@ void FileManager::checkAndCreateCachedTexturesDir()
  */
 void FileManager::checkAndCreateGPDir()
 {
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
     m_gp_dir = m_user_config_dir + "grandprix/";
 #elif defined(__APPLE__)
     m_gp_dir  = getenv("HOME");
@@ -1183,7 +1195,7 @@ void FileManager::checkAndCreateGPDir()
 }   // checkAndCreateGPDir
 
 // ----------------------------------------------------------------------------
-#if !defined(WIN32) && !defined(__CYGWIN__) && !defined(__APPLE__)
+#if !defined(WIN32) && !defined(__APPLE__)
 
 /** Find a directory to use for remaining unix variants. Use the new standards
  *  for config directory based on XDG_* environment variables, or a

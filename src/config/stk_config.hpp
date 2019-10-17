@@ -211,9 +211,9 @@ public:
 
     /** Lists of TTF files used in STK. */
     std::vector<std::string> m_normal_ttf;
+    bool m_normal_ttf_is_bold; // Whether the normal_ttf fonts are bold
     std::vector<std::string> m_digit_ttf;
     std::string m_color_emoji_ttf;
-    bool m_is_bold_font; // Whether the normal_ttf fonts are bold
 
     /** Configurable values used in SmoothNetworkBody class. */
     float m_snb_min_adjust_length, m_snb_max_adjust_length,

@@ -6,7 +6,7 @@
         <spacer width="20" height="2%" />
 
         <buttonbar id="backbtnribbon" proportion="4" width="100%" align="center">
-            <icon-button id="backbtn" width="128" height="128" align="center" icon="back.png" 
+            <icon-button id="backbtn" width="128" height="128" align="center" icon="gui/icons/back.png" 
                          extend_label="200" I18N="In the in-game dialog" text="Back to Game"/>
         </buttonbar>
 
@@ -14,16 +14,16 @@
 
         <buttonbar id="choiceribbon" proportion="4" width="100%" align="center">
 
-            <icon-button id="selectkart" width="128" height="128" icon="random_kart.png"
+            <icon-button id="selectkart" width="128" height="128" icon="gui/icons/random_kart.png"
                     I18N="In the in-game dialog" text="Select kart" word_wrap="true"/>
 
-            <icon-button id="options" width="128" height="128" icon="main_options.png"
+            <icon-button id="options" width="128" height="128" icon="gui/icons/main_options.png"
                          I18N="In the in-game dialog" text="Options" word_wrap="true"/>
 
-            <icon-button id="help" width="128" height="128" icon="main_help.png"
+            <icon-button id="help" width="128" height="128" icon="gui/icons/main_help.png"
                     I18N="In the in-game dialog" text="Help" word_wrap="true"/>
 
-            <icon-button id="exit" width="128" height="128" icon="main_quit.png"
+            <icon-button id="exit" width="128" height="128" icon="gui/icons/main_quit.png"
                          I18N="In the in-game dialog" text="Back to menu" word_wrap="true"/>
 
         </buttonbar>

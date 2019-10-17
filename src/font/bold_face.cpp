@@ -18,9 +18,10 @@
 
 #include "font/bold_face.hpp"
 
-#include "config/stk_config.hpp"
 #include "font/font_manager.hpp"
 #include "font/regular_face.hpp"
+#include "guiengine/engine.hpp"
+#include "guiengine/skin.hpp"
 
 // ----------------------------------------------------------------------------
 /** Constructor of BoldFace.
@@ -66,7 +67,7 @@ void BoldFace::reset()
 #ifndef SERVER_ONLY
 int BoldFace::shapeOutline(FT_Outline* outline) const
 {
-    if (stk_config->m_is_bold_font)
+    if (GUIEngine::getSkin()->getNormalTTFIsBold())
         return FT_Outline_Embolden(outline, getDPI() * -1.0f);
     else
         return FT_Outline_Embolden(outline, getDPI() * 2);

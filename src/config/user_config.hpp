@@ -449,6 +449,12 @@ namespace UserConfigParams
     PARAM_PREFIX StringUserConfigParam m_last_used_kart_group
             PARAM_DEFAULT( StringUserConfigParam("all", "last_kart_group",
                                                  "Last selected kart group") );
+    PARAM_PREFIX IntUserConfigParam          m_soccer_red_ai_num
+            PARAM_DEFAULT(  IntUserConfigParam(0, "m_soccer_red_ai_num",
+            &m_race_setup_group, "Number of red AI karts in soccer mode.") );
+    PARAM_PREFIX IntUserConfigParam          m_soccer_blue_ai_num
+            PARAM_DEFAULT(  IntUserConfigParam(0, "m_soccer_blue_ai_num",
+            &m_race_setup_group, "Number of blue AI karts in soccer mode.") );
 
     // ---- Wiimote data
     PARAM_PREFIX GroupUserConfigParam        m_wiimote_group
@@ -832,10 +838,10 @@ namespace UserConfigParams
                            &m_graphics_quality,
                            "Quality of anisotropic filtering (usual values include 2-4-8-16; 0 to disable)") );
 
-    PARAM_PREFIX BoolUserConfigParam         m_vsync
-            PARAM_DEFAULT( BoolUserConfigParam(false, "vsync",
+    PARAM_PREFIX IntUserConfigParam         m_swap_interval
+            PARAM_DEFAULT( IntUserConfigParam(0, "swap_interval",
                            &m_graphics_quality,
-                           "Whether vertical sync is enabled") );
+                           "Swap interval for vsync: 0 = disabled, 1 = full, 2 = half") );
     PARAM_PREFIX BoolUserConfigParam         m_motionblur
             PARAM_DEFAULT( BoolUserConfigParam(false,
                            "motionblur_enabled", &m_graphics_quality,
@@ -913,7 +919,7 @@ namespace UserConfigParams
                            "Last selected track group") );
 
     PARAM_PREFIX StringUserConfigParam      m_skin_file
-            PARAM_DEFAULT(  StringUserConfigParam("Peach.stkskin", "skin_file",
+            PARAM_DEFAULT(  StringUserConfigParam("peach", "skin_file",
                                                   "Name of the skin to use") );
 
     PARAM_PREFIX IntUserConfigParam        m_minimap_display

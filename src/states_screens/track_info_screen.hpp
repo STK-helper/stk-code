@@ -60,6 +60,15 @@ class TrackInfoScreen : public GUIEngine::Screen,
     /** The label besides the target types spinner. */
     GUIEngine::LabelWidget* m_target_type_label;
 
+    /** Spinner for number of blue AI karts. */
+    GUIEngine::SpinnerWidget* m_ai_blue_spinner;
+
+    /** The label besides the blue AI karts spinner. */
+    GUIEngine::LabelWidget* m_ai_blue_label;
+
+    /* The div that contains the blue ai spinner and label */
+    GUIEngine::Widget* m_ai_blue_div;
+
     /* The div that contains the target type spinner and label */
     GUIEngine::Widget* m_target_type_div;
 

@@ -207,7 +207,8 @@
 #include "items/powerup_manager.hpp"
 #include "items/projectile_manager.hpp"
 #include "karts/combined_characteristic.hpp"
-#include "karts/controller/ai_base_lap_controller.hpp"
+#include "karts/controller/ai_base_controller.hpp"
+#include "karts/controller/network_ai_controller.hpp"
 #include "karts/kart_model.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
@@ -251,6 +252,7 @@
 #include "utils/log.hpp"
 #include "utils/mini_glm.hpp"
 #include "utils/profiler.hpp"
+#include "utils/separate_process.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
 
@@ -1069,10 +1071,19 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         }
         irr::core::stringw s;
         PlayerManager::requestSignIn(login, password);
+        uint64_t started_time = StkTime::getMonoTimeMs();
         while (PlayerManager::getCurrentOnlineState() != PlayerProfile::OS_SIGNED_IN)
         {
             Online::RequestManager::get()->update(0.0f);
             StkTime::sleep(1);
+            if (StkTime::getMonoTimeMs() > started_time + 20000)
+            {
+                Log::error("Main",
+                    "Timed out trying login, check login info or connection "
+                    "to stk addons.");
+                cleanSuperTuxKart();
+                return false;
+            }
         }
         Log::info("Main", "Logged in from command-line.");
         if (init_user)
@@ -1085,6 +1096,11 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         cleanSuperTuxKart();
         return false;
     }
+
+    if (CommandLine::has( "--network-ai-freq", &n))
+        NetworkAIController::setAIFrequency(n);
+    else
+        NetworkAIController::setAIFrequency(30);
 
     if (!can_wan && CommandLine::has("--login-id", &n) &&
         CommandLine::has("--token", &s))
@@ -1311,11 +1327,20 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         if (!can_wan && player && player->wasOnlineLastTime() &&
             player->wasOnlineLastTime() && player->hasSavedSession())
         {
+            uint64_t started_time = StkTime::getMonoTimeMs();
             while (PlayerManager::getCurrentOnlineState() !=
                 PlayerProfile::OS_SIGNED_IN)
             {
                 Online::RequestManager::get()->update(0.0f);
                 StkTime::sleep(1);
+                if (StkTime::getMonoTimeMs() > started_time + 20000)
+                {
+                    Log::error("Main",
+                        "Timed out trying to login saved session, check "
+                        "connection to stk addons or rerun --init-user.");
+                    cleanSuperTuxKart();
+                    return false;
+                }
             }
             can_wan = true;
         }
@@ -1324,6 +1349,14 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
             Log::warn("main","No saved online player session to create "
                 "or connect to a wan server.");
         }
+    }
+
+    int ai_num = 0;
+    if (CommandLine::has("--server-ai", &ai_num))
+    {
+        Log::info("main", "Add %d server ai(s) server configurable will be "
+            "disabled.", ai_num);
+        ServerConfig::m_server_configurable = false;
     }
 
     std::string ipv4;
@@ -1335,6 +1368,8 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         NetworkConfig::get()->setIsServer(false);
         if (CommandLine::has("--network-ai", &n))
         {
+            // We need an existing current player
+            PlayerManager::get()->enforceCurrentPlayer();
             NetworkConfig::get()->setNetworkAITester(true);
             PlayerManager::get()->createGuestPlayers(n);
             for (int i = 0; i < n; i++)
@@ -1406,6 +1441,21 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
             ServerConfig::loadServerLobbyFromConfig();
             Log::info("main", "Creating a LAN server '%s'.",
                 server_name.c_str());
+        }
+        if (ai_num > 0)
+        {
+            std::string cmd =
+                std::string("--stdout=server_ai.log --no-graphics"
+                " --network-ai-freq=10 --connect-now=127.0.0.1:") +
+                StringUtils::toString(STKHost::get()->getPrivatePort()) +
+                " --no-console-log --disable-polling --network-ai="
+                + StringUtils::toString(ai_num);
+            if (!server_password.empty())
+                cmd += " --server-password=" + server_password;
+            STKHost::get()->setSeparateProcess(
+                new SeparateProcess(
+                SeparateProcess::getCurrentExecutableLocation(), cmd,
+                false/*create_pipe*/, "childprocess_ai"/*childprocess_name*/));
         }
     }
 
@@ -1701,6 +1751,8 @@ void clearGlobalVariables()
 #ifdef ENABLE_WIIUSE
     wiimote_manager = NULL;
 #endif
+    World::setWorld(NULL);
+    GUIEngine::resetGlobalVariables();
 }   // clearGlobalVariables
 
 //=============================================================================
@@ -1729,7 +1781,14 @@ void initRest()
         exit(0);
     }
 
+    // We need a temporary skin to load the font list from skin (if any)
+    GUIEngine::Skin* tmp_skin = new GUIEngine::Skin(NULL);
+    GUIEngine::setSkin(tmp_skin);
     font_manager = new FontManager();
+    font_manager->loadFonts();
+    delete tmp_skin;
+    GUIEngine::setSkin(NULL);
+
     GUIEngine::init(device, driver, StateManager::get());
     input_manager = new InputManager();
     // Get into menu mode initially.
@@ -1847,6 +1906,7 @@ void askForInternetPermission()
             if (need_to_start_news_manager)
                 NewsManager::get()->init(false);
 #endif
+            user_config->saveConfig();
             GUIEngine::ModalDialog::dismiss();
         }   // onConfirm
         // --------------------------------------------------------

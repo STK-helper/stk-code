@@ -116,6 +116,8 @@ private:
      * (disconnected). */
     std::weak_ptr<STKPeer> m_server_owner;
 
+    std::weak_ptr<STKPeer> m_ai_peer;
+
     std::atomic<uint32_t> m_server_owner_id;
 
     /** Official karts and tracks available in server. */
@@ -189,6 +191,8 @@ private:
 
     std::atomic<int> m_game_mode;
 
+    std::atomic<int> m_lobby_players;
+
     std::atomic<uint64_t> m_last_success_poll_time;
 
     uint64_t m_server_started_at, m_server_delay;
@@ -206,6 +210,9 @@ private:
     uint32_t m_winner_peer_id;
 
     uint64_t m_client_starting_time;
+
+    // Calculated before each game started
+    unsigned m_ai_count;
 
     // connection management
     void clientDisconnected(Event* event);
@@ -227,19 +234,7 @@ private:
     void updateServerOwner();
     void handleServerConfiguration(Event* event);
     void updateTracksForMode();
-    bool checkPeersReady() const
-    {
-        bool all_ready = true;
-        for (auto p : m_peers_ready)
-        {
-            if (p.first.expired())
-                continue;
-            all_ready = all_ready && p.second;
-            if (!all_ready)
-                return false;
-        }
-        return true;
-    }
+    bool checkPeersReady(bool ignore_ai_peer) const;
     void resetPeersReady()
     {
         for (auto it = m_peers_ready.begin(); it != m_peers_ready.end();)
@@ -333,6 +328,7 @@ private:
     void testBannedForOnlineId(STKPeer* peer, uint32_t online_id) const;
     void writeDisconnectInfoTable(STKPeer* peer);
     void writePlayerReport(Event* event);
+    bool supportsAI();
 public:
              ServerLobby();
     virtual ~ServerLobby();
@@ -357,6 +353,7 @@ public:
     float getStartupBoostOrPenaltyForKart(uint32_t ping, unsigned kart_id);
     int getDifficulty() const                   { return m_difficulty.load(); }
     int getGameMode() const                      { return m_game_mode.load(); }
+    int getLobbyPlayers() const              { return m_lobby_players.load(); }
     void saveInitialItems();
     void saveIPBanTable(const TransportAddress& addr);
     void listBanTable();

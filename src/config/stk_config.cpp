@@ -501,7 +501,7 @@ void STKConfig::getAllData(const XMLNode * root)
     if (const XMLNode *fonts_list = root->getNode("fonts-list"))
     {
         fonts_list->get("normal-ttf", &m_normal_ttf);
-        fonts_list->get("is-bold-font", &m_is_bold_font);
+        fonts_list->get("normal-ttf-is-bold", &m_normal_ttf_is_bold);
         fonts_list->get("digit-ttf",  &m_digit_ttf );
         fonts_list->get("color-emoji-ttf", &m_color_emoji_ttf);
     }
@@ -565,6 +565,11 @@ void STKConfig::getAllData(const XMLNode * root)
     for (unsigned int i = 0; i < child_node->getNumNodes(); ++i)
     {
         const XMLNode* type = child_node->getNode(i);
+
+        // Avoid memory leak on re-load of stk_config
+        if (m_kart_properties[type->getName()])
+            delete m_kart_properties[type->getName()];
+
         m_kart_properties[type->getName()] = new KartProperties();
         m_kart_properties[type->getName()]->copyFrom(m_default_kart_properties);
         m_kart_properties[type->getName()]->getAllData(type);

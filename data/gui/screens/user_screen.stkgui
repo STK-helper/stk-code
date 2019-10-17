@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stkgui>
     <div x="1%" y="1%" width="98%" height="98%" layout="vertical-row" >
-
-        <header align="center" width="80%" text="Login" text_align="center"/>
-        <spacer height="15" width="10"/>
+        <header align="center" height="8%" width="80%" text="Login" text_align="center"/>
+        <spacer height="1%" width="10"/>
 
         <box proportion="1" width="98%" layout="vertical-row">
 
@@ -58,17 +57,17 @@
 			
 			<div width="90%" align="center" layout="vertical-row" height="13%">
 				<buttonbar id="options" width="100%" height="100%" align="center">
-					<icon-button id="ok" width="128" height="128" icon="green_check.png"
+					<icon-button id="ok" width="128" height="128" icon="gui/icons/green_check.png"
 								 I18N="In the user screen" text="OK" label_location="bottom"/>
-					<icon-button id="new_user" width="128" height="128" icon="blue_plus.png"
+					<icon-button id="new_user" width="128" height="128" icon="gui/icons/blue_plus.png"
 								 I18N="In the user screen" text="Add" label_location="bottom"/>
-					<icon-button id="delete" width="128" height="128" icon="remove.png"
+					<icon-button id="delete" width="128" height="128" icon="gui/icons/remove.png"
 								 I18N="In the user screen" text="Delete" label_location="bottom"/>
-					<icon-button id="rename" width="128" height="128" icon="rename.png"
+					<icon-button id="rename" width="128" height="128" icon="gui/icons/rename.png"
 								 I18N="In the user screen" text="Rename" label_location="bottom"/>
-					<icon-button id="default_kart_color" width="128" height="128" icon="edit.png"
+					<icon-button id="default_kart_color" width="128" height="128" icon="gui/icons/edit.png"
 								 I18N="In the user screen" text="Kart color" label_location="bottom"/>
-					<icon-button id="cancel" width="128" height="128" icon="main_quit.png"
+					<icon-button id="cancel" width="128" height="128" icon="gui/icons/main_quit.png"
 								 I18N="In the user screen" text="Cancel" label_location="bottom"/>
 				</buttonbar>
 			</div>
@@ -77,5 +76,5 @@
         <spacer width="20" height="15"/>
     </div>
 
-    <icon-button id="back" x="0" y="0" height="8%" icon="back.png"/>
+    <icon-button id="back" x="0" y="0" height="9%" icon="gui/icons/back.png"/>
 </stkgui>

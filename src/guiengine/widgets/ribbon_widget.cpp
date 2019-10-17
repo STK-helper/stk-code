@@ -253,8 +253,8 @@ void RibbonWidget::add()
                     GUIEngine::getGUIEnv()->addButton(icon_part, subbtn,
                                                       same_id, L"");
                 icon->setScaleImage(true);
-                std::string filename = file_manager->getAsset(
-                                     FileManager::GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
+                std::string filename = GUIEngine::getSkin()->getThemedIcon(
+                                     m_active_children[i].m_properties[PROP_ICON]);
                 icon->setImage( irr_driver->getTexture(filename.c_str()) );
                 icon->setUseAlphaChannel(true);
                 icon->setDrawBorder(false);
@@ -363,8 +363,8 @@ void RibbonWidget::add()
                     GUIEngine::getGUIEnv()->addButton(icon_part, subbtn,
                                                       same_id, L"");
                 icon->setScaleImage(true);
-                std::string filename = file_manager->getAsset(
-                                     FileManager::GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
+                std::string filename = GUIEngine::getSkin()->getThemedIcon(
+                                     m_active_children[i].m_properties[PROP_ICON]);
                 icon->setImage( irr_driver->getTexture(filename.c_str()) );
                 icon->setUseAlphaChannel(true);
                 icon->setDrawBorder(false);
@@ -433,7 +433,8 @@ Log::info("QCTest font", "Label max hight: %i", label_part.getHeight());
 
             // calculate the size of the image
             std::string filename =
-                file_manager->getAsset(FileManager::GUI_ICON, m_active_children[i].m_properties[PROP_ICON]);
+                GUIEngine::getSkin()->getThemedIcon(m_active_children[i].m_properties[PROP_ICON]);
+
             video::ITexture* image =
                 irr_driver->getTexture((filename).c_str());
             if(!image)

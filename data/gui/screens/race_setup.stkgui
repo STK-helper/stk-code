@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stkgui>
-    <div x="2%" y="2%" width="96%" height="96%" layout="vertical-row" >
+    <div x="2%" y="1%" width="96%" height="98%" layout="vertical-row" >
+        <header height="8%" width="80%" text="Race Setup" align="center" text_align="center" />
+        <spacer height="1%" width="25"/>
 
-        <header height="5%" width="80%" text="Race Setup" align="center" text_align="center" />
-
-        <spacer height="5%" width="25"/>
         <bright width="100%" text="Select a difficulty" align="center" text_align="left" />
         <spacer height="10" width="25"/>
         <box width="100%" proportion="3" padding="10" layout="vertical-row">
             <spacer height="15%" width="25"/>
             <ribbon id="difficulty" height="70%" width="100%" align="center">
-                <icon-button id="novice" width="128" height="128" icon="difficulty_easy.png"
+                <icon-button id="novice" width="128" height="128" icon="gui/icons/difficulty_easy.png"
                         I18N="Difficulty" text="Novice"/>
-                <icon-button id="intermediate" width="128" height="128" icon="difficulty_medium.png"
+                <icon-button id="intermediate" width="128" height="128" icon="gui/icons/difficulty_medium.png"
                         I18N="Difficulty" text="Intermediate"/>
-                <icon-button id="expert" width="128" height="128" icon="difficulty_hard.png"
+                <icon-button id="expert" width="128" height="128" icon="gui/icons/difficulty_hard.png"
                         I18N="Difficulty"  text="Expert"/>
-                <icon-button id="best" width="128" height="128" icon="difficulty_best.png"
+                <icon-button id="best" width="128" height="128" icon="gui/icons/difficulty_best.png"
                         I18N="Difficulty"  text="SuperTux"/>
             </ribbon>
         </box>
@@ -33,5 +32,5 @@
         </box>
     </div>
 
-    <icon-button id="back" x="0" y="0" height="8%" icon="back.png"/>
+    <icon-button id="back" x="0" y="0" height="9%" icon="gui/icons/back.png"/>
 </stkgui>

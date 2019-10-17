@@ -3,7 +3,7 @@
     <div x="5%" y="5%" width="90%" height="90%" layout="vertical-row">
         <div x="5%" y="0%" width="90%" proportion="6" layout="horizontal-row">
             <div width="40%" height="100%" layout="vertical-row">
-                <icon id="icon" align="center" proportion="8" width="100%" icon="loading.png" />
+                <icon id="icon" align="center" proportion="8" width="100%" icon="gui/icons/loading.png" />
                 <spacer proportion="1" />
             </div>
             <spacer proportion="1" />
@@ -28,13 +28,13 @@
         <div width="80%" proportion="4" align="center">
             <buttonbar id="actions" x="0" y="0" height="100%" width="100%" align="center">
                 <icon-button id="install" width="128" height="128"
-                             icon="package-update.png"
+                             icon="gui/icons/package-update.png"
                              I18N="Add-on screen action"  text="Install" />
                 <icon-button id="uninstall" width="128" height="128"
-                             icon="package-uninstall.png"
+                             icon="gui/icons/package-uninstall.png"
                              I18N="Add-on screen action" text="Uninstall" />
                 <icon-button id="back" width="128" height="128"
-                             icon="back.png"
+                             icon="gui/icons/back.png"
                              I18N="Add-on screen action" text="Back" />
             </buttonbar>
             <progressbar id="progress" x="0" y="20%" width="100%" height="2f" />

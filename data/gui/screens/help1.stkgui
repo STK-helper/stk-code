@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stkgui>
-    <icon-button id="back" x="0" y="0" height="8%" icon="back.png"/>
+    <icon-button id="back" x="0" y="0" height="9%" icon="gui/icons/back.png"/>
     <div x="1%" y="1%" width="98%" height="98%" layout="vertical-row" >
-        <header width="80%" height="7%" align="center" text="SuperTuxKart Help" text_align="center"/>
+        <header width="80%" height="8%" align="center" text="SuperTuxKart Help" text_align="center"/>
         <spacer height="1%" width="100%"/>
 
-        <div width="100%" height="92%" layout="horizontal-row" >
+        <div width="100%" height="91%" layout="horizontal-row" >
 
             <vertical-tabs id="category" height="100%" width="18%">
-                <icon-button id="page1" width="128" height="128" icon="track_random.png"
+                <icon-button id="page1" width="128" height="128" icon="gui/icons/options_general.png"
                         I18N="Tab in help menu" text="General"/>
-                <icon-button id="page2" width="128" height="128" icon="mode_ftl.png"
+                <icon-button id="page2" width="128" height="128" icon="gui/icons/mode_ftl.png"
                         I18N="Tab in help menu" text="Game Modes"/>
-                <icon-button id="page3" width="128" height="128" icon="gift.png"
+                <icon-button id="page3" width="128" height="128" icon="gui/icons/gift.png"
                         I18N="Tab in help menu" text="Powerups"/>
-                <icon-button id="page4" width="128" height="128" icon="banana.png"
+                <icon-button id="page4" width="128" height="128" icon="gui/icons/banana.png"
                         I18N="Tab in help menu" text="Bananas"/>
-                <icon-button id="page5" width="128" height="128" icon="story_mode_book.png"
+                <icon-button id="page5" width="128" height="128" icon="gui/icons/story_mode_book.png"
                         I18N="Tab in help menu" text="Story Mode"/>
-                <icon-button id="page6" width="128" height="128" icon="mass.png"
+                <icon-button id="page6" width="128" height="128" icon="gui/icons/mass.png"
                         I18N="Tab in help menu" text="Kart classes"/>
-                <icon-button id="page7" width="128" height="128" icon="options_input.png"
+                <icon-button id="page7" width="128" height="128" icon="gui/icons/options_input.png"
                         I18N="Tab in help menu" text="Multiplayer"/>
             </vertical-tabs>
 
@@ -30,19 +30,19 @@
 
                 <spacer width="5" height="1%"/>
                 <div width="50%" height="7%" align="center" layout="horizontal-row">
-                    <icon id="tutorialIcon" width="64" height="64" align="center" icon="tutorial.png"/>
+                    <icon id="tutorialIcon" width="64" height="64" align="center" icon="gui/icons/tutorial.png"/>
                     <button id="startTutorial" align="center" text="Start the tutorial"/>
                 </div>
                 <spacer width="5" height="2%"/>
 
                 <div width="100%" proportion="4" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gift.png"/>
+                    <icon align="center" width="64" height="64" icon="gui/icons/gift.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="7" height="100%" word_wrap="true"
                             I18N="In the help menu"
                             text="Collect blue gift boxes, they will give you powerups."/>
                     <spacer width="25" height="25"/>
-                    <icon align="center" width="64" height="64" icon="banana.png"/>
+                    <icon align="center" width="64" height="64" icon="gui/icons/banana.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="3" height="100%" word_wrap="true"
                             I18N="In the help menu"
@@ -50,7 +50,7 @@
                 </div>
 
                 <div width="100%" proportion="6" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="nitro.png"/>
+                    <icon align="center" width="64" height="64" icon="gui/icons/nitro.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="3" height="100%" word_wrap="true"
                             I18N="In the help menu"
@@ -58,7 +58,7 @@
                     </div>
 
                 <div width="100%" proportion="4" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="gui_lock.png"/>
+                    <icon align="center" width="64" height="64" icon="gui/icons/gui_lock.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="2" height="100%" word_wrap="true"
                             I18N="In the help menu"
@@ -66,7 +66,7 @@
                 </div>
 
                 <div width="100%" proportion="6" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="android/drift.png"/>
+                    <icon align="center" width="64" height="64" icon="gui/icons/android/drift.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="2" height="100%" word_wrap="true"
                             I18N="In the help menu"
@@ -74,7 +74,7 @@
                 </div>
 
                 <div width="100%" proportion="4" layout="horizontal-row">
-                    <icon align="center" width="64" height="64" icon="speed.png"/>
+                    <icon align="center" width="64" height="64" icon="gui/icons/speed.png"/>
                     <spacer width="25" height="25"/>
                     <bubble proportion="2" height="100%" word_wrap="true"
                             I18N="In the help menu"

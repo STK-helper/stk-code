@@ -21,6 +21,7 @@
 #include "input/input_manager.hpp"
 #include "states_screens/dialogs/press_a_key_dialog.hpp"
 #include "states_screens/options/options_screen_device.hpp"
+#include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
 
 using namespace GUIEngine;
@@ -28,10 +29,16 @@ using namespace irr::gui;
 
 // ------------------------------------------------------------------------------------------------------
 
-PressAKeyDialog::PressAKeyDialog(const float w, const float h) :
+PressAKeyDialog::PressAKeyDialog(const float w, const float h, const bool isKeyboardFlag) :
         ModalDialog(w, h)
 {
     loadFromFile("press_a_key_dialog.stkgui");
+    if(isKeyboardFlag)
+    {
+        Widget* title = getWidget("title");
+        // I18N: In press a key dialog, tell user to press a key to bind configuration
+        title->setText(_("Press any key..."));
+    }
 }
 
 // ------------------------------------------------------------------------------------------------------

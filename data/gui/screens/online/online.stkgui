@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stkgui>
-    <div x="0" y="0" width="100%" height="100%" layout="vertical-row" >
-        <header text_align="center" width="80%" align="center" text="Online"/>
-        <spacer height="15" width="10"/>
+    <div x="0" y="1%" width="100%" height="98%" layout="vertical-row" >
+        <header text_align="center" height="8%" width="80%" align="center" text="Online"/>
+        <spacer height="1%" width="10"/>
+
         <button id="user-id" width="12f" height="fit" align="center"/>
-        <spacer height="20"/>
+        <spacer height="2%" width="10"/>
 
         <box width="fit" height="fit"  layout="horizontal-row" align="center" valign="center">
             <spacer width="25"/>
@@ -15,29 +16,26 @@
             <spacer width="25"/>
         </box>
 
-        <spacer height="15" width="10"/>
-        <icon id="logo" align="center" proportion="4" width="100%" icon="logo.png"/>
-
-        <spacer height="15" width="10"/>
+        <icon id="logo" align="center" proportion="4" width="100%" icon="gui/icons/logo.png"/>
         
         <buttonbar id="menu_toprow" proportion="3" width="90%" align="center">
             <icon-button id="lan" width="128" height="128"
-                         icon="menu_multi.png" focus_icon="menu_multi_focus.png"
+                         icon="gui/icons/menu_multi.png" focus_icon="gui/icons/menu_multi_focus.png"
                          I18N="Networking menu button" text="Local networking"/>
             <icon-button id="wan" width="128" height="128"
-                         icon="menu_multi.png" focus_icon="menu_multi_focus.png"
+                         icon="gui/icons/menu_online.png" focus_icon="gui/icons/menu_online_focus.png"
                          I18N="Networking menu button" text="Global networking"/>
             <icon-button id="enter-address" width="128" height="128"
-                         icon="online/menu_quick_play.png" focus_icon="online/menu_quick_play_hover.png"
+                         icon="gui/icons/online/menu_quick_play.png" focus_icon="gui/icons/online/menu_quick_play_hover.png"
                          I18N="Networking menu button" text="Enter server address"/>
             <icon-button id="online" width="128" height="128"
-                         icon="menu_online.png" focus_icon="menu_online_focus.png"
+                         icon="gui/icons/menu_online.png" focus_icon="gui/icons/menu_online_focus.png"
                          I18N="Networking menu button" text="Your profile"/>
         </buttonbar>
 
-        <spacer height="10%" width="10"/>
+        <spacer height="5%" width="10"/>
 
     </div>
     
-    <icon-button id="back" x="0" y="0" height="8%" icon="back.png"/>
+    <icon-button id="back" x="0" y="0" height="9%" icon="gui/icons/back.png"/>
 </stkgui>

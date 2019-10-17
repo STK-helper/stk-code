@@ -27,7 +27,18 @@
 
 extern int main(int argc, char *argv[]);
 
-struct android_app* global_android_app;
+#ifdef ANDROID
+struct android_app* global_android_app = NULL;
+ANativeActivity* global_android_activity = NULL;
+
+extern "C"
+{
+void set_global_android_activity(ANativeActivity* activity)
+{
+    global_android_activity = activity;
+}
+}
+#endif
 
 void override_default_params_for_mobile()
 {
@@ -44,6 +55,11 @@ void override_default_params_for_mobile()
 
     // Enable multitouch race GUI
     UserConfigParams::m_multitouch_draw_gui = true;
+
+#ifdef IOS_STK
+    // Default 30 fps for battery saving
+    UserConfigParams::m_swap_interval = 2;
+#endif
 
 #ifdef ANDROID
     // Set multitouch device scale depending on actual screen size
@@ -92,6 +108,7 @@ void android_main(struct android_app* app)
     Log::info("AndroidMain", "Loading application...");
         
     global_android_app = app;
+    global_android_activity = app->activity;
     
     // Initialize global Android window state variables
     CIrrDeviceAndroid::onCreate();

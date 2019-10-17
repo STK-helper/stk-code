@@ -162,14 +162,14 @@ public:
     {
         switch (mode)
         {
-            case MINOR_MODE_NORMAL_RACE:      return "mode_normal.png";
-            case MINOR_MODE_TIME_TRIAL:       return "mode_tt.png";
-            case MINOR_MODE_FOLLOW_LEADER:    return "mode_ftl.png";
-            case MINOR_MODE_3_STRIKES:        return "mode_3strikes.png";
-            case MINOR_MODE_FREE_FOR_ALL:     return "weapons.png";
-            case MINOR_MODE_CAPTURE_THE_FLAG: return "weapons.png";
-            case MINOR_MODE_EASTER_EGG:       return "mode_easter.png";
-            case MINOR_MODE_SOCCER:           return "mode_soccer.png";
+            case MINOR_MODE_NORMAL_RACE:    return "/gui/icons/mode_normal.png";
+            case MINOR_MODE_TIME_TRIAL:     return "/gui/icons/mode_tt.png";
+            case MINOR_MODE_FOLLOW_LEADER:  return "/gui/icons/mode_ftl.png";
+            case MINOR_MODE_3_STRIKES:      return "/gui/icons/mode_3strikes.png";
+            case MINOR_MODE_FREE_FOR_ALL:   return "/gui/icons/mode_weapons.png";
+            case MINOR_MODE_CAPTURE_THE_FLAG: return "/gui/icons/mode_weapons.png";
+            case MINOR_MODE_EASTER_EGG:     return "/gui/icons/mode_easter.png";
+            case MINOR_MODE_SOCCER:         return "/gui/icons/mode_soccer.png";
             default: assert(false); return NULL;
         }
     }   // getIconOf
@@ -327,6 +327,8 @@ private:
     GrandPrixData                    m_grand_prix;
     SavedGrandPrix*                  m_saved_gp;
     int                              m_num_karts;
+    unsigned int                     m_num_red_ai;
+    unsigned int                     m_num_blue_ai;
     unsigned int                     m_num_ghost_karts;
     unsigned int                     m_num_spare_tire_karts;
     unsigned int                     m_num_finished_karts;
@@ -474,6 +476,16 @@ public:
         m_ai_superpower = SUPERPOWER_NONE;
     }   // setNumKarts
     // ------------------------------------------------------------------------
+    void setNumRedAI(unsigned int num)
+    {
+        m_num_red_ai = num;
+    }   // setNumRedAI
+    // ------------------------------------------------------------------------
+    void setNumBlueAI(unsigned int num)
+    {
+        m_num_blue_ai = num;
+    }   // setNumBlueAI
+    // ------------------------------------------------------------------------
     void setTimeTarget(float time)
     {
         m_goal_target = 0;
@@ -505,12 +517,16 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the selected number of karts (selected number of players and
      *  AI karts. */
-    unsigned int getNumberOfKarts() const {return m_num_karts; }
+    unsigned int getNumberOfKarts() const { return m_num_karts; }
     // ------------------------------------------------------------------------
     unsigned int getNumberOfAIKarts() const
     {
         return (unsigned int)m_ai_kart_list.size(); 
     }   // getNumberOfAIKarts
+    // ------------------------------------------------------------------------
+    unsigned int getNumberOfRedAIKarts() const { return m_num_red_ai; }
+    // ------------------------------------------------------------------------
+    unsigned int getNumberOfBlueAIKarts() const { return m_num_blue_ai; }
     // ------------------------------------------------------------------------
     unsigned int getNumNonGhostKarts() const
                                     { return m_num_karts - m_num_ghost_karts; }

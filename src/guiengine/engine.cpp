@@ -834,6 +834,7 @@ namespace GUIEngine
         needsUpdate.clearWithoutDeleting();
 
         gui_messages.clear();
+        MessageQueue::clear();
     }   // clear
 
     // ------------------------------------------------------------------------
@@ -1037,8 +1038,21 @@ namespace GUIEngine
     }   // deallocate
 
     // -----------------------------------------------------------------------
+    void resetGlobalVariables()
+    {
+        // Try to clear global variable for android to avoid crashes
+        needsUpdate.m_contents_vector.clear();
+        g_loaded_screens.m_contents_vector.clear();
+        g_current_screen = NULL;
+        gui_messages.clear();
+#ifdef ANDROID
+        m_gui_functions.clear();
+#endif
+    }   // resetGlobalVariables
+
+    // -----------------------------------------------------------------------
     void init(IrrlichtDevice* device_a, IVideoDriver* driver_a,
-              AbstractStateManager* state_manager )
+              AbstractStateManager* state_manager, bool loading)
     {
         g_env = device_a->getGUIEnvironment();
         g_device = device_a;
@@ -1119,10 +1133,13 @@ namespace GUIEngine
         // set event receiver
         g_device->setEventReceiver(EventHandler::get());
 
-        g_device->getVideoDriver()
-                ->beginScene(true, true, video::SColor(255,100,101,140));
-        renderLoading();
-        g_device->getVideoDriver()->endScene();
+        if (loading)
+        {
+            g_device->getVideoDriver()
+                    ->beginScene(true, true, video::SColor(255,100,101,140));
+            renderLoading();
+            g_device->getVideoDriver()->endScene();
+        }
     }   // init
 
     // -----------------------------------------------------------------------

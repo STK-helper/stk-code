@@ -36,6 +36,8 @@
 #include "GlyphLayout.h"
 #include <array>
 
+#include "../lib/irrlicht/source/Irrlicht/CGUISpriteBank.h"
+
 #ifndef SERVER_ONLY
 extern "C"
 {
@@ -51,11 +53,7 @@ extern "C"
  */
 FontWithFace::FontWithFace(const std::string& name)
 {
-    m_spritebank = irr_driver->getGUI()->addEmptySpriteBank(name.c_str());
-
-    assert(m_spritebank != NULL);
-    m_spritebank->grab();
-
+    m_spritebank = new irr::gui::CGUISpriteBank(irr_driver->getGUI());
     m_fallback_font = NULL;
     m_fallback_font_scale = 1.0f;
     m_glyph_max_height = 0;
@@ -63,6 +61,7 @@ FontWithFace::FontWithFace(const std::string& name)
     m_face_dpi = 40;
     m_inverse_shaping = 1.0f;
 }   // FontWithFace
+
 // ----------------------------------------------------------------------------
 /** Destructor. Clears the glyph page and sprite bank.
  */
@@ -74,7 +73,6 @@ FontWithFace::~FontWithFace()
             static_cast<STKTexture*>(m_spritebank->getTexture(i)));
     }
     m_spritebank->drop();
-    m_spritebank = NULL;
 
     delete m_face_ttf;
 }   // ~FontWithFace
@@ -197,7 +195,7 @@ void FontWithFace::insertGlyph(unsigned font_number, unsigned glyph_index)
     FT_Face cur_face = m_face_ttf->getFace(font_number);
     FT_GlyphSlot slot = cur_face->glyph;
 
-    if (FT_HAS_COLOR(cur_face))
+    if (FT_HAS_COLOR(cur_face) && cur_face->num_fixed_sizes != 0)
     {
         font_manager->checkFTError(FT_Load_Glyph(cur_face, glyph_index,
             FT_LOAD_DEFAULT | FT_LOAD_COLOR), "loading a glyph");
@@ -209,8 +207,10 @@ void FontWithFace::insertGlyph(unsigned font_number, unsigned glyph_index)
         font_manager->checkFTError(FT_Set_Pixel_Sizes(cur_face, 0, getDPI()),
             "setting DPI");
 
+        unsigned flag = FT_HAS_COLOR(cur_face) ?
+            (FT_LOAD_DEFAULT | FT_LOAD_COLOR) : FT_LOAD_DEFAULT;
         font_manager->checkFTError(FT_Load_Glyph(cur_face, glyph_index,
-            FT_LOAD_DEFAULT), "loading a glyph");
+            flag), "loading a glyph");
 
         font_manager->checkFTError(shapeOutline(&(slot->outline)),
             "shaping outline");
@@ -288,7 +288,12 @@ void FontWithFace::insertGlyph(unsigned font_number, unsigned glyph_index)
                 ->getVideoDriver()->createImage(video::ECF_A8R8G8B8,
                 { cur_glyph_width , cur_glyph_height});
             assert(scaled);
-            if (cur_glyph_width >= bits->width ||
+            if (cur_glyph_width == bits->width &&
+                cur_glyph_height == bits->rows)
+            {
+                unscaled->copyTo(scaled);
+            }
+            else if (cur_glyph_width >= bits->width ||
                 cur_glyph_height >= bits->rows)
             {
                 unscaled->copyToScaling(scaled);

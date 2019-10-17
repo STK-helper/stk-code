@@ -422,6 +422,21 @@ namespace GUIEngine
 
         gui::IGUISkin* getFallbackSkin() { return m_fallback_skin; }
 
+        const std::string& getDataPath() const;
+
+        bool hasIconTheme() const;
+
+        bool hasFont() const;
+
+        const std::vector<std::string>& getNormalTTF() const;
+
+        const bool getNormalTTFIsBold() const;
+
+        const std::vector<std::string>& getDigitTTF() const;
+
+        const std::string& getColorEmojiTTF() const;
+
+        std::string getThemedIcon(const std::string& relative_path) const;
     };   // Skin
 }   // guiengine
 
