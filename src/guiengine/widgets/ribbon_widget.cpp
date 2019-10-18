@@ -331,7 +331,7 @@ void RibbonWidget::add()
 
             // Used to position sub-elements, coords needs to be relative to button position
             rect<s32> subbtn_contents_rec = rect<s32>(LEFT_BORDER + HORZ_PADDING, VERT_MARGIN + TOP_BORDER + VERT_PADDING,
-                                             tab_width - RIGHT_BORDER - HORZ_PADDING*2, one_button_height - VERT_MARGIN*2 - BOTTOM_BORDER - (int)VERT_PADDING*2);
+                                             subbtn_rec.getWidth() - RIGHT_BORDER - HORZ_PADDING*2, one_button_height - VERT_MARGIN*2 - BOTTOM_BORDER - (int)VERT_PADDING*2);
 
             Log::info("subbtn_rec         ", "X1: %i, Y1: %i, X2: %i, Y2: %i", subbtn_rec.UpperLeftCorner.X, subbtn_rec.UpperLeftCorner.Y, subbtn_rec.LowerRightCorner.X, subbtn_rec.LowerRightCorner.Y);
             Log::info("subbtn_contents_rec", "X1: %i, Y1: %i, X2: %i, Y2: %i", subbtn_contents_rec.UpperLeftCorner.X, subbtn_contents_rec.UpperLeftCorner.Y, subbtn_contents_rec.LowerRightCorner.X, subbtn_contents_rec.LowerRightCorner.Y);
