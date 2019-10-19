@@ -233,6 +233,10 @@ void OptionsScreenUI::init()
     assert(splitscreen_method != NULL);
     splitscreen_method->setState(UserConfigParams::split_screen_horizontally);
 
+    CheckBoxWidget* karts_powerup_gui = getWidget<CheckBoxWidget>("karts_powerup_gui");
+    assert(karts_powerup_gui != NULL);
+    karts_powerup_gui->setState(UserConfigParams::m_karts_powerup_gui);
+
     //Forbid changing this setting in game
     splitscreen_method->setActive(!in_game);
 
@@ -307,6 +311,7 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
         assert( skinSelector != NULL );
 
         const core::stringw selectedSkin = skinSelector->getStringValue();
+        bool right = skinSelector->isRightButtonSelected();
         UserConfigParams::m_skin_file = m_skins[selectedSkin];
         irr_driver->unsetMaxTextureSize();
         bool prev_icon_theme = GUIEngine::getSkin()->hasIconTheme();
@@ -340,6 +345,11 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
                 };
             GUIEngine::switchToScreen(MainMenuScreen::getInstance());
             StateManager::get()->resetAndSetStack(screen_list);
+            // Need to use new widget pointer
+            skinSelector =
+                OptionsScreenUI::getInstance()->getWidget<GUIEngine::SpinnerWidget>("skinchoice");
+            skinSelector->setFocusForPlayer(PLAYER_ID_GAME_MASTER);
+            skinSelector->setSelectedButton(right);
         }
         irr_driver->setMaxTextureSize();
     }
@@ -353,6 +363,7 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
     {
         GUIEngine::SpinnerWidget* font_size = getWidget<GUIEngine::SpinnerWidget>("font_size");
         assert( font_size != NULL );
+        bool right = font_size->isRightButtonSelected();
         UserConfigParams::m_font_size = font_size->getValue();
         GUIEngine::clear();
         GUIEngine::cleanUp();
@@ -370,13 +381,23 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
             };
         GUIEngine::switchToScreen(MainMenuScreen::getInstance());
         StateManager::get()->resetAndSetStack(screen_list);
+        // Need to use new widget pointer
+        font_size =
+            OptionsScreenUI::getInstance()->getWidget<GUIEngine::SpinnerWidget>("font_size");
+        font_size->setFocusForPlayer(PLAYER_ID_GAME_MASTER);
+        font_size->setSelectedButton(right);
     }
     else if (name == "split_screen_horizontally")
     {
         CheckBoxWidget* split_screen_horizontally = getWidget<CheckBoxWidget>("split_screen_horizontally");
         assert(split_screen_horizontally != NULL);
         UserConfigParams::split_screen_horizontally = split_screen_horizontally->getState();
-
+    }
+    else if (name == "karts_powerup_gui")
+    {
+        CheckBoxWidget* karts_powerup_gui = getWidget<CheckBoxWidget>("karts_powerup_gui");
+        assert(karts_powerup_gui != NULL);
+        UserConfigParams::m_karts_powerup_gui = karts_powerup_gui->getState();
     }
     else if (name == "showfps")
     {
