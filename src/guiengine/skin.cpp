@@ -642,6 +642,12 @@ void Skin::drawMessage(SkinWidgetContainer* w, const core::recti &dest,
 }   // drawMessage
 
 // ----------------------------------------------------------------------------
+float Skin::getScalingFactor(std::string params, float height)
+{
+    return height / SkinConfig::m_render_params[params].getImage()->getSize().Height;
+}   // getScalingFactor
+
+// ----------------------------------------------------------------------------
 void Skin::drawBoxFromStretchableTexture(SkinWidgetContainer* w,
                                          const core::recti &dest,
                                          BoxRenderParams& params,

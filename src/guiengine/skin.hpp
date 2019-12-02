@@ -437,6 +437,8 @@ namespace GUIEngine
         const std::string& getColorEmojiTTF() const;
 
         std::string getThemedIcon(const std::string& relative_path) const;
+
+        float getScalingFactor(std::string params, float height);
     };   // Skin
 }   // guiengine
 
