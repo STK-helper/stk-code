@@ -19,6 +19,7 @@
 #include "config/player_manager.hpp"
 
 #include "achievements/achievements_manager.hpp"
+#include "challenges/story_mode_timer.hpp"
 #include "config/player_profile.hpp"
 #include "config/user_config.hpp"
 #include "io/file_manager.hpp"
@@ -48,7 +49,7 @@ void PlayerManager::create()
  *  \param request The http request.
  *  \param action If not empty, the action to be set.
  */
-void PlayerManager::setUserDetails(Online::HTTPRequest *request,
+void PlayerManager::setUserDetails(std::shared_ptr<Online::HTTPRequest> request,
     const std::string &action,
     const std::string &php_name)
 {
@@ -461,12 +462,18 @@ PlayerProfile *PlayerManager::getPlayer(const irr::core::stringw &name)
  */
 void PlayerManager::setCurrentPlayer(PlayerProfile *player)
 {
+    bool player_has_changed = false;
     if (m_current_player != player)
+    {
+        player_has_changed = true;
+        save();
         race_manager->clearKartLastPositionOnOverworld();
+    }
 
     m_current_player = player;
     if(m_current_player)
-    {
         m_current_player->computeActive();
-    }
+
+    if (player_has_changed)
+        story_mode_timer->playerHasChanged();
 }   // setCurrentPlayer

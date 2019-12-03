@@ -1231,11 +1231,17 @@ void Skin::drawRibbonChild(const core::recti &rect, Widget* widget,
         else
             params = &SkinConfig::m_render_params["tab::neutral"];
 
+        RibbonFlip flip = parentRibbon->getRibbonFlip();
 
         // automatically guess from position on-screen if tabs go up or down
-        const bool vertical_flip =
+        bool vertical_flip =
             (unsigned int)rect.UpperLeftCorner.Y <
-                irr_driver->getActualScreenSize().Height / 2.5f;
+                irr_driver->getActualScreenSize().Height / 2;
+        // force flip direction when the direction is pointed out
+        if(flip == FLIP_UP_LEFT)
+            vertical_flip = true;
+        else if(flip == FLIP_DOWN_RIGHT)
+            vertical_flip = false;
         params->m_vertical_flip = vertical_flip;
 
         core::recti rect2 = rect;
@@ -1281,11 +1287,17 @@ void Skin::drawRibbonChild(const core::recti &rect, Widget* widget,
         else
             params = &SkinConfig::m_render_params["verticalTab::neutral"];
 
+        RibbonFlip flip = parentRibbon->getRibbonFlip();
 
         // automatically guess from position on-screen if tabs go left or right
         unsigned int screen_width = irr_driver->getActualScreenSize().Width;
-        const bool horizontal_flip =
+        bool horizontal_flip =
             (unsigned int)rect.UpperLeftCorner.X > screen_width/ 2;
+        // force flip direction when the direction is pointed out
+        if(flip == FLIP_UP_LEFT)
+            horizontal_flip = true;
+        else if(flip == FLIP_DOWN_RIGHT)
+            horizontal_flip = false;
         params->m_vertical_flip = false;
 
         core::recti rect2 = rect;
@@ -1396,21 +1408,16 @@ void Skin::drawRibbonChild(const core::recti &rect, Widget* widget,
                 if (widget->m_properties[PROP_ID] == RibbonWidget::NO_ITEM_ID)
                     return;
 
-                int grow = 45;
                 static float glow_effect = 0;
-
 
                 const float dt = GUIEngine::getLatestDt();
                 glow_effect += dt * 3;
                 if (glow_effect > 6.2832f /* 2*PI */) glow_effect -= 6.2832f;
-                grow = (int)(45 + 10 * sinf(glow_effect));
-
-
+                float grow = 10.0f * sinf(glow_effect);
 
                 const int glow_center_x = rect.UpperLeftCorner.X
                     + rect.getWidth() / 2;
-                const int glow_center_y = rect.UpperLeftCorner.Y
-                    + rect.getHeight() - 5;
+                const int glow_center_y = rect.LowerRightCorner.Y;
 
                 ITexture* tex_ficonhighlight =
                     SkinConfig::m_render_params["focusHalo::neutral"]
@@ -1420,11 +1427,12 @@ void Skin::drawRibbonChild(const core::recti &rect, Widget* widget,
 
                 core::recti source_area(0, 0, texture_w, texture_h);
 
-
-                const core::recti rect2(glow_center_x - 45 - grow,
-                    glow_center_y - 25 - grow / 2,
-                    glow_center_x + 45 + grow,
-                    glow_center_y + 25 + grow / 2);
+                float scale = (float)irr_driver->getActualScreenSize().Height / 1080.0f;
+                int size = (int)((90.0f + grow) * scale);
+                const core::recti rect2(glow_center_x - size,
+                                        glow_center_y - size / 2,
+                                        glow_center_x + size,
+                                        glow_center_y + size / 2);
 
                 draw2DImage(tex_ficonhighlight, rect2,
                     source_area,
@@ -1766,13 +1774,12 @@ void Skin::drawIconButton(const core::recti &rect, Widget* widget,
 
     if (focused)
     {
-        int grow = 45;
         static float glow_effect = 0;
 
         const float dt = GUIEngine::getLatestDt();
         glow_effect += dt*3;
         if (glow_effect > 6.2832f /* 2*PI */) glow_effect -= 6.2832f;
-        grow = (int)(45 + 10*sinf(glow_effect));
+        float grow = 10*sinf(glow_effect);
 
         const int glow_center_x = rect.UpperLeftCorner.X+rect.getWidth()/2;
         const int glow_center_y = rect.LowerRightCorner.Y;
@@ -1784,11 +1791,12 @@ void Skin::drawIconButton(const core::recti &rect, Widget* widget,
 
         core::recti source_area = core::recti(0, 0, texture_w, texture_h);
 
-
-        const core::recti rect2(glow_center_x - 45 - grow,
-                                glow_center_y - 25 - grow/2,
-                                glow_center_x + 45 + grow,
-                                glow_center_y + 25 + grow/2);
+        float scale = (float)irr_driver->getActualScreenSize().Height / 1080.0f;
+        int size = (int)((90.0f + grow) * scale);
+        const core::recti rect2(glow_center_x - size,
+                                glow_center_y - size / 2,
+                                glow_center_x + size,
+                                glow_center_y + size / 2);
 
         draw2DImage(tex_ficonhighlight, rect2,
                                             source_area,
@@ -1992,20 +2000,20 @@ void Skin::drawListHeader(const irr::core::rect< irr::s32 > &rect,
                           Widget* widget)
 {
 #ifndef SERVER_ONLY
+    ListWidget* list = static_cast<ListWidget*>(widget->m_event_handler);
     bool isSelected =
-         (((ListWidget*)widget->m_event_handler)->m_selected_column == widget &&
-         ((ListWidget*)widget->m_event_handler)->m_sort_default == false);
+        (list->m_selected_column == widget && list->m_choosing_header);
 
     drawBoxFromStretchableTexture(widget, rect,
             (isSelected ? SkinConfig::m_render_params["list_header::down"]
                         : SkinConfig::m_render_params["list_header::neutral"]),
             false, NULL /* clip */);
 
-    if (isSelected)
+    if (list->m_selected_column == widget && !list->m_sort_default)
     {
         /** \brief img sets the icon for the column according to sort order **/
         ITexture* img;
-        if (((ListWidget*)widget->m_event_handler)->m_sort_desc)
+        if (list->m_sort_desc)
             img =
                 SkinConfig::m_render_params["list_sort_down::neutral"].getImage();
         else
@@ -2029,7 +2037,11 @@ void Skin::drawListHeader(const irr::core::rect< irr::s32 > &rect,
 void Skin::renderSections(PtrVector<Widget>* within_vector)
 {
 #ifndef SERVER_ONLY
-    if (within_vector == NULL) within_vector = &getCurrentScreen()->m_widgets;
+    if (within_vector == NULL && getCurrentScreen()) 
+        within_vector = &getCurrentScreen()->m_widgets;
+        
+    if (!within_vector)
+        return;
 
     const unsigned short widgets_amount = within_vector->size();
 

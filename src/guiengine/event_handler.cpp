@@ -34,6 +34,7 @@
 #include "input/input_manager.hpp"
 #include "modes/demo_world.hpp"
 #include "modes/world.hpp"
+#include "network/rewind_manager.hpp"
 #include "states_screens/state_manager.hpp"
 #include "utils/debug.hpp"
 #include "utils/profiler.hpp"
@@ -188,6 +189,10 @@ bool EventHandler::OnEvent (const SEvent &event)
             {
                 music_manager->resumeMusic();
                 SFXManager::get()->resumeAll();
+                // Improve rubber banding effects of rewinders when going
+                // back to phone, because the smooth timer is paused
+                if (World::getWorld() && RewindManager::isEnabled())
+                    RewindManager::get()->resetSmoothNetworkBody();
             }
         }
         else if (cmd == APP_CMD_LOW_MEMORY)
@@ -509,7 +514,7 @@ void EventHandler::navigate(const NavigationDirection nav, const int playerID)
         {
             ListWidget* list = (ListWidget*) closest_widget;
             assert(list != NULL);
-            list->setSelectionID(nav == NAV_UP ? list->getItemCount() - 1 : 0);
+            list->focusHeader(nav);
         }
         // Similar exception for vertical tabs, only apply when entering with down/up
         if (closest_widget->m_type == GUIEngine::WTYPE_RIBBON && (nav == NAV_UP || nav == NAV_DOWN))

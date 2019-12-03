@@ -95,7 +95,7 @@ private:
     std::shared_ptr<AbstractKart> createKartWithTeam
         (const std::string &kart_ident, int index, int local_player_id,
         int global_player_id, RaceManager::KartType type,
-        PerPlayerDifficulty difficulty);
+        HandicapLevel handicap);
 
 protected:
 
@@ -140,7 +140,7 @@ protected:
     virtual std::shared_ptr<AbstractKart> createKart
         (const std::string &kart_ident, int index, int local_player_id,
         int global_player_id, RaceManager::KartType type,
-        PerPlayerDifficulty difficulty);
+        HandicapLevel handicap);
 
     /** Pointer to the race GUI. The race GUI is handled by world. */
     RaceGUIBase *m_race_gui;
@@ -179,7 +179,9 @@ protected:
 
     /** Set when the world is online and counts network players. */
     bool m_is_network_world;
-    
+
+    bool m_ended_early;
+
     virtual void  onGo() OVERRIDE;
     /** Returns true if the race is over. Must be defined by all modes. */
     virtual bool  isRaceOver() = 0;
@@ -270,6 +272,8 @@ public:
                                const ItemState *item    ) {}
     // ------------------------------------------------------------------------
     virtual void endRaceEarly() { return; }
+    // ------------------------------------------------------------------------
+    virtual bool hasRaceEndedEarly() const { return m_ended_early; }
     // ------------------------------------------------------------------------
     /** Called to determine whether this race mode uses bonus boxes. */
     virtual bool haveBonusBoxes() { return true; }

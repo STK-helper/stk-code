@@ -20,6 +20,7 @@
 #include "addons/news_manager.hpp"
 #include "audio/sfx_manager.hpp"
 #include "audio/sfx_base.hpp"
+#include "challenges/story_mode_timer.hpp"
 #include "config/hardware_stats.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
@@ -38,6 +39,7 @@
 #include "guiengine/widget.hpp"
 #include "io/file_manager.hpp"
 #include "online/request_manager.hpp"
+#include "states_screens/dialogs/message_dialog.hpp"
 #include "states_screens/main_menu_screen.hpp"
 #include "states_screens/options/options_screen_audio.hpp"
 #include "states_screens/options/options_screen_general.hpp"
@@ -74,57 +76,6 @@ void OptionsScreenUI::loadedFromFile()
     assert( skinSelector != NULL );
 
     skinSelector->m_properties[PROP_WRAP_AROUND] = "true";
-
-    m_skins.clear();
-    skinSelector->clearLabels();
-
-    std::set<std::string> skin_files;
-    file_manager->listFiles(skin_files /* out */, file_manager->getAsset(FileManager::SKIN,""),
-                            true /* make full path */ );
-    std::set<std::string> addon_skin_files;
-    file_manager->listFiles(addon_skin_files /* out */, file_manager->getAddonsFile("skins/"),
-                            true /* make full path */ );
-
-    auto lb = [](const std::set<std::string>& files, bool addon,
-                 std::map<core::stringw, std::string>& result)->void
-        {
-            for (auto& f : files)
-            {
-                std::string stkskin = f + "/stkskin.xml";
-                if (file_manager->fileExists(stkskin))
-                {
-                    XMLNode* root = file_manager->createXMLTree(stkskin);
-                    if (!root)
-                        continue;
-                    core::stringw skin_name;
-                    if (root->get("name", &skin_name))
-                    {
-                        std::string skin_id = StringUtils::getBasename(f);
-                        if (addon)
-                            skin_id = std::string("addon_") + skin_id;
-                        result[skin_name] = skin_id;
-                    }
-                    delete root;
-                }
-            }
-        };
-    lb(skin_files, false, m_skins);
-    lb(addon_skin_files, true, m_skins);
-
-    if (m_skins.size() == 0)
-    {
-        Log::warn("OptionsScreenUI", "Could not find a single skin, make sure that "
-                                     "the data files are correctly installed");
-        skinSelector->setActive(false);
-        return;
-    }
-
-    const int skin_count = (int)m_skins.size();
-    for (auto& p : m_skins)
-        skinSelector->addLabel(p.first);
-    skinSelector->m_properties[GUIEngine::PROP_MIN_VALUE] = "0";
-    skinSelector->m_properties[GUIEngine::PROP_MAX_VALUE] = StringUtils::toString(skin_count-1);
-
 
     // Setup the minimap options spinner
     GUIEngine::SpinnerWidget* minimap_options = getWidget<GUIEngine::SpinnerWidget>("minimap");
@@ -195,6 +146,56 @@ void OptionsScreenUI::init()
     GUIEngine::SpinnerWidget* skinSelector = getWidget<GUIEngine::SpinnerWidget>("skinchoice");
     assert( skinSelector != NULL );
 
+    m_skins.clear();
+    skinSelector->clearLabels();
+
+    std::set<std::string> skin_files;
+    file_manager->listFiles(skin_files /* out */, file_manager->getAsset(FileManager::SKIN,""),
+                            true /* make full path */ );
+    std::set<std::string> addon_skin_files;
+    file_manager->listFiles(addon_skin_files /* out */, file_manager->getAddonsFile("skins/"),
+                            true /* make full path */ );
+
+    auto lb = [](const std::set<std::string>& files, bool addon,
+                 std::map<core::stringw, std::string>& result)->void
+        {
+            for (auto& f : files)
+            {
+                std::string stkskin = f + "/stkskin.xml";
+                if (file_manager->fileExists(stkskin))
+                {
+                    XMLNode* root = file_manager->createXMLTree(stkskin);
+                    if (!root)
+                        continue;
+                    core::stringw skin_name;
+                    if (root->get("name", &skin_name))
+                    {
+                        std::string skin_id = StringUtils::getBasename(f);
+                        if (addon)
+                            skin_id = std::string("addon_") + skin_id;
+                        result[skin_name] = skin_id;
+                    }
+                    delete root;
+                }
+            }
+        };
+    lb(skin_files, false, m_skins);
+    lb(addon_skin_files, true, m_skins);
+
+    if (m_skins.size() == 0)
+    {
+        Log::warn("OptionsScreenUI", "Could not find a single skin, make sure that "
+                                     "the data files are correctly installed");
+        skinSelector->setActive(false);
+        return;
+    }
+
+    const int skin_count = (int)m_skins.size();
+    for (auto& p : m_skins)
+        skinSelector->addLabel(p.first);
+    skinSelector->m_properties[GUIEngine::PROP_MIN_VALUE] = "0";
+    skinSelector->m_properties[GUIEngine::PROP_MAX_VALUE] = StringUtils::toString(skin_count-1);
+
     GUIEngine::SpinnerWidget* minimap_options = getWidget<GUIEngine::SpinnerWidget>("minimap");
     assert( minimap_options != NULL );
 
@@ -244,12 +245,46 @@ void OptionsScreenUI::init()
     assert( fps != NULL );
     fps->setState( UserConfigParams::m_display_fps );
 
+    CheckBoxWidget* story_timer = getWidget<CheckBoxWidget>("story-mode-timer");
+    assert( story_timer != NULL );
+    story_timer->setState( UserConfigParams::m_display_story_mode_timer );
+    CheckBoxWidget* speedrun_timer = getWidget<CheckBoxWidget>("speedrun-timer");
+    assert( speedrun_timer != NULL );
+    if (story_mode_timer->getStoryModeTime() < 0)
+    {
+        story_timer->setActive(false);
+        speedrun_timer->setActive(false);
+    }
+    else
+    {
+        story_timer->setActive(true);
+
+        speedrun_timer->setActive(UserConfigParams::m_display_story_mode_timer);
+        getWidget<LabelWidget>("speedrun-timer-text")
+            ->setActive(UserConfigParams::m_display_story_mode_timer);
+    }
+    if (UserConfigParams::m_speedrun_mode)
+    {
+        if (!story_mode_timer->playerCanRun())
+        {
+            UserConfigParams::m_speedrun_mode = false;
+            new MessageDialog(_("Speedrun mode disabled. It can only be enabled if the game"
+                                " has not been closed since the launch of the story mode.\n\n"
+                                "Closing the game before the story mode's"
+                                " completion invalidates the timer.\n\n"
+                                "To use the speedrun mode, please use a new profile."),
+                                MessageDialog::MESSAGE_DIALOG_OK,
+                                NULL, false, false, 0.6f, 0.7f);
+        }
+    }
+    speedrun_timer->setState( UserConfigParams::m_speedrun_mode );
+
     // --- select the right skin in the spinner
     bool currSkinFound = false;
     const std::string& user_skin = UserConfigParams::m_skin_file;
     skinSelector->setActive(!in_game);
 
-    for (int n = 0; n < skinSelector->getMax(); n++)
+    for (int n = 0; n <= skinSelector->getMax(); n++)
     {
         auto ret = m_skins.find(skinSelector->getStringValueFromID(n));
         if (ret == m_skins.end())
@@ -404,6 +439,46 @@ void OptionsScreenUI::eventCallback(Widget* widget, const std::string& name, con
         CheckBoxWidget* fps = getWidget<CheckBoxWidget>("showfps");
         assert( fps != NULL );
         UserConfigParams::m_display_fps = fps->getState();
+    }
+    else if (name == "story-mode-timer")
+    {
+        CheckBoxWidget* story_timer = getWidget<CheckBoxWidget>("story-mode-timer");
+        assert( story_timer != NULL );
+        UserConfigParams::m_display_story_mode_timer = story_timer->getState();
+
+        CheckBoxWidget* speedrun_timer = getWidget<CheckBoxWidget>("speedrun-timer");
+        assert( speedrun_timer != NULL );
+        speedrun_timer->setActive( UserConfigParams::m_display_story_mode_timer );
+        getWidget<LabelWidget>("speedrun-timer-text")
+            ->setActive(UserConfigParams::m_display_story_mode_timer);
+
+        // Disable speedrun mode if the story mode timer is disabled
+        if (!UserConfigParams::m_display_story_mode_timer)
+        {
+            UserConfigParams::m_speedrun_mode = false;
+            speedrun_timer->setState(false);
+        }
+
+    }
+    else if (name == "speedrun-timer")
+    {
+        CheckBoxWidget* speedrun_timer = getWidget<CheckBoxWidget>("speedrun-timer");
+        assert( speedrun_timer != NULL );
+        if (speedrun_timer->getState())
+        {
+            if (!story_mode_timer->playerCanRun())
+            {
+                speedrun_timer->setState(false);
+                new MessageDialog(_("Speedrun mode can only be enabled if the game has not"
+                                    " been closed since the launch of the story mode.\n\n"
+                                    "Closing the game before the story mode's"
+                                    " completion invalidates the timer.\n\n"
+                                    "To use the speedrun mode, please use a new profile."),
+                                    MessageDialog::MESSAGE_DIALOG_OK,
+                                    NULL, false, false, 0.6f, 0.7f);
+            }
+        }
+        UserConfigParams::m_speedrun_mode = speedrun_timer->getState();
     }
 #endif
 }   // eventCallback

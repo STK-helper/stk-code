@@ -20,6 +20,7 @@
 #include "states_screens/main_menu_screen.hpp"
 
 #include "addons/news_manager.hpp"
+#include "challenges/story_mode_timer.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
@@ -41,6 +42,7 @@
 #include "online/request_manager.hpp"
 #include "states_screens/addons_screen.hpp"
 #include "states_screens/credits.hpp"
+#include "states_screens/cutscene_general.hpp"
 #include "states_screens/grand_prix_editor_screen.hpp"
 #include "states_screens/help_screen_1.hpp"
 #include "states_screens/offline_kart_selection.hpp"
@@ -375,6 +377,9 @@ void MainMenuScreen::eventCallback(Widget* widget, const std::string& name,
         parts.push_back("introcutscene2");
         ((CutsceneWorld*)World::getWorld())->setParts(parts);
         //race_manager->startSingleRace("introcutscene2", 999, false);
+        
+        CutSceneGeneral* scene = CutSceneGeneral::getInstance();
+        scene->push();
         return;
     }
     else if (selection == "test_outro")
@@ -390,6 +395,9 @@ void MainMenuScreen::eventCallback(Widget* widget, const std::string& name,
         std::vector<std::string> parts;
         parts.push_back("endcutscene");
         ((CutsceneWorld*)World::getWorld())->setParts(parts);
+        
+        CutSceneGeneral* scene = CutSceneGeneral::getInstance();
+        scene->push();
     }
     else
 #endif
@@ -470,6 +478,10 @@ void MainMenuScreen::eventCallback(Widget* widget, const std::string& name,
     {
         NetworkConfig::get()->unsetNetworking();
         PlayerProfile *player = PlayerManager::getCurrentPlayer();
+
+        // Start the story mode (and speedrun) timer
+        story_mode_timer->startTimer();
+
         if (player->isFirstTime())
         {
             CutsceneWorld::setUseDuration(true);
@@ -484,10 +496,16 @@ void MainMenuScreen::eventCallback(Widget* widget, const std::string& name,
             parts.push_back("introcutscene2");
             ((CutsceneWorld*)World::getWorld())->setParts(parts);
             //race_manager->startSingleRace("introcutscene2", 999, false);
+            
+            CutSceneGeneral* scene = CutSceneGeneral::getInstance();
+            scene->push();
             return;
         }
         else
         {
+            // Unpause the story mode timer when entering back the story mode
+            story_mode_timer->unpauseTimer(/* exit loading pause */ false);
+
             const std::string default_kart = UserConfigParams::m_default_kart;
             if (player->isLocked(default_kart))
             {

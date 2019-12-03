@@ -143,6 +143,7 @@ void GPInfoScreen::beforeAddingWidget()
         int id_continue_button = ribbonButtons->findItemNamed("continue");
         ribbonButtons->setItemVisible(id_continue_button, continue_visible);
         ribbonButtons->setLabel(id_continue_button, _("Continue saved GP"));
+        getWidget<IconButtonWidget>("continue")->setImage("gui/icons/green_check.png");
     }
     else
     {
@@ -150,6 +151,7 @@ void GPInfoScreen::beforeAddingWidget()
         int id_continue_button = ribbonButtons->findItemNamed("continue");
         ribbonButtons->setItemVisible(id_continue_button, true);
         ribbonButtons->setLabel(id_continue_button, _("Reload"));
+        getWidget<IconButtonWidget>("continue")->setImage("gui/icons/restart.png");
     }
 }
 

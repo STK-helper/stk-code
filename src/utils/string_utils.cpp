@@ -1247,7 +1247,7 @@ namespace StringUtils
     } // breakText
 
     /* This function checks if a char is suitable to break lines.
-     * Currently a copy of the function found at irrlicht/include/utfwrapping.h */
+     * Based on the function found at irrlicht/include/utfwrapping.h */
     bool breakable (wchar_t c)
     {
 	    if ((c > 12287 && c < 40960) || //Common CJK words
@@ -1376,6 +1376,23 @@ namespace StringUtils
         assert(versionToInt("1-rc9"           ) ==  10000029);
         assert(versionToInt("1.0-rc1"         ) ==  10000021);   // same as 1-rc1
     }   // unitTesting
+    // ------------------------------------------------------------------------
+    std::pair<std::string, std::string> extractVersionOS(
+                                                 const std::string& user_agent)
+    {
+        std::pair<std::string, std::string> ret;
+        // '#^(SuperTuxKart/[a-z0-9\\.\\-_]+)( \\(.*\\))?$#'
+        std::vector<std::string> out = split(user_agent, '/');
+        if (out.size() != 2 || out[1].empty() || out[1].back() != ')')
+            return ret;
+        std::vector<std::string> out2 = split(out[1], '(');
+        if (out2.size() != 2 || out2[0].empty() || out2[0].back() != ' ' ||
+            out2[1].size() < 2)
+            return ret;
+        ret.first = out2[0].substr(0, out2[0].size() - 1);
+        ret.second = out2[1].substr(0, out2[1].size() - 1);
+        return ret;
+    }   // extractVersionOS
     // ------------------------------------------------------------------------
     std::string getUserAgentString()
     {

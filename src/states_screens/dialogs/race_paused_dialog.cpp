@@ -21,6 +21,7 @@
 
 #include "audio/music_manager.hpp"
 #include "audio/sfx_manager.hpp"
+#include "challenges/story_mode_timer.hpp"
 #include "config/user_config.hpp"
 #include "guiengine/emoji_keyboard.hpp"
 #include "guiengine/engine.hpp"
@@ -56,9 +57,12 @@ RacePausedDialog::RacePausedDialog(const float percentWidth,
     ModalDialog(percentWidth, percentHeight)
 {
     m_self_destroy = false;
+    m_from_overworld = false;
+
     if (dynamic_cast<OverWorld*>(World::getWorld()) != NULL)
     {
         loadFromFile("overworld_dialog.stkgui");
+        m_from_overworld = true;
     }
     else if (!NetworkConfig::get()->isNetworking())
     {
@@ -82,7 +86,7 @@ RacePausedDialog::RacePausedDialog(const float percentWidth,
         getWidget("send")->setText(L"\u21B2");
         // Unicode smile emoji
         getWidget("emoji")->setText(L"\u263A");
-        if (UserConfigParams::m_lobby_chat)
+        if (UserConfigParams::m_lobby_chat && UserConfigParams::m_race_chat)
         {
             m_text_box->setActive(true);
             getWidget("send")->setVisible(true);
@@ -205,6 +209,7 @@ GUIEngine::EventPropagation
 
         if (selection == "exit")
         {
+            bool from_overworld = m_from_overworld;
             ModalDialog::dismiss();
             if (STKHost::existHost())
             {
@@ -222,6 +227,11 @@ GUIEngine::EventPropagation
             else
             {
                 StateManager::get()->resetAndGoToScreen(MainMenuScreen::getInstance());
+
+                // Pause story mode timer when quitting story mode
+                if (from_overworld)
+                    story_mode_timer->pauseTimer(/*loading screen*/ false);
+
                 if (race_manager->raceWasStartedFromOverworld())
                 {
                     OverWorld::enterOverWorld();
@@ -327,7 +337,18 @@ void RacePausedDialog::beforeAddingWidgets()
 bool RacePausedDialog::onEnterPressed(const irr::core::stringw& text)
 {
     if (auto cl = LobbyProtocol::get<ClientLobby>())
-        cl->sendChat(text);
+    {
+        if (!text.empty())
+        {
+            if (text[0] == L'/' && text.size() > 1)
+            {
+                std::string cmd = StringUtils::wideToUtf8(text);
+                cl->handleClientCommand(cmd.erase(0, 1));
+            }
+            else
+                cl->sendChat(text);
+        }
+    }
     m_self_destroy = true;
     return true;
 }   // onEnterPressed

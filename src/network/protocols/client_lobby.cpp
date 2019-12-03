@@ -18,6 +18,8 @@
 
 #include "network/protocols/client_lobby.hpp"
 
+#include "addons/addons_manager.hpp"
+#include "audio/music_manager.hpp"
 #include "audio/sfx_manager.hpp"
 #include "config/user_config.hpp"
 #include "config/player_manager.hpp"
@@ -52,6 +54,7 @@
 #include "network/stk_peer.hpp"
 #include "online/online_profile.hpp"
 #include "online/xml_request.hpp"
+#include "states_screens/dialogs/addons_pack.hpp"
 #include "states_screens/online/networking_lobby.hpp"
 #include "states_screens/online/network_kart_selection.hpp"
 #include "states_screens/race_result_gui.hpp"
@@ -61,6 +64,8 @@
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
+
+#include <cstdlib>
 
 // ============================================================================
 /** The protocol that manages starting a race with the server. It uses a 
@@ -112,18 +117,18 @@ ClientLobby::~ClientLobby()
 {
     if (m_server->supportsEncryption())
     {
-        Online::XMLRequest* request =
-            new Online::XMLRequest(true/*manager_memory*/);
+        auto request = std::make_shared<Online::XMLRequest>();
         NetworkConfig::get()->setServerDetails(request,
             "clear-user-joined-server");
         request->queue();
-        ConnectToServer::m_previous_unjoin = request->observeExistence();
+        ConnectToServer::m_previous_unjoin = request;
     }
 }   // ClientLobby
 
 //-----------------------------------------------------------------------------
 void ClientLobby::setup()
 {
+    m_ranking_changes.clear();
     m_spectator = false;
     m_server_send_live_load_world = false;
     m_auto_back_to_lobby_time = std::numeric_limits<uint64_t>::max();
@@ -319,7 +324,7 @@ void ClientLobby::addAllPlayers(Event* event)
 std::vector<std::shared_ptr<NetworkPlayerProfile> >
   ClientLobby::decodePlayers(const BareNetworkString& data,
                              std::shared_ptr<STKPeer> peer,
-                             bool* is_specator) const
+                             bool* is_spectator) const
 {
     std::vector<std::shared_ptr<NetworkPlayerProfile> > players;
     unsigned player_count = data.getUInt8();
@@ -330,15 +335,15 @@ std::vector<std::shared_ptr<NetworkPlayerProfile> >
         uint32_t host_id = data.getUInt32();
         float kart_color = data.getFloat();
         uint32_t online_id = data.getUInt32();
-        PerPlayerDifficulty ppd = (PerPlayerDifficulty)data.getUInt8();
+        HandicapLevel handicap = (HandicapLevel)data.getUInt8();
         uint8_t local_id = data.getUInt8();
         KartTeam team = (KartTeam)data.getUInt8();
         std::string country_code;
         data.decodeString(&country_code);
-        if (is_specator && host_id == STKHost::get()->getMyHostId())
-            *is_specator = false;
+        if (is_spectator && host_id == STKHost::get()->getMyHostId())
+            *is_spectator = false;
         auto player = std::make_shared<NetworkPlayerProfile>(peer, player_name,
-            host_id, kart_color, online_id, ppd, local_id, team, country_code);
+            host_id, kart_color, online_id, handicap, local_id, team, country_code);
         std::string kart_name;
         data.decodeString(&kart_name);
         player->setKartName(kart_name);
@@ -371,27 +376,15 @@ void ClientLobby::update(int ticks)
         for (const std::string& cap : stk_config->m_network_capabilities)
             ns->encodeString(cap);
 
-        auto all_k = kart_properties_manager->getAllAvailableKarts();
-        auto all_t = track_manager->getAllTrackIdentifiers();
-        if (all_k.size() >= 65536)
-            all_k.resize(65535);
-        if (all_t.size() >= 65536)
-            all_t.resize(65535);
-        ns->addUInt16((uint16_t)all_k.size()).addUInt16((uint16_t)all_t.size());
-        for (const std::string& kart : all_k)
-        {
-            ns->encodeString(kart);
-        }
-        for (const std::string& track : all_t)
-        {
-            ns->encodeString(track);
-        }
+        getKartsTracksNetworkString(ns);
         assert(!NetworkConfig::get()->isAddingNetworkPlayers());
         const uint8_t player_count =
             (uint8_t)NetworkConfig::get()->getNetworkPlayers().size();
         ns->addUInt8(player_count);
 
         bool encryption = false;
+        // Make sure there is a player before calling getCurrentOnlineId
+        PlayerManager::get()->enforceCurrentPlayer();
         uint32_t id = PlayerManager::getCurrentOnlineId();
         bool lan_ai = !m_server->supportsEncryption() &&
             NetworkConfig::get()->isNetworkAITester();
@@ -782,7 +775,7 @@ void ClientLobby::updatePlayerList(Event* event)
         lp.m_host_id = data.getUInt32();
         lp.m_online_id = data.getUInt32();
         uint8_t local_id = data.getUInt8();
-        lp.m_difficulty = PLAYER_DIFFICULTY_NORMAL;
+        lp.m_handicap = HANDICAP_NONE;
         lp.m_local_player_id = local_id;
         data.decodeStringW(&lp.m_user_name);
         total_players += lp.m_user_name;
@@ -803,8 +796,8 @@ void ClientLobby::updatePlayerList(Event* event)
             lp.m_icon_id = 5;
         if (ready)
             lp.m_icon_id = 4;
-        lp.m_difficulty = (PerPlayerDifficulty)data.getUInt8();
-        if (lp.m_difficulty == PLAYER_DIFFICULTY_HANDICAP)
+        lp.m_handicap = (HandicapLevel)data.getUInt8();
+        if (lp.m_handicap != HANDICAP_NONE)
         {
             lp.m_user_name = _("%s (handicapped)", lp.m_user_name);
         }
@@ -814,7 +807,7 @@ void ClientLobby::updatePlayerList(Event* event)
             if (is_peer_server_owner)
                 client_server_owner = true;
             auto& local_players = NetworkConfig::get()->getNetworkPlayers();
-            std::get<2>(local_players.at(local_id)) = lp.m_difficulty;
+            std::get<2>(local_players.at(local_id)) = lp.m_handicap;
         }
         data.decodeString(&lp.m_country_code);
         m_lobby_players.push_back(lp);
@@ -873,7 +866,7 @@ void ClientLobby::handleChat(Event* event)
     {
         if (GUIEngine::getCurrentScreen() == NetworkingLobby::getInstance())
             NetworkingLobby::getInstance()->addMoreServerInfo(message);
-        else
+        else if (UserConfigParams::m_race_chat)
             MessageQueue::add(MessageQueue::MT_GENERIC, message);
     }
 }   // handleChat
@@ -969,9 +962,9 @@ void ClientLobby::startGame(Event* event)
                 return;
             }
             int sleep_time = (int)(start_time - cur_time);
-            Log::info("ClientLobby", "Start game after %dms", sleep_time);
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
-            Log::info("ClientLobby", "Started at %lf", StkTime::getRealTime());
+            //Log::info("ClientLobby", "Start game after %dms", sleep_time);
+            StkTime::sleep(sleep_time);
+            //Log::info("ClientLobby", "Started at %lf", StkTime::getRealTime());
             m_state.store(RACING);
         });
 }   // startGame
@@ -1094,6 +1087,20 @@ void ClientLobby::raceFinished(Event* event)
                 k->finishedRace(World::getWorld()->getTime(),
                     true/*from_server*/);
             }
+        }
+    }
+
+    m_ranking_changes.clear();
+    // Ranking changes from server
+    if (NetworkConfig::get()->getServerCapabilities().find("ranking_changes")
+        != NetworkConfig::get()->getServerCapabilities().end())
+    {
+        bool has_ranking_changes = (data.getUInt8() & 1) != 0;
+        if (has_ranking_changes)
+        {
+            unsigned count = data.getUInt8();
+            for (unsigned i = 0; i < count; i++)
+                m_ranking_changes.push_back(data.getFloat());
         }
     }
 
@@ -1287,7 +1294,7 @@ void ClientLobby::handleKartInfo(Event* event)
     uint32_t host_id = data.getUInt32();
     float kart_color = data.getFloat();
     uint32_t online_id = data.getUInt32();
-    PerPlayerDifficulty ppd = (PerPlayerDifficulty)data.getUInt8();
+    HandicapLevel h = (HandicapLevel)data.getUInt8();
     uint8_t local_id = data.getUInt8();
     std::string kart_name;
     data.decodeString(&kart_name);
@@ -1299,7 +1306,7 @@ void ClientLobby::handleKartInfo(Event* event)
     rki.setHostId(host_id);
     rki.setDefaultKartColor(kart_color);
     rki.setOnlineId(online_id);
-    rki.setPerPlayerDifficulty(ppd);
+    rki.setHandicap(h);
     rki.setLocalPlayerId(local_id);
     rki.setKartName(kart_name);
     rki.setCountryCode(country_code);
@@ -1494,3 +1501,109 @@ void ClientLobby::reportSuccess(Event* event)
         MessageQueue::add(MessageQueue::MT_GENERIC, msg);
     }
 }   // reportSuccess
+
+// ----------------------------------------------------------------------------
+void ClientLobby::handleClientCommand(const std::string& cmd)
+{
+#ifndef SERVER_ONLY
+    auto argv = StringUtils::split(cmd, ' ');
+    if (argv.size() == 0)
+        return;
+    if (argv[0] == "installaddon" && argv.size() == 2)
+        AddonsPack::install(argv[1]);
+    else if (argv[0] == "uninstalladdon" && argv.size() == 2)
+        AddonsPack::uninstall(argv[1]);
+    else if (argv[0] == "music" && argv.size() == 2)
+    {
+        int vol = atoi(argv[1].c_str());
+        if (vol > 10)
+            vol = 10;
+        else if (vol < 0)
+            vol = 0;
+        if (vol == 0 && UserConfigParams::m_music)
+        {
+            UserConfigParams::m_music = false;
+            music_manager->stopMusic();
+        }
+        else if (vol != 0 && !UserConfigParams::m_music)
+        {
+            UserConfigParams::m_music = true;
+            music_manager->startMusic();
+            music_manager->setMasterMusicVolume((float)vol / 10);
+        }
+        else
+            music_manager->setMasterMusicVolume((float)vol / 10);
+    }
+    else if (argv[0] == "liststkaddon")
+    {
+        if (argv.size() != 2)
+        {
+            NetworkingLobby::getInstance()->addMoreServerInfo(
+                L"Usage: /liststkaddon [addon prefix letter(s) to find]");
+        }
+        else
+        {
+            std::string msg = "";
+            for (unsigned i = 0; i < addons_manager->getNumAddons(); i++)
+            {
+                // addon_ (6 letters)
+                const Addon& addon = addons_manager->getAddon(i);
+                const std::string& addon_id = addon.getId();
+                if (addon.testStatus(Addon::AS_APPROVED) &&
+                    addon_id.compare(6, argv[1].length(), argv[1]) == 0)
+                {
+                    msg += addon_id.substr(6);
+                    msg += ", ";
+                }
+            }
+            if (msg.empty())
+                NetworkingLobby::getInstance()->addMoreServerInfo(L"Addon not found");
+            else
+            {
+                msg = msg.substr(0, msg.size() - 2);
+                NetworkingLobby::getInstance()->addMoreServerInfo(
+                    (std::string("STK addon: ") + msg).c_str());
+            }
+        }
+    }
+    else
+    {
+        // Send for server command
+        NetworkString* cmd_ns = getNetworkString(1);
+        const std::string& language = UserConfigParams::m_language;
+        cmd_ns->addUInt8(LE_COMMAND).encodeString(language).encodeString(cmd);
+        sendToServer(cmd_ns, /*reliable*/true);
+        delete cmd_ns;
+    }
+#endif
+}   // handleClientCommand
+
+// ----------------------------------------------------------------------------
+void ClientLobby::getKartsTracksNetworkString(BareNetworkString* ns)
+{
+    auto all_k = kart_properties_manager->getAllAvailableKarts();
+    auto all_t = track_manager->getAllTrackIdentifiers();
+    if (all_k.size() >= 65536)
+        all_k.resize(65535);
+    if (all_t.size() >= 65536)
+        all_t.resize(65535);
+    ns->addUInt16((uint16_t)all_k.size()).addUInt16((uint16_t)all_t.size());
+    for (const std::string& kart : all_k)
+    {
+        ns->encodeString(kart);
+    }
+    for (const std::string& track : all_t)
+    {
+        ns->encodeString(track);
+    }
+}   // getKartsTracksNetworkString
+
+// ----------------------------------------------------------------------------
+void ClientLobby::updateAssetsToServer()
+{
+    NetworkString* ns = getNetworkString(1);
+    ns->addUInt8(LE_ASSETS_UPDATE);
+    getKartsTracksNetworkString(ns);
+    sendToServer(ns, /*reliable*/true);
+    delete ns;
+}   // updateAssetsToServer

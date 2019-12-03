@@ -197,6 +197,7 @@ public:
     void findYourDataInAnAttributeOf(const XMLNode* node);
 
     irr::core::stringc toString() const;
+    void setDefaultValue(int v)  { m_value = m_default_value = v;    }
     void revertToDefaults()      { m_value = m_default_value;        }
     int getDefaultValue()        { return  m_default_value;          }
     operator int() const         { return m_value;                   }
@@ -297,6 +298,7 @@ public:
 
     irr::core::stringc toString() const;
     void revertToDefaults() { m_value = m_default_value; }
+    void setDefaultValue(bool v)  { m_value = m_default_value = v; }
 
     operator bool() const { return m_value; }
     bool& operator=(const bool& v) { m_value = v; return m_value; }
@@ -330,6 +332,7 @@ public:
 
     irr::core::stringc toString() const;
     void revertToDefaults() { m_value = m_default_value; }
+    void setDefaultValue(float v)  { m_value = m_default_value = v; }
 
     operator float() const { return m_value; }
     float& operator=(const float& v) { m_value = v; return m_value; }
@@ -600,6 +603,12 @@ namespace UserConfigParams
     PARAM_PREFIX BoolUserConfigParam        m_display_fps
             PARAM_DEFAULT(  BoolUserConfigParam(false, "show_fps",
                             &m_video_group, "Display frame per seconds") );
+    PARAM_PREFIX BoolUserConfigParam        m_display_story_mode_timer
+            PARAM_DEFAULT(  BoolUserConfigParam(true, "show_story_mode_timer",
+                            &m_video_group, "Display the story mode timer") );
+    PARAM_PREFIX BoolUserConfigParam        m_speedrun_mode
+            PARAM_DEFAULT(  BoolUserConfigParam(false, "show_speedrun_timer",
+                            &m_video_group, "Display the speedrun timer") );
     PARAM_PREFIX IntUserConfigParam         m_max_fps
             PARAM_DEFAULT(  IntUserConfigParam(120, "max_fps",
                        &m_video_group, "Maximum fps, should be at least 60") );
@@ -753,9 +762,9 @@ namespace UserConfigParams
 
     // ---- Networking
     PARAM_PREFIX StringToUIntUserConfigParam m_stun_servers
-        PARAM_DEFAULT(StringToUIntUserConfigParam("stun-servers",
-        "The stun servers that will be used to know the public address with"
-        " port", {{ "stun-server", "address", "ping" }},
+        PARAM_DEFAULT(StringToUIntUserConfigParam("stun-servers-ipv6",
+        "The stun servers that will be used to know the public address "
+        "(including ipv6) with port", {{ "stun-server", "address", "ping" }},
             {
                 { "stun.stunprotocol.org:3478", 0u },
                 { "stun.l.google.com:19302", 0u },
@@ -783,6 +792,9 @@ namespace UserConfigParams
         PARAM_DEFAULT(BoolUserConfigParam(true, "lobby-chat",
         &m_network_group, "Enable chatting in networking lobby, if off than "
         "no chat message will be displayed from any players."));
+    PARAM_PREFIX BoolUserConfigParam m_race_chat
+        PARAM_DEFAULT(BoolUserConfigParam(true, "race-chat",
+        &m_network_group, "Enable chatting during races."));
     PARAM_PREFIX IntUserConfigParam m_max_players
         PARAM_DEFAULT(IntUserConfigParam(8, "max-players",
         &m_network_group, "Maximum number of players on the server "
@@ -922,7 +934,7 @@ namespace UserConfigParams
                            "Last selected track group") );
 
     PARAM_PREFIX StringUserConfigParam      m_skin_file
-            PARAM_DEFAULT(  StringUserConfigParam("peach", "skin_file",
+            PARAM_DEFAULT(  StringUserConfigParam("peach", "skin_name",
                                                   "Name of the skin to use") );
 
     PARAM_PREFIX IntUserConfigParam        m_minimap_display

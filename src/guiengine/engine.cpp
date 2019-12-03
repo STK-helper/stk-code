@@ -658,6 +658,7 @@ namespace GUIEngine
 
 #include "guiengine/engine.hpp"
 
+#include "challenges/story_mode_timer.hpp"
 #include "config/user_config.hpp"
 #include "font/bold_face.hpp"
 #include "font/digit_face.hpp"
@@ -1137,7 +1138,7 @@ namespace GUIEngine
         {
             g_device->getVideoDriver()
                     ->beginScene(true, true, video::SColor(255,100,101,140));
-            renderLoading();
+            renderLoading(true, true);
             g_device->getVideoDriver()->endScene();
         }
     }   // init
@@ -1210,7 +1211,7 @@ namespace GUIEngine
             ul.unlock();
 #endif
 
-        const GameState gamestate = g_state_manager->getGameState();
+        GameState gamestate = g_state_manager->getGameState();
 
         // ---- some menus may need updating
         bool dialog_opened = false;
@@ -1236,6 +1237,8 @@ namespace GUIEngine
                 screen->onUpdate(elapsed_time);
             }
         }
+        
+        gamestate = g_state_manager->getGameState();
 
         // ---- menu drawing
 
@@ -1330,6 +1333,12 @@ namespace GUIEngine
         // draw FPS if enabled
         if ( UserConfigParams::m_display_fps ) irr_driver->displayFPS();
 
+        // draw speedrun timer if enabled
+        if ( UserConfigParams::m_speedrun_mode ) irr_driver->displayStoryModeTimer();
+        // Update the story mode and speedrun timer (even if not enabled)
+        story_mode_timer->unpauseTimer(/* exit loading pause */ true);
+        story_mode_timer->updateTimer();
+
         g_driver->enableMaterial2D(false);
 
 
@@ -1351,7 +1360,7 @@ namespace GUIEngine
     // -----------------------------------------------------------------------
     std::vector<irr::video::ITexture*> g_loading_icons;
 
-    void renderLoading(bool clearIcons)
+    void renderLoading(bool clearIcons, bool launching)
     {
 #ifndef SERVER_ONLY
         if (clearIcons) g_loading_icons.clear();
@@ -1368,6 +1377,7 @@ namespace GUIEngine
         }
         const int texture_w = loading->getSize().Width;
         const int texture_h = loading->getSize().Height;
+        const int stretched_size = getTitleFontHeight() * 1.5f;
 
         core::dimension2d<u32> frame_size =
             GUIEngine::getDriver()->getCurrentRenderTargetSize();
@@ -1375,10 +1385,10 @@ namespace GUIEngine
         const int screen_h = frame_size.Height;
 
         const core::rect< s32 > dest_area =
-            core::rect< s32 >(screen_w/2 - texture_w/2,
-                              screen_h/2 - texture_h/2,
-                              screen_w/2 + texture_w/2,
-                              screen_h/2 + texture_h/2);
+            core::rect< s32 >(screen_w/2 - stretched_size/2,
+                              screen_h/2 - stretched_size/2,
+                              screen_w/2 + stretched_size/2,
+                              screen_h/2 + stretched_size/2);
 
         const core::rect< s32 > source_area =
             core::rect< s32 >(0, 0, texture_w, texture_h);
@@ -1391,7 +1401,7 @@ namespace GUIEngine
         // the Material2D
         irr_driver->getVideoDriver()->enableMaterial2D();
         g_title_font->draw(_("Loading"),
-                           core::rect< s32 >( 0, screen_h/2 + texture_h/2,
+                           core::rect< s32 >( 0, screen_h/2 + stretched_size/2,
                                               screen_w, screen_h ),
                            SColor(255,255,255,255),
                            true/* center h */, false /* center v */ );
@@ -1417,6 +1427,26 @@ namespace GUIEngine
                 x = ICON_MARGIN;
             }
         }
+        // This will avoid no response in windows, also allow showing loading
+        // icon in apple device, because apple device only update render
+        // buffer if you poll the mainloop
+        if (!ProfileWorld::isNoGraphics())
+        {
+            g_device->setEventReceiver(NULL);
+            g_device->run();
+            g_device->setEventReceiver(EventHandler::get());
+        }
+
+        // If launch is finished, pause & display the story mode timers
+        if ( !launching)
+        {
+            // For speedruns only, display the timer on loading screens
+            if (UserConfigParams::m_speedrun_mode)
+                irr_driver->displayStoryModeTimer();
+
+            //pause the timer during loading
+            story_mode_timer->pauseTimer(true);
+        }
 #endif
     } // renderLoading
 
@@ -1430,15 +1460,8 @@ namespace GUIEngine
 
             g_device->getVideoDriver()
                     ->beginScene(true, true, video::SColor(255,100,101,140));
-            renderLoading(false);
+            renderLoading(false, true);
             g_device->getVideoDriver()->endScene();
-#ifdef IOS_STK
-            // Apple will only update render buffer if you poll the event
-            // loop, we do this only in iOS so you don't get esc event when
-            // you press esc button in other OS, this will allow showing
-            // loading icon in iOS
-            g_device->run();
-#endif
         }
         else
         {

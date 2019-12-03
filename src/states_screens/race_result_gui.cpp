@@ -21,6 +21,7 @@
 #include "audio/music_manager.hpp"
 #include "audio/sfx_manager.hpp"
 #include "audio/sfx_base.hpp"
+#include "challenges/story_mode_timer.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
@@ -54,6 +55,7 @@
 #include "replay/replay_play.hpp"
 #include "replay/replay_recorder.hpp"
 #include "scriptengine/property_animator.hpp"
+#include "states_screens/cutscene_general.hpp"
 #include "states_screens/feature_unlocked.hpp"
 #include "states_screens/main_menu_screen.hpp"
 #include "states_screens/online/networking_lobby.hpp"
@@ -73,7 +75,7 @@ RaceResultGUI::RaceResultGUI() : Screen("race_result.stkgui",
 
 //-----------------------------------------------------------------------------
 /** Besides calling init in the base class this makes all buttons of this
- *  screen invisible. The buttons will only displayed once the animation is
+ *  screen invisible. The buttons will be displayed only once the animation is
  *  over.
  */
 void RaceResultGUI::init()
@@ -187,7 +189,8 @@ void RaceResultGUI::enableAllButtons()
 
     // If something was unlocked
     // -------------------------
-    int n = (int)PlayerManager::getCurrentPlayer()->getRecentlyCompletedChallenges().size();
+    int n = (int)PlayerManager::getCurrentPlayer()
+        ->getRecentlyCompletedChallenges().size();
     if (n > 0 &&
          (race_manager->getMajorMode() != RaceManager::MAJOR_MODE_GRAND_PRIX ||
           race_manager->getTrackNumber() + 1 == race_manager->getNumOfTracks() ) )
@@ -250,10 +253,15 @@ void RaceResultGUI::enableAllButtons()
         {
             middle->setImage("gui/icons/main_race.png");
             if (race_manager->isRecordingRace())
+            {
                 middle->setLabel(_("Race against the new ghost replay"));
+                middle->setVisible(!World::getWorld()->hasRaceEndedEarly());
+            }
             else
+            {
                 middle->setLabel(_("Setup New Race"));
-            middle->setVisible(true);
+                middle->setVisible(true);
+            }
             right->setLabel(_("Back to the menu"));
             right->setImage("gui/icons/back.png");
         }
@@ -314,8 +322,10 @@ void RaceResultGUI::eventCallback(GUIEngine::Widget* widget,
         // If something was unlocked, the 'continue' button was
         // actually used to display "Show unlocked feature(s)" text.
         // ---------------------------------------------------------
-        int n = (int)PlayerManager::getCurrentPlayer()
-            ->getRecentlyCompletedChallenges().size();
+        PlayerProfile *player = PlayerManager::getCurrentPlayer();
+
+        int n = (int)player->getRecentlyCompletedChallenges().size();
+
         if (n > 0 &&
              (race_manager->getMajorMode() != RaceManager::MAJOR_MODE_GRAND_PRIX ||
               race_manager->getTrackNumber() + 1 == race_manager->getNumOfTracks() ) )
@@ -328,8 +338,7 @@ void RaceResultGUI::eventCallback(GUIEngine::Widget* widget,
                     cleanupGPProgress();
                 }
 
-                std::vector<const ChallengeData*> unlocked =
-                    PlayerManager::getCurrentPlayer()->getRecentlyCompletedChallenges();
+                std::vector<const ChallengeData*> unlocked = player->getRecentlyCompletedChallenges();
 
                 bool gameCompleted = false;
                 for (unsigned int n = 0; n < unlocked.size(); n++)
@@ -337,6 +346,14 @@ void RaceResultGUI::eventCallback(GUIEngine::Widget* widget,
                     if (unlocked[n]->getChallengeId() == "fortmagma")
                     {
                         gameCompleted = true;
+                        story_mode_timer->stopTimer();
+                        player->setFinished();
+                        player->setStoryModeTimer(story_mode_timer->getStoryModeTime());
+                        if (story_mode_timer->speedrunIsFinished())
+                        {
+                            player->setSpeedrunTimer(story_mode_timer->getSpeedrunTime());
+                            player->setSpeedrunFinished();
+                        }
                         break;
                     }
                 }
@@ -360,6 +377,9 @@ void RaceResultGUI::eventCallback(GUIEngine::Widget* widget,
                     std::vector<std::string> parts;
                     parts.push_back("endcutscene");
                     ((CutsceneWorld*)World::getWorld())->setParts(parts);
+                    
+                    CutSceneGeneral* scene = CutSceneGeneral::getInstance();
+                    scene->push();
                 }
                 else
                 {
@@ -712,7 +732,7 @@ void RaceResultGUI::displayCTFResults()
 
         unsigned int first_position = 1;
         unsigned int sta = race_manager->getNumSpareTireKarts();
-        if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_FOLLOW_LEADER)
+        if (race_manager->isFollowMode())
             first_position = 2;
 
         // Use only the karts that are supposed to be displayed (and
@@ -735,6 +755,7 @@ void RaceResultGUI::displayCTFResults()
         int time_precision = race_manager->currentModeTimePrecision();
         bool active_gp = (race_manager->getMajorMode() == RaceManager::MAJOR_MODE_GRAND_PRIX);
 
+        auto cl = LobbyProtocol::get<ClientLobby>();
         for (unsigned int position = first_position;
         position <= race_manager->getNumberOfKarts() - sta; position++)
         {
@@ -761,13 +782,12 @@ void RaceResultGUI::displayCTFResults()
             ri->m_kart_icon = icon;
 
             // FTL karts will get a time assigned, they are not shown as eliminated
-            if (kart->isEliminated() &&
-                race_manager->getMinorMode() != RaceManager::MINOR_MODE_FOLLOW_LEADER)
+            if (kart->isEliminated() && !(race_manager->isFollowMode()))
             {
                 ri->m_finish_time_string = core::stringw(_("Eliminated"));
             }
-            else if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_FREE_FOR_ALL ||
-                race_manager->getMinorMode() == RaceManager::MINOR_MODE_CAPTURE_THE_FLAG)
+            else if (   race_manager->getMinorMode() == RaceManager::MINOR_MODE_FREE_FOR_ALL
+                     || race_manager->isCTFMode())
             {
                 assert(ffa);
                 ri->m_finish_time_string =
@@ -779,6 +799,22 @@ void RaceResultGUI::displayCTFResults()
                 if (time > max_finish_time) max_finish_time = time;
                 std::string time_string = StringUtils::timeToString(time, time_precision);
                 ri->m_finish_time_string = time_string.c_str();
+            }
+            if (cl && !cl->getRankingChanges().empty())
+            {
+                unsigned kart_id = kart->getWorldKartId();
+                if (kart_id < cl->getRankingChanges().size())
+                {
+                    ri->m_finish_time_string += L" ";
+                    float ranking_change = cl->getRankingChanges()[kart_id];
+                    if (ranking_change > 0)
+                    {
+                        ri->m_finish_time_string += L"+";
+                        ri->m_finish_time_string += StringUtils::toWString(ranking_change);
+                    }
+                    else
+                        ri->m_finish_time_string += StringUtils::toWString(ranking_change);
+                }
             }
 
             core::dimension2du rect =
@@ -854,7 +890,7 @@ void RaceResultGUI::displayCTFResults()
         m_table_width = m_width_icon + m_width_column_space
             + m_width_kart_name;
 
-        if (race_manager->getMinorMode() != RaceManager::MINOR_MODE_FOLLOW_LEADER)
+        if (!race_manager->isFollowMode())
             m_table_width += m_width_finish_time + m_width_column_space;
 
         // Only in GP mode are the points displayed.
@@ -1055,12 +1091,11 @@ void RaceResultGUI::displayCTFResults()
         // Second phase: update X and Y positions for the various animations
         // =================================================================
         float v = 0.9f*UserConfigParams::m_width / m_time_single_scroll;
-        if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_SOCCER)
+        if (race_manager->isSoccerMode())
         {
             displaySoccerResults();
         }
-        else if (race_manager->getMinorMode() ==
-            RaceManager::MINOR_MODE_CAPTURE_THE_FLAG)
+        else if (race_manager->isCTFMode())
         {
             displayCTFResults();
         }
@@ -1090,7 +1125,7 @@ void RaceResultGUI::displayCTFResults()
                     WorldWithRank *wwr = dynamic_cast<WorldWithRank*>(World::getWorld());
                     assert(wwr);
                     int most_points;
-                    if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_FOLLOW_LEADER)
+                    if (race_manager->isFollowMode())
                         most_points = wwr->getScoreForPosition(2);
                     else
                         most_points = wwr->getScoreForPosition(1);
@@ -1175,8 +1210,7 @@ void RaceResultGUI::displayCTFResults()
             }
             // In FTL karts do have a time, which is shown even when the kart
             // is eliminated
-            if (kart->isEliminated() &&
-                race_manager->getMinorMode() != RaceManager::MINOR_MODE_FOLLOW_LEADER)
+            if (kart->isEliminated() && !(race_manager->isFollowMode()))
             {
                 ri->m_finish_time_string = core::stringw(_("Eliminated"));
             }
@@ -1191,8 +1225,7 @@ void RaceResultGUI::displayCTFResults()
             ri->m_y_pos = (float)(m_top + rank*m_distance_between_rows);
             int p = race_manager->getKartPrevScore(kart_id);
             ri->m_current_displayed_points = (float)p;
-            if (kart->isEliminated() &&
-                race_manager->getMinorMode() != RaceManager::MINOR_MODE_FOLLOW_LEADER)
+            if (kart->isEliminated() && !(race_manager->isFollowMode()))
             {
                 ri->m_new_points = 0;
             }
@@ -1724,7 +1757,7 @@ void RaceResultGUI::displayCTFResults()
             }
         }
 
-        if (race_manager->getMinorMode() != RaceManager::MINOR_MODE_SOCCER)
+        if (!race_manager->isSoccerMode())
         {
             // display lap count
             if (race_manager->modeHasLaps())

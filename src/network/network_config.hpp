@@ -27,6 +27,7 @@
 #include "utils/no_copy.hpp"
 
 #include "irrString.h"
+#include <memory>
 #include <set>
 #include <tuple>
 #include <vector>
@@ -84,8 +85,7 @@ private:
     /** Used by client server to determine if the child server is created. */
     std::string m_server_id_file;
 
-    std::vector<std::tuple<InputDevice*, PlayerProfile*,
-        PerPlayerDifficulty> > m_network_players;
+    std::vector<std::tuple<InputDevice*, PlayerProfile*, HandicapLevel> > m_network_players;
 
     NetworkConfig();
 
@@ -151,8 +151,7 @@ public:
     // ------------------------------------------------------------------------
     void unsetNetworking();
     // ------------------------------------------------------------------------
-    std::vector<std::tuple<InputDevice*, PlayerProfile*,
-                                 PerPlayerDifficulty> >&
+    std::vector<std::tuple<InputDevice*, PlayerProfile*, HandicapLevel> >&
                         getNetworkPlayers()       { return m_network_players; }
     // ------------------------------------------------------------------------
     bool isAddingNetworkPlayers() const
@@ -161,7 +160,7 @@ public:
     void doneAddingNetworkPlayers()   { m_done_adding_network_players = true; }
     // ------------------------------------------------------------------------
     bool addNetworkPlayer(InputDevice* device, PlayerProfile* profile,
-                          PerPlayerDifficulty d)
+                          HandicapLevel h)
     {
         for (auto& p : m_network_players)
         {
@@ -170,7 +169,7 @@ public:
             if (std::get<1>(p) == profile)
                 return false;
         }
-        m_network_players.emplace_back(device, profile, d);
+        m_network_players.emplace_back(device, profile, h);
         return true;
     }
     // ------------------------------------------------------------------------
@@ -215,9 +214,11 @@ public:
     // ------------------------------------------------------------------------
     const std::string& getCurrentUserToken() const { return m_cur_user_token; }
     // ------------------------------------------------------------------------
-    void setUserDetails(Online::XMLRequest* r, const std::string& name);
+    void setUserDetails(std::shared_ptr<Online::XMLRequest> r,
+                        const std::string& name);
     // ------------------------------------------------------------------------
-    void setServerDetails(Online::XMLRequest* r, const std::string& name);
+    void setServerDetails(std::shared_ptr<Online::XMLRequest> r,
+                          const std::string& name);
     // ------------------------------------------------------------------------
     void setServerIdFile(const std::string& id) { m_server_id_file = id; }
     // ------------------------------------------------------------------------

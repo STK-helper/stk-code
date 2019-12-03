@@ -205,7 +205,7 @@ void writeServerConfigToDisk()
 }   // writeServerConfigToDisk
 
 // ----------------------------------------------------------------------------
-/** Returns the minor and majar game mode from server database id. */
+/** Returns the minor and major game mode from server database id. */
 std::pair<RaceManager::MinorRaceModeType, RaceManager::MajorRaceModeType>
     getLocalGameMode(int mode)
 {
@@ -330,6 +330,8 @@ void loadServerLobbyFromConfig()
 
     if (m_live_players)
         m_official_karts_threshold = 1.0f;
+    if (m_high_ping_workaround)
+        m_kick_high_ping_players = false;
     auto modes = getLocalGameModeFromConfig();
     race_manager->setMinorMode(modes.first);
     race_manager->setMajorMode(modes.second);
@@ -401,7 +403,7 @@ void loadServerLobbyFromConfig()
         }
     }
 
-    // The extra server info has to be set before server lobby started
+    // The extra server info has to be set before the server lobby is started
     if (server_lobby)
         server_lobby->requestStart();
 }   // loadServerLobbyFromConfig

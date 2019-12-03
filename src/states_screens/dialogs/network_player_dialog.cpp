@@ -29,6 +29,7 @@
 #include "network/protocols/client_lobby.hpp"
 #include "network/stk_host.hpp"
 #include "states_screens/dialogs/general_text_field_dialog.hpp"
+#include "states_screens/dialogs/ranking_callback.hpp"
 #include "states_screens/state_manager.hpp"
 #include "utils/translation.hpp"
 
@@ -68,8 +69,9 @@ void NetworkPlayerDialog::beforeAddingWidgets()
     assert(m_info_widget != NULL);
     if (m_online_id != 0)
     {
-        updatePlayerRanking(m_name, m_online_id, m_info_widget,
-            m_fetched_ranking);
+        m_ranking_callback =
+            RankingCallback::getRankingCallback(m_name, m_online_id);
+        m_ranking_callback->queue();
     }
     else
     {
@@ -130,7 +132,7 @@ void NetworkPlayerDialog::beforeAddingWidgets()
     {
         m_handicap_widget = getWidget<IconButtonWidget>("remove");
         m_handicap_widget->setVisible(true);
-        if (m_per_player_difficulty == PLAYER_DIFFICULTY_NORMAL)
+        if (m_handicap == HANDICAP_NONE)
         {
             //I18N: In the network player dialog
             m_handicap_widget->setText(_("Enable handicap"));
@@ -171,12 +173,17 @@ void NetworkPlayerDialog::init()
 // -----------------------------------------------------------------------------
 void NetworkPlayerDialog::onUpdate(float dt)
 {
-    if (*m_fetched_ranking == false)
+    if (m_ranking_callback && !m_ranking_callback->isDone())
     {
         // I18N: In the network player dialog, showing when waiting for
         // the result of the ranking info of a player
         core::stringw msg = _("Fetching ranking info for %s", m_name);
         m_info_widget->setText(StringUtils::loadingDots(msg.c_str()), false);
+    }
+    else if (m_ranking_callback && m_ranking_callback->isDone())
+    {
+        m_info_widget->setText(m_ranking_callback->getRankingResult(), false);
+        m_ranking_callback = nullptr;
     }
 
     // It's unsafe to delete from inside the event handler so we do it here
@@ -229,7 +236,7 @@ GUIEngine::EventPropagation
         }
         else if (selection == m_friend_widget->m_properties[PROP_ID])
         {
-            XMLRequest *request = new XMLRequest();
+            auto request = std::make_shared<XMLRequest>();
             PlayerManager::setUserDetails(request, "friend-request");
             request->addParameter("friendid", m_online_id);
             request->queue();
@@ -257,14 +264,14 @@ GUIEngine::EventPropagation
         else if (m_handicap_widget &&
             selection == m_handicap_widget->m_properties[PROP_ID])
         {
-            PerPlayerDifficulty new_difficulty = PLAYER_DIFFICULTY_NORMAL;
-            if (m_per_player_difficulty == PLAYER_DIFFICULTY_NORMAL)
+            HandicapLevel new_handicap = HANDICAP_NONE;
+            if (m_handicap == HANDICAP_NONE)
             {
-                new_difficulty = PLAYER_DIFFICULTY_HANDICAP;
+                new_handicap = HANDICAP_MEDIUM;
             }
             NetworkString change_handicap(PROTOCOL_LOBBY_ROOM);
             change_handicap.addUInt8(LobbyProtocol::LE_CHANGE_HANDICAP)
-                .addUInt8(m_local_id).addUInt8(new_difficulty);
+                .addUInt8(m_local_id).addUInt8(new_handicap);
             STKHost::get()->sendToServer(&change_handicap, true/*reliable*/);
             m_self_destroy = true;
             return GUIEngine::EVENT_BLOCK;

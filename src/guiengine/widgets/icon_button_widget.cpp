@@ -145,7 +145,19 @@ void IconButtonWidget::add()
         suggested_w = (int)(suggested_w*needed_scale_factor);
         suggested_h = (int)(suggested_h*needed_scale_factor);
     }
-    const int x_from = m_x + (m_w - suggested_w)/2; // center horizontally
+    
+    bool left_horizontal = m_properties[PROP_ICON_ALIGN] == "left";
+    bool right_horizontal = m_properties[PROP_ICON_ALIGN] == "right";
+    
+    // Assume left align if align property is not specified, but x property is specified
+    if (m_properties[PROP_X].size() > 0 && m_properties[PROP_ICON_ALIGN].empty())
+    {
+        left_horizontal = true;
+    }
+    
+    const int x_from = right_horizontal ? m_x + (m_w - suggested_w) :
+                       left_horizontal  ? m_x :
+                                          m_x + (m_w - suggested_w)/2;
     const int y_from = m_y + (m_h - suggested_h)/2; // center vertically
 
     rect<s32> widget_size = rect<s32>(x_from,
