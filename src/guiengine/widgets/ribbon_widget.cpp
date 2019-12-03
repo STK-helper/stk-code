@@ -204,23 +204,23 @@ void RibbonWidget::add()
             if (message.size() == 0)
             {
                 tab_rect_abs = rect<s32>(widget_x - small_tab/2 + HORZ_MARGIN, VERT_MARGIN,
-                                            widget_x + small_tab/2 - HORZ_MARGIN, m_h - VERT_MARGIN);
+                                         widget_x + small_tab/2 - HORZ_MARGIN, m_h - VERT_MARGIN);
             }
             else
             {
                 tab_rect_abs = rect<s32>(widget_x - large_tab/2 + HORZ_MARGIN, VERT_MARGIN,
-                                            widget_x + large_tab/2 - HORZ_MARGIN, m_h - VERT_MARGIN);
+                                         widget_x + large_tab/2 - HORZ_MARGIN, m_h - VERT_MARGIN);
             }
 
             // Once height is available to us, adjust for border scaling
-            TOP_BORDER    = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)TOP_BORDER    );
-            BOTTOM_BORDER = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)BOTTOM_BORDER );
-            LEFT_BORDER   = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)LEFT_BORDER   );
-            RIGHT_BORDER  = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)RIGHT_BORDER  );
+            //TOP_BORDER    = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)TOP_BORDER    );
+            //BOTTOM_BORDER = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)BOTTOM_BORDER );
+            //LEFT_BORDER   = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)LEFT_BORDER   );
+            //RIGHT_BORDER  = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)RIGHT_BORDER  );
 
             // Used to position sub-elements, coords needs to be relative to tab_rect_abs
-            rect<s32> tab_contents_rect = rect<s32>(LEFT_BORDER   + HORZ_PADDING,
-                                                    TOP_BORDER    + VERT_PADDING,
+            rect<s32> tab_contents_rect = rect<s32>(LEFT_BORDER + HORZ_PADDING,
+                                                    TOP_BORDER  + VERT_PADDING,
                                                     tab_rect_abs.getWidth()  - RIGHT_BORDER  - HORZ_PADDING,
                                                     tab_rect_abs.getHeight() - BOTTOM_BORDER - VERT_PADDING);
 
@@ -244,11 +244,6 @@ void RibbonWidget::add()
             }
             else if (m_active_children[i].m_type == WTYPE_ICON_BUTTON)
             {
-                Log::info("QCDebug", "1: %f", tab_rect_abs.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL));
-                Log::info("QCDebug", "2: %f", tab_rect_abs.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL));
-                Log::info("QCDebug", "3: %f", tab_rect_abs.getHeight()-(tab_rect_abs.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)));
-                Log::info("QCDebug", "4: %f", tab_rect_abs.getWidth()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL) + tab_rect_abs.getHeight()-(tab_rect_abs.getHeight()*SkinConfig::getInnerPadding(WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL)*2));
-
                 rect<s32> icon_part = rect<s32>(tab_contents_rect.UpperLeftCorner.X,
                                                 tab_contents_rect.UpperLeftCorner.Y,
                                                 tab_contents_rect.UpperLeftCorner.X + tab_contents_rect.getHeight(),
@@ -256,19 +251,19 @@ void RibbonWidget::add()
 
                 if (message.size() == 0)
                 {
-                    const int x = tab_rect_abs.getWidth()/2 - tab_rect_abs.getHeight()/2;
+                    const int x = tab_contents_rect.getWidth()/2 - tab_contents_rect.getHeight()/2;
                     // no label, only icon, so center the icon
-                    icon_part = rect<s32>(x,
-                                          0,
-                                          x + tab_rect_abs.getHeight(),
-                                          tab_rect_abs.getHeight());
+                    icon_part = rect<s32>(tab_contents_rect.UpperLeftCorner.X + x,
+                                          tab_contents_rect.UpperLeftCorner.Y,
+                                          tab_contents_rect.UpperLeftCorner.X + x + tab_contents_rect.getHeight(),
+                                          tab_contents_rect.UpperLeftCorner.Y + tab_contents_rect.getHeight());
                 }
 
                 // label at the *right* of the icon (for tabs)
-                rect<s32> label_part = rect<s32>(tab_rect_abs.getHeight()+15,
-                                                 0,
-                                                 tab_rect_abs.getWidth()-15,
-                                                 tab_rect_abs.getHeight());
+                rect<s32> label_part = rect<s32>(tab_contents_rect.UpperLeftCorner.X + icon_part.getWidth() + 15,
+                                                 tab_contents_rect.UpperLeftCorner.Y,
+                                                 tab_contents_rect.LowerRightCorner.X,
+                                                 tab_contents_rect.LowerRightCorner.Y);
 
                 // use the same ID for all subcomponents; since event handling
                 // is done per-ID, no matter which one your hover, this
