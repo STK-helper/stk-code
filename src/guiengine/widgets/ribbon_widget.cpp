@@ -225,25 +225,7 @@ void RibbonWidget::add()
                                                     tab_rect_abs.getWidth()  - RIGHT_BORDER  - HORZ_PADDING,
                                                     tab_rect_abs.getHeight() - BOTTOM_BORDER - VERT_PADDING);
 
-            if (m_active_children[i].m_type == WTYPE_BUTTON)
-            {
-                tab = GUIEngine::getGUIEnv()
-                       ->addButton(tab_contents_rect, btn, getNewNoFocusID(),
-                                   message.c_str(), L"");
-                tab->setTabStop(false);
-                tab->setTabGroup(false);
-
-                if ((int)GUIEngine::getFont()->getDimension(message.c_str())
-                                              .Width > tab_rect_abs.getWidth()  &&
-                    message.findFirst(L' ') == -1                          &&
-                    message.findFirst(L'\u00AD') == -1                        )
-                {
-                    // if message too long and contains no space and no soft
-                    // hyphen, make the font smaller
-                    tab->setOverrideFont(GUIEngine::getSmallFont());
-                }
-            }
-            else if (m_active_children[i].m_type == WTYPE_ICON_BUTTON)
+            if (m_active_children[i].m_type == WTYPE_ICON_BUTTON || m_active_children[i].m_type == WTYPE_BUTTON)
             {
                 rect<s32> icon_part = rect<s32>(tab_contents_rect.UpperLeftCorner.X,
                                                 tab_contents_rect.UpperLeftCorner.Y,
@@ -260,11 +242,14 @@ void RibbonWidget::add()
                                           tab_contents_rect.UpperLeftCorner.Y + tab_contents_rect.getHeight());
                 }
 
-                // label at the *right* of the icon (for tabs)
-                rect<s32> label_part = rect<s32>(tab_contents_rect.UpperLeftCorner.X + icon_part.getWidth() + 15,
+                rect<s32> label_part = rect<s32>(tab_contents_rect.UpperLeftCorner.X,
                                                  tab_contents_rect.UpperLeftCorner.Y,
                                                  tab_contents_rect.LowerRightCorner.X,
                                                  tab_contents_rect.LowerRightCorner.Y);
+
+                // label at the *right* of the icon (for tabs)
+                if (m_active_children[i].m_type == WTYPE_ICON_BUTTON)
+                    label_part.UpperLeftCorner.X += icon_part.getWidth() + 15;
 
                 // use the same ID for all subcomponents; since event handling
                 // is done per-ID, no matter which one your hover, this
@@ -273,16 +258,19 @@ void RibbonWidget::add()
                 tab = GUIEngine::getGUIEnv()->addButton(tab_rect_abs, btn,
                                                            same_id, L"", L"");
 
-                IGUIButton* icon =
-                    GUIEngine::getGUIEnv()->addButton(icon_part, tab,
-                                                      same_id, L"");
-                icon->setScaleImage(true);
-                std::string filename = GUIEngine::getSkin()->getThemedIcon(
-                                     m_active_children[i].m_properties[PROP_ICON]);
-                icon->setImage( irr_driver->getTexture(filename.c_str()) );
-                icon->setUseAlphaChannel(true);
-                icon->setDrawBorder(false);
-                icon->setTabStop(false);
+                if (m_active_children[i].m_type == WTYPE_ICON_BUTTON)
+                {
+                    IGUIButton* icon =
+                        GUIEngine::getGUIEnv()->addButton(icon_part, tab,
+                                                          same_id, L"");
+                    icon->setScaleImage(true);
+                    std::string filename = GUIEngine::getSkin()->getThemedIcon(
+                                         m_active_children[i].m_properties[PROP_ICON]);
+                    icon->setImage( irr_driver->getTexture(filename.c_str()) );
+                    icon->setUseAlphaChannel(true);
+                    icon->setDrawBorder(false);
+                    icon->setTabStop(false);
+                }
 
                 IGUIStaticText* label =
                     GUIEngine::getGUIEnv()->addStaticText(message.c_str(),
