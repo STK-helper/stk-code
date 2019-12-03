@@ -143,17 +143,17 @@ all types of ttf.
 <element type="tab" state="neutral" image="tab.png"
       left_border="40" right_border="40" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.06" v_inner_padding="0.1" h_margin="0.0" v_margin="0.0" />
+      h_inner_padding="0" v_inner_padding="0" h_margin="0" v_margin="0" />
       
 <element type="tab" state="focused" image="tab_focus.png"
       left_border="40" right_border="40" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.06" v_inner_padding="0.1" h_margin="0.0" v_margin="0.0" />
+      h_inner_padding="0" v_inner_padding="0" h_margin="0" v_margin="0" />
 
 <element type="tab" state="down" image="tab.png"
       left_border="40" right_border="40" top_border="10" bottom_border="10"
       preserve_h_aspect_ratios="false" hborder_out_portion="0" vborder_out_portion="0"
-      h_inner_padding="0.06" v_inner_padding="0.1" h_margin="0.0" v_margin="0.0" />
+      h_inner_padding="0" v_inner_padding="0" h_margin="0" v_margin="0" />
 
 
 <element type="verticalTab" state="neutral" image="tab_vert.png"
