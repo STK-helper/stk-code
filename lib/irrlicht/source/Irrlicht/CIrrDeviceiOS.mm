@@ -35,14 +35,92 @@ namespace irr
 
 @interface HideStatusBarView : UIViewController
 -(BOOL)prefersStatusBarHidden;
+-(BOOL)prefersHomeIndicatorAutoHidden;
+-(void)viewDidAppear:(BOOL)animated;
+-(void)viewDidLoad;
+-(void)dealloc;
 @end
 
-@implementation HideStatusBarView {}
+@implementation HideStatusBarView
+{
+    irr::CIrrDeviceiOS* Device;
+}
+
+-(void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver: self];
+    [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+    [super dealloc];
+}
+
+- (id)init: (irr::CIrrDeviceiOS*)device
+{
+    self = [super init];
+    Device = device;
+    return self;
+}
 
 -(BOOL)prefersStatusBarHidden
 {
     return YES;
 }
+
+-(BOOL)prefersHomeIndicatorAutoHidden
+{
+    return YES;
+}
+
+- (void)orientationChanged:(NSNotification*)note
+{
+    UIDevice* dev = [UIDevice currentDevice];
+    if (dev == nil)
+        return;
+
+    UIDeviceOrientation orientation = [dev orientation];
+    switch(orientation)
+    {
+        case UIDeviceOrientationLandscapeLeft:
+            Device->setUpsideDown(true);
+            break;
+        case UIDeviceOrientationLandscapeRight:
+            Device->setUpsideDown(false);
+            break;
+        default:
+            break;
+    };
+}
+
+-(void)viewDidLoad
+{
+    [super viewDidLoad];
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(orientationChanged:)
+     name:UIDeviceOrientationDidChangeNotification
+     object:nil];
+
+    // On first lanuch orientationChanged returns UIDeviceOrientationUnknown,
+    // so we get the first oritentation from statusBarOrientation
+    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+    // Those values are inverted with UIDeviceOrientation enum for landscape
+    if (orientation == UIInterfaceOrientationLandscapeLeft)
+        Device->setUpsideDown(false);
+    else if (orientation == UIInterfaceOrientationLandscapeRight)
+        Device->setUpsideDown(true);
+}
+
+-(void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear : animated];
+    if (@available(iOS 11.0, *))
+    {
+        Device->setPaddings(self.view.safeAreaInsets.top,
+            self.view.safeAreaInsets.bottom,
+            self.view.safeAreaInsets.left,
+            self.view.safeAreaInsets.right);
+    }
+}
+
 @end
 
 /* CIrrDelegateiOS */
@@ -161,34 +239,8 @@ namespace irr
     Focus = true;
 }
 
-- (void)orientationChanged:(NSNotification*)note
-{
-    if (Device == nil)
-        return;
-    UIDevice* device = note.object;
-    switch(device.orientation)
-    {
-        case UIDeviceOrientationLandscapeLeft:
-            Device->setUpsideDown(true);
-            break;
-        case UIDeviceOrientationLandscapeRight:
-            Device->setUpsideDown(false);
-            break;
-        case UIDeviceOrientationPortrait:
-        case UIDeviceOrientationPortraitUpsideDown:
-            break;
-        default:
-            break;
-    };
-}
-
 - (void)runSTK
 {
-    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-    [[NSNotificationCenter defaultCenter]
-     addObserver:self selector:@selector(orientationChanged:)
-     name:UIDeviceOrientationDidChangeNotification
-     object:[UIDevice currentDevice]];
     override_default_params_for_mobile();
     struct utsname system_info;
     uname(&system_info);
@@ -420,6 +472,11 @@ namespace irr
     CIrrDeviceiOS::CIrrDeviceiOS(const SIrrlichtCreationParameters& params)
                  : CIrrDeviceStub(params), DataStorage(0), Close(false), m_upside_down(false)
     {
+        m_top_padding = 0.0f;
+        m_bottom_padding = 0.0f;
+        m_left_padding = 0.0f;
+        m_right_padding = 0.0f;
+        m_native_scale = 1.0f;
 #ifdef _DEBUG
         setDebugName("CIrrDeviceiOS");
 #endif
@@ -812,7 +869,7 @@ namespace irr
         {
             SIrrDeviceiOSDataStorage* dataStorage = static_cast<SIrrDeviceiOSDataStorage*>(DataStorage);
             dataStorage->Window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-            dataStorage->ViewController = [[HideStatusBarView alloc] init];
+            dataStorage->ViewController = [[HideStatusBarView alloc] init: this];
             dataStorage->Window.rootViewController = dataStorage->ViewController;
             [dataStorage->Window makeKeyAndVisible];
         }
@@ -839,7 +896,8 @@ namespace irr
                     CIrrViewiOS* view = [[CIrrViewiOS alloc] initWithFrame:[[UIScreen mainScreen] bounds]
                         forDevice:this forContext:dataStorage->m_eagl_context];
                     dataStorage->View = view;
-                    view.contentScaleFactor = dataStorage->Window.screen.nativeScale;
+                    m_native_scale = dataStorage->Window.screen.nativeScale;
+                    view.contentScaleFactor = m_native_scale;
                     // This will initialize the default framebuffer, which bind its valus to GL_FRAMEBUFFER_BINDING
                     beginScene();
                     GLint default_fb = 0;
@@ -891,6 +949,13 @@ namespace irr
     {
         NSString* language = [[NSLocale preferredLanguages] firstObject];
         return std::string([language UTF8String]);
+    }
+    void CIrrDeviceiOS::openURLiOS(const char* url)
+    {
+        UIApplication* application = [UIApplication sharedApplication];
+        NSString* url_nsstring = [NSString stringWithCString:url encoding:NSUTF8StringEncoding];
+        NSURL* nsurl_val = [NSURL URLWithString:url_nsstring];
+        [application openURL:nsurl_val];
     }
 }
 

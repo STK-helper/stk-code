@@ -127,6 +127,15 @@ void AddonsScreen::beforeAddingWidget()
     {
         w_filter_rating->addLabel(StringUtils::toWString(n / 2.0));
     }
+
+    GUIEngine::SpinnerWidget* w_filter_installation =
+                        getWidget<GUIEngine::SpinnerWidget>("filter_installation");
+    w_filter_installation->m_properties[GUIEngine::PROP_MIN_VALUE] = "0";
+    w_filter_installation->m_properties[GUIEngine::PROP_MAX_VALUE] = "2";
+    w_filter_installation->addLabel(_("All"));
+    w_filter_installation->addLabel(_("Installed"));
+    //I18N: Addon not installed for fillter
+    w_filter_installation->addLabel(_("Not installed"));
 }
 // ----------------------------------------------------------------------------
 
@@ -166,6 +175,10 @@ void AddonsScreen::init()
     GUIEngine::SpinnerWidget* w_filter_rating =
                         getWidget<GUIEngine::SpinnerWidget>("filter_rating");
     w_filter_rating->setValue(0);
+
+    GUIEngine::SpinnerWidget* w_filter_installation =
+                        getWidget<GUIEngine::SpinnerWidget>("filter_installation");
+    w_filter_installation->setValue(0);
 
     // Set the default sort order
     Addon::setSortOrder(Addon::SO_DEFAULT);
@@ -212,12 +225,19 @@ void AddonsScreen::loadList()
     GUIEngine::SpinnerWidget* w_filter_rating =
                         getWidget<GUIEngine::SpinnerWidget>("filter_rating");
     float rating = w_filter_rating->getValue() / 2.0f;
+    
+    GUIEngine::SpinnerWidget* w_filter_installation =
+                        getWidget<GUIEngine::SpinnerWidget>("filter_installation");
 
     // First create a list of sorted entries
     PtrVector<const Addon, REF> sorted_list;
     for(unsigned int i=0; i<addons_manager->getNumAddons(); i++)
     {
         const Addon & addon = addons_manager->getAddon(i);
+        // Ignore not installed addons if the checkbox is enabled
+        if(   (w_filter_installation->getValue() == 1 && !addon.isInstalled())
+           || (w_filter_installation->getValue() == 2 &&  addon.isInstalled()))
+            continue;
         // Ignore addons of a different type
         if(addon.getType()!=m_type) continue;
         // Ignore invisible addons
@@ -453,7 +473,7 @@ void AddonsScreen::eventCallback(GUIEngine::Widget* widget,
             loadList();
         }
     }
-    else if (name == "filter_search")
+    else if (name == "filter_search" || name == "filter_installation")
     {
         loadList();
     }

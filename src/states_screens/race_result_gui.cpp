@@ -60,10 +60,12 @@
 #include "states_screens/main_menu_screen.hpp"
 #include "states_screens/online/networking_lobby.hpp"
 #include "states_screens/race_setup_screen.hpp"
+#include "tips/tips_manager.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
+
 #include <algorithm>
 
 /** Constructor, initialises internal data structures.
@@ -141,6 +143,15 @@ void RaceResultGUI::init()
         m_start_track = 0;
         m_end_track = (int)tracks.size();
     }
+
+#ifndef SERVER_ONLY
+    if (!human_win && !NetworkConfig::get()->isNetworking())
+    {
+        core::stringw tips_string = _("Tip: ");
+        tips_string += TipsManager::get()->getTip("race");
+        MessageQueue::add(MessageQueue::MT_GENERIC, tips_string);
+    }
+#endif
 }   // init
 
 //-----------------------------------------------------------------------------
@@ -1428,12 +1439,19 @@ void RaceResultGUI::displayCTFResults()
             const bool own_goal = !(scorers.at(i).m_correct_goal);
 
             result_text = scorers.at(i).m_player;
+            if (scorers.at(i).m_handicap_level == HANDICAP_MEDIUM)
+                result_text = _("%s (handicapped)", result_text);
 
             if (own_goal)
             {
                 result_text.append(" ");
                 //I18N: indicates a player that scored in their own goal in result screen
                 result_text.append(_("(Own Goal)"));
+            }
+            if (!scorers.at(i).m_country_code.empty())
+            {
+                result_text += " ";
+                result_text += StringUtils::getCountryFlag(scorers.at(i).m_country_code);
             }
 
             result_text.append("  ");
@@ -1479,11 +1497,19 @@ void RaceResultGUI::displayCTFResults()
             const bool own_goal = !(scorers.at(i).m_correct_goal);
 
             result_text = scorers.at(i).m_player;
+            if (scorers.at(i).m_handicap_level == HANDICAP_MEDIUM)
+                result_text = _("%s (handicapped)", result_text);
 
             if (own_goal)
             {
                 result_text.append(" ");
+                //I18N: indicates a player that scored in their own goal in result screen
                 result_text.append(_("(Own Goal)"));
+            }
+            if (!scorers.at(i).m_country_code.empty())
+            {
+                result_text += " ";
+                result_text += StringUtils::getCountryFlag(scorers.at(i).m_country_code);
             }
 
             result_text.append("  ");

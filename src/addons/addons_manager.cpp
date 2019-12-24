@@ -31,6 +31,7 @@
 #include "karts/kart_properties_manager.hpp"
 #include "online/http_request.hpp"
 #include "online/request_manager.hpp"
+#include "states_screens/dialogs/addons_pack.hpp"
 #include "states_screens/kart_selection.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
@@ -58,6 +59,7 @@ AddonsManager* addons_manager = 0;
 AddonsManager::AddonsManager() : m_addons_list(std::vector<Addon>() ),
                                  m_state(STATE_INIT)
 {
+    m_downloaded_icons = false;
     // Clean .part file which may be left behind
     std::string addons_part = file_manager->getAddonsFile("addons.xml.part");
     if (file_manager->fileExists(addons_part))
@@ -288,10 +290,9 @@ void AddonsManager::initAddons(const XMLNode *xml)
     }
     m_addons_list.unlock();
 
-    m_state.setAtomic(STATE_READY);
-
     if (UserConfigParams::m_internet_status == RequestManager::IPERM_ALLOWED)
         downloadIcons();
+    m_state.setAtomic(STATE_READY);
 }   // initAddons
 
 // ----------------------------------------------------------------------------
@@ -389,9 +390,11 @@ void AddonsManager::downloadIcons()
             class IconRequest : public Online::HTTPRequest
             {
                 Addon *m_addon;  // stores this addon object
-                void afterOperation()
+                void callback()
                 {
                     m_addon->setIconReady();
+                    if (!hadDownloadError())
+                        addons_manager->m_downloaded_icons = true;
                 }   // callback
             public:
                 IconRequest(const std::string &filename,
@@ -477,29 +480,33 @@ bool AddonsManager::anyAddonsInstalled() const
 }   // anyAddonsInstalled
 
 // ----------------------------------------------------------------------------
-/** Installs or updates (i.e. = install on top of an existing installation) an
- *  addon. It checks for the directories and then unzips the file (which must
- *  already have been downloaded).
+/** Installs or updates (i.e. remove old and then install a new) an addon.
+ *  It checks for the directories and then unzips the file (which must already
+ *  have been downloaded).
  *  \param addon Addon data for the addon to install.
  *  \return true if installation was successful.
  */
 bool AddonsManager::install(const Addon &addon)
 {
-    file_manager->checkAndCreateDirForAddons(addon.getDataDir());
 
     //extract the zip in the addons folder called like the addons name
     std::string base_name = StringUtils::getBasename(addon.getZipFileName());
     std::string from      = file_manager->getAddonsFile("tmp/"+base_name);
     std::string to        = addon.getDataDir();
 
-    bool success = extract_zip(from, to);
+    // Remove old addon first (including non official way to install addons)
+    AddonsPack::uninstallByName(addon.getDirName(), true/*force_clear*/);
+    if (file_manager->isDirectory(to))
+        file_manager->removeDirectory(to);
+
+    file_manager->checkAndCreateDirForAddons(to);
+
+    bool success = extract_zip(from, to, true/*recursive*/);
     if (!success)
     {
         // TODO: show a message in the interface
         Log::error("addons", "Failed to unzip '%s' to '%s'.",
                     from.c_str(), to.c_str());
-        Log::error("addons", "Zip file will not be removed.");
-        return false;
     }
 
     if(!file_manager->removeFile(from))
@@ -507,6 +514,8 @@ bool AddonsManager::install(const Addon &addon)
         Log::error("addons", "Problems removing temporary file '%s'.",
                     from.c_str());
     }
+    if (!success)
+        return false;
 
     int index = getAddonIndex(addon.getId());
     assert(index>=0 && index < (int)m_addons_list.getData().size());
@@ -625,6 +634,7 @@ void AddonsManager::saveInstalled()
     }
     xml_installed << "</addons>" << std::endl;
     xml_installed.close();
+    m_downloaded_icons = false;
 }   // saveInstalled
 
 #endif

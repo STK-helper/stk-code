@@ -96,12 +96,8 @@ DownloadAssets::DownloadAssets()
     icon->setImage(file_manager->getAsset(FileManager::GUI_ICON, "logo.png"),
         IconButtonWidget::ICON_PATH_TYPE_ABSOLUTE);
 
-    core::stringw unit = "";
-    unsigned n = getDownloadAssetsSize();
-    float f = ((int)(n/1024.0f/1024.0f*10.0f+0.5f))/10.0f;
-    char s[32];
-    sprintf(s, "%.1f", f);
-    unit = _("%s MB", s);
+    core::stringw unit =
+        StringUtils::getReadableFileSize(getDownloadAssetsSize());
     // I18N: File size of game assets or addons downloading
     core::stringw size = _("Size: %s", unit.c_str());
     getWidget<LabelWidget>("size")->setText(size, false);
@@ -113,6 +109,12 @@ DownloadAssets::DownloadAssets()
         "a wifi connection.");
     getWidget<BubbleWidget>("description")->setText(msg);
 }   // DownloadAssets
+
+// ----------------------------------------------------------------------------
+DownloadAssets::~DownloadAssets()
+{
+    stopDownload();
+}   // ~DownloadAssets
 
 // ----------------------------------------------------------------------------
 void DownloadAssets::beforeAddingWidgets()
@@ -129,7 +131,6 @@ void DownloadAssets::init()
 // ----------------------------------------------------------------------------
 bool DownloadAssets::onEscapePressed()
 {
-    stopDownload();
     ModalDialog::dismiss();
     return true;
 }   // onEscapePressed
@@ -146,7 +147,6 @@ GUIEngine::EventPropagation DownloadAssets::processEvent(const std::string& even
             actions_ribbon->getSelectionIDString(PLAYER_ID_GAME_MASTER);
         if (selection == "back")
         {
-            stopDownload();
             dismiss();
             return GUIEngine::EVENT_BLOCK;
         }

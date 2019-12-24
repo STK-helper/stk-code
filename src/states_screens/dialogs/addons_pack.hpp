@@ -30,7 +30,9 @@ class AddonsPackRequest;
 class AddonsPack : public GUIEngine::ModalDialog
 {
 private:
-    GUIEngine::ProgressBarWidget *m_progress;
+    GUIEngine::ProgressBarWidget* m_progress;
+
+    GUIEngine::LabelWidget* m_size;
 
     void stopDownload();
     void doInstall();
@@ -39,6 +41,7 @@ private:
      *  to the progress of a download. */
     std::shared_ptr<AddonsPackRequest> m_download_request;
     AddonsPack(const std::string& url);
+    ~AddonsPack();
 public:
     virtual GUIEngine::EventPropagation processEvent(const std::string& event_source) OVERRIDE;
     virtual void beforeAddingWidgets() OVERRIDE;
@@ -46,7 +49,8 @@ public:
     void onUpdate(float delta) OVERRIDE;
     virtual bool onEscapePressed() OVERRIDE;
     static void install(const std::string& name);
-    static void uninstall(const std::string& name);
+    static void uninstall(const std::string& name, bool force_remove_skin = false);
+    static void uninstallByName(const std::string& name, bool force_clear = false);
 };   // DownloadAssets
 
 #endif

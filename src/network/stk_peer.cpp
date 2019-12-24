@@ -37,6 +37,7 @@
 STKPeer::STKPeer(ENetPeer *enet_peer, STKHost* host, uint32_t host_id)
        : m_peer_address(enet_peer->address), m_host(host)
 {
+    m_addons_scores.fill(-1);
     // We use 0.x.x.x ip to map to IPv6 address internally
     if (m_peer_address.getIP() < 16777216)
         m_ipv6_address = getIPV6ReadableFromMappedAddress(&enet_peer->address);
@@ -51,6 +52,8 @@ STKPeer::STKPeer(ENetPeer *enet_peer, STKHost* host, uint32_t host_id)
     m_disconnected.store(false);
     m_warned_for_high_ping.store(false);
     m_last_activity.store((int64_t)StkTime::getMonoTimeMs());
+    m_last_message.store(0);
+    m_consecutive_messages = 0;
 }   // STKPeer
 
 //-----------------------------------------------------------------------------

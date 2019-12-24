@@ -197,6 +197,7 @@
 #include "guiengine/engine.hpp"
 #include "guiengine/event_handler.hpp"
 #include "guiengine/dialog_queue.hpp"
+#include "guiengine/message_queue.hpp"
 #include "input/device_manager.hpp"
 #include "input/input_manager.hpp"
 #include "input/keyboard_device.hpp"
@@ -243,6 +244,7 @@
 #include "states_screens/options/user_screen.hpp"
 #include "states_screens/dialogs/init_android_dialog.hpp"
 #include "states_screens/dialogs/message_dialog.hpp"
+#include "tips/tips_manager.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
@@ -612,7 +614,7 @@ void cmdLineHelp()
     "       --public-server    Allow direct connection to the server (without stk server)\n"
     "       --lan-server=name  Start a LAN server (not a playing client).\n"
     "       --server-password= Sets a password for a server (both client and server).\n"
-    "       --connect-now=ip   Connect to a server with IP known now\n"
+    "       --connect-now=ip   Connect to a server with IP or domain known now\n"
     "                          (in format x.x.x.x:xxx(port)), the port should be its\n"
     "                          public port.\n"
     "       --connect-now6=ip   Connect to a server with IPv6 known now\n"
@@ -1397,7 +1399,7 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         }
         else
             fixed_ipv6.clear();
-        TransportAddress server_addr(ipv4);
+        TransportAddress server_addr = TransportAddress::fromDomain(ipv4);
         auto server = std::make_shared<Server>(0,
             StringUtils::utf8ToWide(server_addr.toString()), 0, 0, 0, 0,
             server_addr, !server_password.empty(), false);
@@ -1792,7 +1794,7 @@ void initRest()
 
     GUIEngine::init(device, driver, StateManager::get());
 
-    GUIEngine::renderLoading(true, true);
+    GUIEngine::renderLoading(true, true, false);
     input_manager = new InputManager();
     // Get into menu mode initially.
     input_manager->setMode(InputManager::MENU);
@@ -1931,7 +1933,7 @@ void askForInternetPermission()
         "'General', and edit \"Connect to the "
         "Internet\" and \"Send anonymous HW statistics\")."),
         MessageDialog::MESSAGE_DIALOG_YESNO,
-        new ConfirmServer(), true, true, 0.7f, 0.7f);
+        new ConfirmServer(), true, true, 0.85f, 0.85f);
 
     // Changes the default focus to be 'cancel' ('ok' as default is not
     // GDPR compliant, see #3378).
@@ -2025,6 +2027,11 @@ int main(int argc, char *argv[])
         // ServerConfig will use stk_config for server version testing
         stk_config->load(file_manager->getAsset("stk_config.xml"));
         bool no_graphics = !CommandLine::has("--graphical-server");
+
+#ifndef SERVER_ONLY
+        TipsManager::create();
+#endif
+
         // Load current server config first, if any option is specified than
         // override it later
         // Disable sound if found server-config or wan/lan server name
@@ -2447,6 +2454,10 @@ static void cleanSuperTuxKart()
 
     if(Online::RequestManager::isRunning())
         Online::RequestManager::get()->stopNetworkThread();
+
+#ifndef SERVER_ONLY
+    TipsManager::destroy();
+#endif
 
     // Stop music (this request will go into the sfx manager queue, so it needs
     // to be done before stopping the thread).

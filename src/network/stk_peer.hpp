@@ -30,6 +30,7 @@
 
 #include <enet/enet.h>
 
+#include <array>
 #include <atomic>
 #include <deque>
 #include <memory>
@@ -51,6 +52,15 @@ enum PeerDisconnectInfo : unsigned int
     PDI_KICK = 2, //!< Kick disconnection
     PDI_KICK_HIGH_PING = 3, //!< Too high ping, kicked by server
 };   // PeerDisconnectInfo
+
+enum AddonScore : int
+{
+    AS_KART = 0,
+    AS_TRACK = 1,
+    AS_ARENA = 2,
+    AS_SOCCER = 3,
+    AS_TOTAL = 4,
+};   // AddonScore
 
 /*! \class STKPeer
  *  \brief Represents a peer.
@@ -87,6 +97,10 @@ protected:
 
     std::atomic<int64_t> m_last_activity;
 
+    std::atomic<int64_t> m_last_message;
+
+    int m_consecutive_messages;
+
     /** Available karts and tracks from this peer */
     std::pair<std::set<std::string>, std::set<std::string> > m_available_kts;
 
@@ -108,6 +122,7 @@ protected:
      *  features available in same version. */
     std::set<std::string> m_client_capabilities;
 
+    std::array<int, AS_TOTAL> m_addons_scores;
 public:
     STKPeer(ENetPeer *enet_peer, STKHost* host, uint32_t host_id);
     // ------------------------------------------------------------------------
@@ -158,7 +173,7 @@ public:
               { m_available_kts = std::make_pair(std::move(k), std::move(t)); }
     // ------------------------------------------------------------------------
     void eraseServerKarts(const std::set<std::string>& server_karts,
-                          std::set<std::string>& karts_erase)
+                          std::set<std::string>& karts_erase) const
     {
         if (m_available_kts.first.empty())
             return;
@@ -173,7 +188,7 @@ public:
     }
     // ------------------------------------------------------------------------
     void eraseServerTracks(const std::set<std::string>& server_tracks,
-                           std::set<std::string>& tracks_erase)
+                           std::set<std::string>& tracks_erase) const
     {
         if (m_available_kts.second.empty())
             return;
@@ -256,6 +271,28 @@ public:
     void setPacketLoss(int loss)                 { m_packet_loss.store(loss); }
     // ------------------------------------------------------------------------
     int getPacketLoss() const                  { return m_packet_loss.load(); }
+    // ------------------------------------------------------------------------
+    const std::array<int, AS_TOTAL>& getAddonsScores() const
+                                                    { return m_addons_scores; }
+    // ------------------------------------------------------------------------
+    void setAddonsScores(const std::array<int, AS_TOTAL>& scores)
+                                                  { m_addons_scores = scores; }
+    // ------------------------------------------------------------------------
+    void updateLastMessage()
+                   { m_last_message.store((int64_t)StkTime::getMonoTimeMs()); }
+    // ------------------------------------------------------------------------
+    int64_t getLastMessage() const
+                                                     { return m_last_message; }
+    // ------------------------------------------------------------------------
+    void updateConsecutiveMessages(bool too_fast)
+    {
+        if (too_fast)
+            m_consecutive_messages++;
+        else
+            m_consecutive_messages = 0;
+    }
+    // ------------------------------------------------------------------------
+    int getConsecutiveMessages() const       { return m_consecutive_messages; }
 };   // STKPeer
 
 #endif // STK_PEER_HPP
