@@ -67,7 +67,6 @@ when the border that intersect at this corner are enabled.
 
 <skin name="Forest" author="Benau">
 
-<icontheme name="Classic" />
 <menumusic name="main_theme.music" />
 
 <!--  Stateless -->
