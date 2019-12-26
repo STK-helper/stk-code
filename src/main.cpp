@@ -764,7 +764,7 @@ int handleCmdLinePreliminary()
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_MEMORY;
     if(CommandLine::has("--debug=addons"))
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_ADDONS;
-    if(CommandLine::has("--debug=mgui"))
+    if(CommandLine::has("--debug=gui"))
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_GUI;
     if(CommandLine::has("--debug=flyable"))
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_FLYABLE;
