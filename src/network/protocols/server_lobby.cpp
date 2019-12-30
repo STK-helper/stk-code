@@ -839,8 +839,9 @@ void ServerLobby::createServerIdFile()
         std::fstream fs;
         sid += StringUtils::toString(m_server_id_online.load()) + "_" +
             StringUtils::toString(STKHost::get()->getPrivatePort());
-        fs.open(sid, std::ios::out);
-        fs.close();
+        io::IWriteFile* file = irr::io::createWriteFile(sid.c_str(), false);
+        if (file)
+            file->drop();
         m_has_created_server_id_file = true;
     }
 }   // createServerIdFile
@@ -4994,13 +4995,14 @@ void ServerLobby::handleServerCommand(Event* event,
         NetworkString* chat = getNetworkString();
         chat->addUInt8(LE_CHAT);
         chat->setSynchronous(true);
-        if (argv.size() == 1 || argv.size() > 3 || argv[1].size() < 3 ||
-            (argv.size() == 2 &&
+        bool has_options = argv.size() > 1 &&
             (argv[1].compare("-track") == 0 ||
             argv[1].compare("-arena") == 0 ||
             argv[1].compare("-kart") == 0 ||
-            argv[1].compare("-soccer") == 0)) ||
-            (argv.size() == 3 && argv[2].size() < 3))
+            argv[1].compare("-soccer") == 0);
+        if (argv.size() == 1 || argv.size() > 3 || argv[1].size() < 3 ||
+            (argv.size() == 2 && (argv[1].size() < 3 || has_options)) ||
+            (argv.size() == 3 && (!has_options || argv[2].size() < 3)))
         {
             chat->encodeString16(
                 L"Usage: /listserveraddon [option][addon string to find "
