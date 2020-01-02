@@ -141,35 +141,35 @@ all types of ttf.
       
       
 <element type="tab" state="neutral" image="tab.png"
-      left_border="40" right_border="40" top_border="10" bottom_border="10"
+      left_border="44" right_border="44" top_border="28" bottom_border="28"
       preserve_h_aspect_ratios="false" hborder_out_portion="0.0" vborder_out_portion="0.0"
-      h_inner_padding="0" v_inner_padding="0" h_margin="0" v_margin="0" />
+      h_inner_padding="0" v_inner_padding="-12" h_margin="0" v_margin="0" />
       
 <element type="tab" state="focused" image="tab_focus.png"
-      left_border="40" right_border="40" top_border="10" bottom_border="10"
+      left_border="44" right_border="44" top_border="28" bottom_border="28"
       preserve_h_aspect_ratios="false" hborder_out_portion="0.0" vborder_out_portion="0.0"
-      h_inner_padding="0" v_inner_padding="0" h_margin="0" v_margin="0" />
+      h_inner_padding="0" v_inner_padding="-12" h_margin="0" v_margin="0" />
 
 <element type="tab" state="down" image="tab.png"
-      left_border="40" right_border="40" top_border="10" bottom_border="10"
+      left_border="44" right_border="44" top_border="28" bottom_border="28"
       preserve_h_aspect_ratios="false" hborder_out_portion="0.0" vborder_out_portion="0.0"
-      h_inner_padding="0" v_inner_padding="0" h_margin="0" v_margin="0" />
+      h_inner_padding="0" v_inner_padding="-12" h_margin="0" v_margin="0" />
 
 
 <element type="verticalTab" state="neutral" image="tab_vert.png"
-      left_border="40" right_border="40" top_border="12" bottom_border="12"
+      left_border="45" right_border="45" top_border="28" bottom_border="28"
       hborder_out_portion="0.0" vborder_out_portion="0.0"
-      h_inner_padding="-8" v_inner_padding="0" h_margin="0" v_margin="4" />
+      h_inner_padding="0" v_inner_padding="-8" h_margin="0" v_margin="4" />
       
 <element type="verticalTab" state="focused" image="tab_vert_focus.png"
-      left_border="40" right_border="40" top_border="12" bottom_border="12"
+      left_border="45" right_border="45" top_border="28" bottom_border="28"
       hborder_out_portion="0.0" vborder_out_portion="0.0"
-      h_inner_padding="-8" v_inner_padding="0" h_margin="0" v_margin="4" />
+      h_inner_padding="0" v_inner_padding="-8" h_margin="0" v_margin="4" />
 
-<element type="verticalTab" state="down" image="tab_vert_down.png"
-      left_border="40" right_border="40" top_border="12" bottom_border="12"
+<element type="verticalTab" state="down" image="tab_vert.png"
+      left_border="45" right_border="45" top_border="28" bottom_border="28"
       hborder_out_portion="0.0" vborder_out_portion="0.0"
-      h_inner_padding="-8" v_inner_padding="0" h_margin="0" v_margin="4" />
+      h_inner_padding="0" v_inner_padding="-8" h_margin="0" v_margin="4" />
 
 <!-- Stateless -->
 <element type="squareFocusHaloBW" common="y" image="glass_square_focused_bw.png"

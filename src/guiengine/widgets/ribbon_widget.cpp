@@ -162,16 +162,16 @@ void RibbonWidget::add()
     for (int i=0; i<subbuttons_amount; i++)
     {
         // Get these ints for easy later use
-        const int VERT_MARGIN   = round(SkinConfig::getValue(SkinConfig::MARGIN, WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL));
-        const int VERT_PADDING  = round(SkinConfig::getValue(SkinConfig::PADDING, WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL));
+        const int HORZ_MARGIN  = round(SkinConfig::getValue(SkinConfig::MARGIN, WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL));
+        const int VERT_MARGIN  = round(SkinConfig::getValue(SkinConfig::MARGIN, WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL));
 
         int TOP_BORDER    = round(SkinConfig::getValue(SkinConfig::BORDER, WTYPE_RIBBON, getRibbonType(), SkinConfig::TOP));
         int BOTTOM_BORDER = round(SkinConfig::getValue(SkinConfig::BORDER, WTYPE_RIBBON, getRibbonType(), SkinConfig::BOTTOM));
         int LEFT_BORDER   = round(SkinConfig::getValue(SkinConfig::BORDER, WTYPE_RIBBON, getRibbonType(), SkinConfig::LEFT));
         int RIGHT_BORDER  = round(SkinConfig::getValue(SkinConfig::BORDER, WTYPE_RIBBON, getRibbonType(), SkinConfig::RIGHT));
 
-        const int HORZ_MARGIN   = round(SkinConfig::getValue(SkinConfig::MARGIN, WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL));
-        const int HORZ_PADDING  = round(SkinConfig::getValue(SkinConfig::PADDING, WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL));
+        int HORZ_PADDING  = round(SkinConfig::getValue(SkinConfig::PADDING, WTYPE_RIBBON, getRibbonType(), SkinConfig::HORIZONTAL));
+        int VERT_PADDING  = round(SkinConfig::getValue(SkinConfig::PADDING, WTYPE_RIBBON, getRibbonType(), SkinConfig::VERTICAL));
 
         // ---- tab ribbons
         if (getRibbonType() == RIBBON_TABS)
@@ -199,9 +199,6 @@ void RibbonWidget::add()
 
             rect<s32> tab_rect_abs;
 
-            Log::info("QCDebug", "VERT_MARGIN: %i", VERT_MARGIN);
-            Log::info("QCDebug", "HORZ_MARGIN: %i", HORZ_MARGIN);
-
             if (message.size() == 0)
             {
                 tab_rect_abs = rect<s32>(widget_x - small_tab/2 + HORZ_MARGIN, VERT_MARGIN,
@@ -213,11 +210,25 @@ void RibbonWidget::add()
                                          widget_x + large_tab/2 - HORZ_MARGIN, m_h - VERT_MARGIN);
             }
 
-            // Once height is available to us, adjust for border scaling
-            //TOP_BORDER    = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)TOP_BORDER    );
-            //BOTTOM_BORDER = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)BOTTOM_BORDER );
-            //LEFT_BORDER   = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)LEFT_BORDER   );
-            //RIGHT_BORDER  = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)RIGHT_BORDER  );
+            // Once height is available to us, adjust for scaling
+            TOP_BORDER    = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)TOP_BORDER    );
+            BOTTOM_BORDER = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)BOTTOM_BORDER );
+            LEFT_BORDER   = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)LEFT_BORDER   );
+            RIGHT_BORDER  = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)RIGHT_BORDER  );
+
+            HORZ_PADDING  = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)HORZ_PADDING );
+            VERT_PADDING  = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)VERT_PADDING );
+
+            Log::info("QCDebug", "VERT_MARGIN:   %i", VERT_MARGIN);
+            Log::info("QCDebug", "HORZ_MARGIN:   %i", HORZ_MARGIN);
+
+            Log::info("QCDebug", "TOP_BORDER:    %i", TOP_BORDER);
+            Log::info("QCDebug", "BOTTOM_BORDER: %i", BOTTOM_BORDER);
+            Log::info("QCDebug", "LEFT_BORDER:   %i", LEFT_BORDER);
+            Log::info("QCDebug", "RIGHT_BORDER:  %i", RIGHT_BORDER);
+
+            Log::info("QCDebug", "VERT_PADDING:  %i", VERT_PADDING);
+            Log::info("QCDebug", "HORZ_PADDING:  %i", HORZ_PADDING);
 
             // Used to position sub-elements, coords needs to be relative to tab_rect_abs
             rect<s32> tab_contents_rect = rect<s32>(LEFT_BORDER + HORZ_PADDING,
@@ -327,19 +338,33 @@ void RibbonWidget::add()
             IGUIButton * tab = NULL;
 
             rect<s32> tab_rect_abs = rect<s32>(widget_x - (tab_width/2) - HORZ_MARGIN, widget_y + VERT_MARGIN,
-                                             widget_x + (tab_width/2) + HORZ_MARGIN, widget_y + one_button_height - VERT_MARGIN);
+                                               widget_x + (tab_width/2) + HORZ_MARGIN, widget_y + one_button_height - VERT_MARGIN);
 
-            // Once height is available to us, adjust for border scaling
-            TOP_BORDER    *= GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight());
-            BOTTOM_BORDER *= GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight());
-            LEFT_BORDER   *= GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight());
-            RIGHT_BORDER  *= GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight());
+            // Once height is available to us, adjust for scaling
+            TOP_BORDER    = round( GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight()) * (float)TOP_BORDER    );
+            BOTTOM_BORDER = round( GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight()) * (float)BOTTOM_BORDER );
+            LEFT_BORDER   = round( GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight()) * (float)LEFT_BORDER   );
+            RIGHT_BORDER  = round( GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight()) * (float)RIGHT_BORDER  );
+
+            HORZ_PADDING  = round( GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight()) * (float)HORZ_PADDING  );
+            VERT_PADDING  = round( GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight()) * (float)VERT_PADDING  );
+
+            Log::info("QCDebug", "VERT_MARGIN:   %i", VERT_MARGIN);
+            Log::info("QCDebug", "HORZ_MARGIN:   %i", HORZ_MARGIN);
+
+            Log::info("QCDebug", "TOP_BORDER:    %i", TOP_BORDER);
+            Log::info("QCDebug", "BOTTOM_BORDER: %i", BOTTOM_BORDER);
+            Log::info("QCDebug", "LEFT_BORDER:   %i", LEFT_BORDER);
+            Log::info("QCDebug", "RIGHT_BORDER:  %i", RIGHT_BORDER);
+
+            Log::info("QCDebug", "VERT_PADDING:  %i", VERT_PADDING);
+            Log::info("QCDebug", "HORZ_PADDING:  %i", HORZ_PADDING);
 
             // Used to position sub-elements, coords needs to be relative to tab_rect_abs
             rect<s32> tab_contents_rect = rect<s32>(LEFT_BORDER + HORZ_PADDING,
-                                                      TOP_BORDER  + VERT_PADDING,
-                                                      tab_rect_abs.getWidth()  - RIGHT_BORDER  - HORZ_PADDING,
-                                                      tab_rect_abs.getHeight() - BOTTOM_BORDER - VERT_PADDING);
+                                                    TOP_BORDER  + VERT_PADDING,
+                                                    tab_rect_abs.getWidth()  - RIGHT_BORDER  - HORZ_PADDING,
+                                                    tab_rect_abs.getHeight() - BOTTOM_BORDER - VERT_PADDING);
 
             Log::info("tab_rect_abs     ", "X1: %i, Y1: %i, X2: %i, Y2: %i", tab_rect_abs.UpperLeftCorner.X, tab_rect_abs.UpperLeftCorner.Y, tab_rect_abs.LowerRightCorner.X, tab_rect_abs.LowerRightCorner.Y);
             Log::info("tab_contents_rect", "X1: %i, Y1: %i, X2: %i, Y2: %i", tab_contents_rect.UpperLeftCorner.X, tab_contents_rect.UpperLeftCorner.Y, tab_contents_rect.LowerRightCorner.X, tab_contents_rect.LowerRightCorner.Y);
@@ -382,9 +407,6 @@ void RibbonWidget::add()
                                                           false /* border */,
                                                           true /* word wrap */,
                                                           tab, same_id);
-
-Log::info("QCTest font", "Label hight: %i", (int)GUIEngine::getFont()->getDimension(message.c_str()).Height);
-Log::info("QCTest font", "Label max hight: %i", label_part.getHeight());
 
                 if (((int)GUIEngine::getFont()->getDimension(message.c_str())
                                               .Width > label_part.getWidth() &&
