@@ -437,6 +437,11 @@ BoxRenderParams::BoxRenderParams()
     m_horizontal_inner_padding = 0.0f;
     m_vertical_inner_padding = 0.0f;
 
+    m_horizontal_margin = 0.0f;
+    m_vertical_margin = 0.0f;
+    m_horizontal_inner_padding = 0.0f;
+    m_vertical_inner_padding = 0.0f;
+
     areas = BODY | LEFT | RIGHT | TOP | BOTTOM;
     m_vertical_flip = false;
     m_y_flip_set = false;

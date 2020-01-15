@@ -219,16 +219,18 @@ void RibbonWidget::add()
             HORZ_PADDING  = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)HORZ_PADDING );
             VERT_PADDING  = round( GUIEngine::getSkin()->getScalingFactor("tab::neutral", tab_rect_abs.getHeight()) * (float)VERT_PADDING );
 
-            Log::info("QCDebug", "VERT_MARGIN:   %i", VERT_MARGIN);
-            Log::info("QCDebug", "HORZ_MARGIN:   %i", HORZ_MARGIN);
+            // Automatically guess from position on-screen if tabs go up or down
+            RibbonFlip flip = getRibbonFlip();
+            bool vertical_flip = (unsigned int)widget_size.UpperLeftCorner.Y <
+                                 irr_driver->getActualScreenSize().Height / 2;
+            // Force flip direction when the direction is defined
+            if(flip == FLIP_UP_LEFT)
+                vertical_flip = true;
+            else if(flip == FLIP_DOWN_RIGHT)
+                vertical_flip = false;
 
-            Log::info("QCDebug", "TOP_BORDER:    %i", TOP_BORDER);
-            Log::info("QCDebug", "BOTTOM_BORDER: %i", BOTTOM_BORDER);
-            Log::info("QCDebug", "LEFT_BORDER:   %i", LEFT_BORDER);
-            Log::info("QCDebug", "RIGHT_BORDER:  %i", RIGHT_BORDER);
-
-            Log::info("QCDebug", "VERT_PADDING:  %i", VERT_PADDING);
-            Log::info("QCDebug", "HORZ_PADDING:  %i", HORZ_PADDING);
+            if (vertical_flip)
+                swap(TOP_BORDER, BOTTOM_BORDER);
 
             // Used to position sub-elements, coords needs to be relative to tab_rect_abs
             rect<s32> tab_contents_rect = rect<s32>(LEFT_BORDER + HORZ_PADDING,
@@ -349,25 +351,11 @@ void RibbonWidget::add()
             HORZ_PADDING  = round( GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight()) * (float)HORZ_PADDING  );
             VERT_PADDING  = round( GUIEngine::getSkin()->getScalingFactor("verticalTab::neutral", tab_rect_abs.getHeight()) * (float)VERT_PADDING  );
 
-            Log::info("QCDebug", "VERT_MARGIN:   %i", VERT_MARGIN);
-            Log::info("QCDebug", "HORZ_MARGIN:   %i", HORZ_MARGIN);
-
-            Log::info("QCDebug", "TOP_BORDER:    %i", TOP_BORDER);
-            Log::info("QCDebug", "BOTTOM_BORDER: %i", BOTTOM_BORDER);
-            Log::info("QCDebug", "LEFT_BORDER:   %i", LEFT_BORDER);
-            Log::info("QCDebug", "RIGHT_BORDER:  %i", RIGHT_BORDER);
-
-            Log::info("QCDebug", "VERT_PADDING:  %i", VERT_PADDING);
-            Log::info("QCDebug", "HORZ_PADDING:  %i", HORZ_PADDING);
-
             // Used to position sub-elements, coords needs to be relative to tab_rect_abs
             rect<s32> tab_contents_rect = rect<s32>(LEFT_BORDER + HORZ_PADDING,
                                                     TOP_BORDER  + VERT_PADDING,
                                                     tab_rect_abs.getWidth()  - RIGHT_BORDER  - HORZ_PADDING,
                                                     tab_rect_abs.getHeight() - BOTTOM_BORDER - VERT_PADDING);
-
-            Log::info("tab_rect_abs     ", "X1: %i, Y1: %i, X2: %i, Y2: %i", tab_rect_abs.UpperLeftCorner.X, tab_rect_abs.UpperLeftCorner.Y, tab_rect_abs.LowerRightCorner.X, tab_rect_abs.LowerRightCorner.Y);
-            Log::info("tab_contents_rect", "X1: %i, Y1: %i, X2: %i, Y2: %i", tab_contents_rect.UpperLeftCorner.X, tab_contents_rect.UpperLeftCorner.Y, tab_contents_rect.LowerRightCorner.X, tab_contents_rect.LowerRightCorner.Y);
 
             // TODO Add support for BUTTON type when needed
             if (m_active_children[i].m_type == WTYPE_ICON_BUTTON)
