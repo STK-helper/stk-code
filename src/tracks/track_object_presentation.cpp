@@ -38,7 +38,6 @@
 #include "input/input_manager.hpp"
 #include "items/item_manager.hpp"
 #include "karts/abstract_kart.hpp"
-#include "modes/profile_world.hpp"
 #include "modes/world.hpp"
 #include "scriptengine/script_engine.hpp"
 #include "states_screens/dialogs/tutorial_message_dialog.hpp"
@@ -49,6 +48,7 @@
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
 #include "tracks/track_object_manager.hpp"
+#include "utils/stk_process.hpp"
 #include "utils/string_utils.hpp"
 
 #include <IBillboardSceneNode.h>
@@ -291,6 +291,10 @@ TrackObjectPresentationLibraryNode::TrackObjectPresentationLibraryNode(
 
 void TrackObjectPresentationLibraryNode::update(float dt)
 {
+    // Child process currently has no scripting engine
+    if (STKProcess::getType() == PT_CHILD)
+        return;
+
     if (!m_start_executed)
     {
         m_start_executed = true;
@@ -680,7 +684,7 @@ TrackObjectPresentationSound::TrackObjectPresentationSound(
 
     if (trigger_when_near)
     {
-        CheckManager::get()->add(
+        Track::getCurrentTrack()->getCheckManager()->add(
             new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
             &TrackObjectPresentationSound::onTriggerItemApproached,
             this, std::placeholders::_1)));
@@ -822,7 +826,7 @@ TrackObjectPresentationBillboard::TrackObjectPresentationBillboard(
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationBillboard::updateGraphics(float dt)
 {
-    if (ProfileWorld::isNoGraphics()) return;
+    if (GUIEngine::isNoGraphics()) return;
 #ifndef SERVER_ONLY
     if (m_fade_out_when_close)
     {
@@ -1098,14 +1102,14 @@ TrackObjectPresentationActionTrigger::TrackObjectPresentationActionTrigger(
 
     if (m_type == TRIGGER_TYPE_POINT)
     {
-        CheckManager::get()->add(
+        Track::getCurrentTrack()->getCheckManager()->add(
             new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
             &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
             this, std::placeholders::_1)));
     }
     else if (m_type == TRIGGER_TYPE_CYLINDER)
     {
-        CheckManager::get()->add(new CheckCylinder(xml_node, std::bind(
+        Track::getCurrentTrack()->getCheckManager()->add(new CheckCylinder(xml_node, std::bind(
             &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
             this, std::placeholders::_1)));
     }
@@ -1130,7 +1134,7 @@ TrackObjectPresentationActionTrigger::TrackObjectPresentationActionTrigger(
     m_xml_reenable_timeout = 999999.9f;
     setReenableTimeout(0.0f);
     m_type                 = TRIGGER_TYPE_POINT;
-    CheckManager::get()->add(
+    Track::getCurrentTrack()->getCheckManager()->add(
         new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
         &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
         this, std::placeholders::_1)));
@@ -1139,7 +1143,8 @@ TrackObjectPresentationActionTrigger::TrackObjectPresentationActionTrigger(
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationActionTrigger::onTriggerItemApproached(int kart_id)
 {
-    if (m_reenable_timeout > StkTime::getMonoTimeMs())
+    if (m_reenable_timeout > StkTime::getMonoTimeMs() ||
+        STKProcess::getType() == PT_CHILD)
     {
         return;
     }

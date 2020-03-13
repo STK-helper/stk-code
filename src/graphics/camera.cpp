@@ -176,8 +176,8 @@ void Camera::setupCamera()
         float(irr_driver->getActualScreenSize().Height) / m_viewport.getHeight());
 
     m_fov = DEGREE_TO_RAD * stk_config->m_camera_fov
-        [race_manager->getNumLocalPlayers() > 0 ?
-        race_manager->getNumLocalPlayers() - 1 : 0];
+        [RaceManager::get()->getNumLocalPlayers() > 0 ?
+        RaceManager::get()->getNumLocalPlayers() - 1 : 0];
 
     m_camera->setFOV(m_fov);
     m_camera->setAspectRatio(m_aspect);
@@ -190,6 +190,7 @@ void Camera::setupCamera()
  */
 void Camera::setMode(Mode mode)
 {
+    if (mode == m_mode) return;
     // If we switch from reverse view, move the camera immediately to the
     // correct position.
     if( (m_mode==CM_REVERSE && mode==CM_NORMAL) || 
@@ -204,6 +205,7 @@ void Camera::setMode(Mode mode)
         m_camera->setTarget(target_position.toIrrVector());
     }
 
+    m_previous_mode = m_mode;
     m_mode = mode;
 }   // setMode
 
@@ -213,6 +215,14 @@ void Camera::setMode(Mode mode)
 Camera::Mode Camera::getMode()
 {
     return m_mode;
+}   // getMode
+
+// ----------------------------------------------------------------------------
+/** Returns the last kwown mode of the camera.
+ */
+Camera::Mode Camera::getPreviousMode()
+{
+    return m_previous_mode;
 }   // getMode
 
 //-----------------------------------------------------------------------------
@@ -260,7 +270,7 @@ void Camera::update(float dt)
 {
     if (!m_kart)
     {
-        if (race_manager->getNumLocalPlayers() < 2)
+        if (RaceManager::get()->getNumLocalPlayers() < 2)
         {
             Vec3 pos(m_camera->getPosition());
             SFXManager::get()->positionListener(pos,
@@ -271,7 +281,7 @@ void Camera::update(float dt)
         return; // cameras not attached to kart must be positioned manually
     }
 
-    if (race_manager->getNumLocalPlayers() < 2)
+    if (RaceManager::get()->getNumLocalPlayers() < 2)
     {
         Vec3 heading(sinf(m_kart->getHeading()), 0.0f, cosf(m_kart->getHeading()));
         SFXManager::get()->positionListener(m_kart->getSmoothedXYZ(),

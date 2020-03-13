@@ -13,7 +13,6 @@ export SDK_PATH_DEFAULT="$DIRNAME/android-sdk"
 export NDK_TOOLCHAIN_PATH="$DIRNAME/obj/bin"
 export NDK_BUILD_SCRIPT="$DIRNAME/Android.mk"
 export PATH="$DIRNAME/obj/bin:$PATH"
-export CROSS_SYSROOT="$DIRNAME/obj/sysroot"
 
 #export NDK_CCACHE=ccache
 export NDK_CPPFLAGS="-O3 -g"
@@ -298,7 +297,7 @@ if [ ! -f "$DIRNAME/obj/zlib.stamp" ]; then
 
     cd "$DIRNAME/obj/zlib"
     cmake . -DCMAKE_TOOLCHAIN_FILE=../../../cmake/Toolchain-android.cmake \
-            -DHOST=$HOST &&
+            -DHOST=$HOST -DCMAKE_C_FLAGS="-fpic" &&
     make $@
     check_error
     touch "$DIRNAME/obj/zlib.stamp"
@@ -316,7 +315,7 @@ if [ ! -f "$DIRNAME/obj/libpng.stamp" ]; then
             -DHOST=$HOST                                                  \
             -DZLIB_LIBRARY="$DIRNAME/obj/zlib/libz.a"                     \
             -DZLIB_INCLUDE_DIR="$DIRNAME/obj/zlib/"                       \
-            -DPNG_TESTS=0 &&
+            -DPNG_TESTS=0 -DCMAKE_C_FLAGS="-fpic" &&
     make $@
     check_error
     touch "$DIRNAME/obj/libpng.stamp"
@@ -380,7 +379,7 @@ if [ ! -f "$DIRNAME/obj/freetype.stamp" ]; then
     cp -a -f "$DIRNAME/../lib/freetype/"* "$DIRNAME/obj/freetype"
 
     cd "$DIRNAME/obj/freetype"
-    ZLIB_CFLAGS="-I$DIRNAME/obj/zlib/" ZLIB_LIBS="$DIRNAME/obj/zlib/libz.a" \
+    ZLIB_CFLAGS="-fpic -I$DIRNAME/obj/zlib/" ZLIB_LIBS="$DIRNAME/obj/zlib/libz.a" \
     LIBPNG_CFLAGS="-I$DIRNAME/obj/libpng/" LIBPNG_LIBS="$DIRNAME/obj/libpng/libpng.a" \
     HARFBUZZ_CFLAGS="-I$DIRNAME/obj/harfbuzz/src/" HARFBUZZ_LIBS="$DIRNAME/obj/harfbuzz/src/.libs/libharfbuzz.a" \
     ./configure --host=$HOST --enable-shared=no
@@ -414,8 +413,10 @@ if [ ! -f "$DIRNAME/obj/openssl.stamp" ]; then
     cp -a -f "$DIRNAME/../lib/openssl/"* "$DIRNAME/obj/openssl"
 
     cd "$DIRNAME/obj/openssl"
-    ./Configure android --cross-compile-prefix="$HOST-"
+    export ANDROID_NDK_HOME="$DIRNAME/obj/"
+    ./Configure android-$ARCH
     make $@
+    unset ANDROID_NDK_HOME
     check_error
     touch "$DIRNAME/obj/openssl.stamp"
 fi
@@ -447,7 +448,7 @@ if [ ! -f "$DIRNAME/obj/jpeglib.stamp" ]; then
 
     cd "$DIRNAME/obj/jpeglib"
     cmake . -DCMAKE_TOOLCHAIN_FILE=../../../cmake/Toolchain-android.cmake \
-            -DHOST=$HOST &&
+            -DHOST=$HOST -DCMAKE_C_FLAGS="-fpic" &&
     make $@
     check_error
     touch "$DIRNAME/obj/jpeglib.stamp"
@@ -460,6 +461,7 @@ if [ ! -f "$DIRNAME/obj/libogg.stamp" ]; then
     cp -a -f "$DIRNAME/../lib/libogg/"* "$DIRNAME/obj/libogg"
 
     cd "$DIRNAME/obj/libogg"
+    CPPFLAGS="-fpic $CPPFLAGS" \
     ./configure --host=$HOST &&
     make $@
     check_error
@@ -473,9 +475,11 @@ if [ ! -f "$DIRNAME/obj/libvorbis.stamp" ]; then
     cp -a -f "$DIRNAME/../lib/libvorbis/"* "$DIRNAME/obj/libvorbis"
 
     cd "$DIRNAME/obj/libvorbis"
-    CPPFLAGS="-I$DIRNAME/obj/libogg/include $CPPFLAGS" \
-    LDFLAGS="-L$DIRNAME/obj/libogg/src/.libs $LDFLAGS" \
+    CPPFLAGS="-fpic -I$DIRNAME/obj/libogg/include $CPPFLAGS" \
+    LDFLAGS="-L$DIRNAME/obj/libogg/src/.libs -lm $LDFLAGS" \
     ./configure --host=$HOST &&
+    sed -i '/#define size_t/d' config.h
+    sed -i 's/-mno-ieee-fp//' lib/Makefile
     make $@
     check_error
     touch "$DIRNAME/obj/libvorbis.stamp"
@@ -489,7 +493,7 @@ ${NDK_PATH}/ndk-build $@                 \
     APP_ABI="$NDK_ABI"                   \
     APP_PLATFORM="$NDK_PLATFORM"         \
     APP_CPPFLAGS="$NDK_CPPFLAGS"         \
-    APP_STL=gnustl_static                \
+    APP_STL=c++_static                   \
     NDK_DEBUG=$IS_DEBUG_BUILD
 
 check_error
@@ -590,5 +594,11 @@ export ANDROID_HOME="$SDK_PATH"
 ./gradlew -Pcompile_sdk_version=$COMPILE_SDK_VERSION \
           -Pbuild_tools_ver="$BUILD_TOOLS_VER"       \
           $GRADLE_BUILD_TYPE
+
+if [ "$GRADLE_BUILD_TYPE" = "assembleRelease" ]; then
+./gradlew -Pcompile_sdk_version=$COMPILE_SDK_VERSION \
+          -Pbuild_tools_ver="$BUILD_TOOLS_VER"       \
+          "bundleRelease"
+fi
 
 check_error

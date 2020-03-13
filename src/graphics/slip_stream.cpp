@@ -54,7 +54,7 @@ SlipStream::SlipStream(AbstractKart* kart)
     m_bonus_node = NULL;
 
 #ifndef SERVER_ONLY
-    if (CVS->isGLSL())
+    if (!GUIEngine::isNoGraphics() && CVS->isGLSL())
     {
         m_moving = new MovingTexture(0.0f, 0.0f);
 
@@ -199,7 +199,7 @@ SlipStream::~SlipStream()
     delete m_slipstream_inner_quad;
     delete m_slipstream_outer_quad;
 #ifndef SERVER_ONLY
-    if (CVS->isGLSL())
+    if (!GUIEngine::isNoGraphics() && CVS->isGLSL())
     {
         delete m_moving;
         delete m_moving_fast;
@@ -625,7 +625,20 @@ void SlipStream::update(int ticks)
     // Low level AIs and ghost karts should not do any slipstreaming.
     if (m_kart->getController()->disableSlipstreamBonus()
         || m_kart->isGhostKart())
+    {
+#ifndef SERVER_ONLY
+        if (!GUIEngine::isNoGraphics() && CVS->isGLSL())
+        {
+            if (m_node && m_node->isVisible())
+                m_node->setVisible(false);
+            if (m_node_fast && m_node_fast->isVisible())
+                m_node_fast->setVisible(false);
+            if (m_bonus_node && m_bonus_node->isVisible())
+                m_bonus_node->setVisible(false);
+        }
+#endif
         return;
+    }
 
     //there is no slipstreaming at low speed
     //and the quad may do weird things if going in reverse
@@ -636,7 +649,7 @@ void SlipStream::update(int ticks)
 
     float dt = stk_config->ticks2Time(ticks);
 #ifndef SERVER_ONLY
-    if (CVS->isGLSL())
+    if (!GUIEngine::isNoGraphics() && CVS->isGLSL())
     {
         m_moving->update(dt);
         m_moving_fast->update(dt);
@@ -659,7 +672,7 @@ void SlipStream::update(int ticks)
     if(m_kart->getSpeed() < kp->getSlipstreamMinSpeed() - 2.0f)
     {
 #ifndef SERVER_ONLY
-        if (CVS->isGLSL())
+        if (!GUIEngine::isNoGraphics() && CVS->isGLSL())
         {
             updateSlipstreamingTextures(0,NULL);
             updateBonusTexture();
@@ -851,7 +864,7 @@ void SlipStream::update(int ticks)
             m_slipstream_time -=3*dt;
         if(m_slipstream_time<0) m_slipstream_mode = SS_NONE;
 #ifndef SERVER_ONLY
-        if (CVS->isGLSL())
+        if (!GUIEngine::isNoGraphics() && CVS->isGLSL())
         {
             updateSlipstreamingTextures(0,NULL);
             updateBonusTexture();
@@ -886,7 +899,7 @@ void SlipStream::update(int ticks)
     if(isSlipstreamReady())
         m_kart->setSlipstreamEffect(9.0f);
 #ifndef SERVER_ONLY
-    if (CVS->isGLSL())
+    if (!GUIEngine::isNoGraphics() && CVS->isGLSL())
     {
         updateSlipstreamingTextures(m_slipstream_time, m_target_kart);
         updateBonusTexture();
