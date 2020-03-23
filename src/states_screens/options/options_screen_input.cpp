@@ -17,6 +17,7 @@
 
 #include "states_screens/options/options_screen_input.hpp"
 
+#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "guiengine/CGUISpriteBank.hpp"
 #include "guiengine/screen.hpp"
@@ -62,12 +63,14 @@ void OptionsScreenInput::loadedFromFile()
     video::ITexture* icon2 = irr_driver->getTexture( file_manager->getAsset(FileManager::GUI_ICON,"keyboard_off.png"   ));
     video::ITexture* icon3 = irr_driver->getTexture( file_manager->getAsset(FileManager::GUI_ICON,"gamepad.png"    ));
     video::ITexture* icon4 = irr_driver->getTexture( file_manager->getAsset(FileManager::GUI_ICON,"gamepad_off.png"));
+    video::ITexture* icon5 = irr_driver->getTexture( file_manager->getAsset(FileManager::GUI_ICON,"tablet.png"    ));
 
     m_icon_bank = new irr::gui::STKModifiedSpriteBank( GUIEngine::getGUIEnv() );
     m_icon_bank->addTextureAsSprite(icon1);
     m_icon_bank->addTextureAsSprite(icon2);
     m_icon_bank->addTextureAsSprite(icon3);
     m_icon_bank->addTextureAsSprite(icon4);
+    m_icon_bank->addTextureAsSprite(icon5);
 
     // scale icons depending on font height
     const float scale = GUIEngine::getFontHeight() / 72.0f;
@@ -169,7 +172,7 @@ void OptionsScreenInput::buildDeviceList()
     if (touch_device != NULL)
     {
         devices->addItem("touch_device", (core::stringw("   ") + 
-                                                _("Touch Device")).c_str(), 2);
+                                                _("Touch Device")).c_str(), 4);
     }
 }   // buildDeviceList
 
@@ -199,6 +202,21 @@ void OptionsScreenInput::init()
     // Disable adding keyboard configurations
     bool in_game = StateManager::get()->getGameState() == GUIEngine::INGAME_MENU;
     getWidget<ButtonWidget>("add_device")->setActive(!in_game);
+
+    bool multitouch_enabled = (UserConfigParams::m_multitouch_active == 1 &&
+        irr_driver->getDevice()->supportsTouchDevice()) ||
+        UserConfigParams::m_multitouch_active > 1;
+    if (multitouch_enabled)
+    {
+        // I18N: In the input configuration screen, help for touch device
+        getWidget("help1")->setText(_("Tap on a device to configure it"));
+        getWidget("help2")->setVisible(false);
+    }
+    else
+    {
+        getWidget("help1")->setText(_("Press enter or double-click on a device to configure it"));
+        getWidget("help2")->setVisible(true);
+    }
 }   // init
 
 // -----------------------------------------------------------------------------

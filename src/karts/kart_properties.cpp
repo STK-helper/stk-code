@@ -723,7 +723,7 @@ float KartProperties::getEngineMaxSpeed() const
 float KartProperties::getEngineGenericMaxSpeed() const
 {
     return m_cached_characteristic->getEngineGenericMaxSpeed();
-}  // getEngineMaxSpeed
+}  // getEngineGenericMaxSpeed
 
 // ----------------------------------------------------------------------------
 float KartProperties::getEngineBrakeFactor() const
@@ -786,6 +786,12 @@ float KartProperties::getCameraForwardUpAngle() const
 }  // getCameraForwardUpAngle
 
 // ----------------------------------------------------------------------------
+bool KartProperties::getCameraForwardSmoothing() const
+{
+    return m_cached_characteristic->getCameraForwardSmoothing();
+}  // getCameraForwardSmoothing
+
+// ----------------------------------------------------------------------------
 float KartProperties::getCameraBackwardUpAngle() const
 {
     return m_cached_characteristic->getCameraBackwardUpAngle();
@@ -834,13 +840,13 @@ float KartProperties::getParachuteFriction() const
 }  // getParachuteFriction
 
 // ----------------------------------------------------------------------------
-int KartProperties::getParachuteDuration() const
+float KartProperties::getParachuteDuration() const
 {
     return m_cached_characteristic->getParachuteDuration();
 }  // getParachuteDuration
 
 // ----------------------------------------------------------------------------
-int KartProperties::getParachuteDurationOther() const
+float KartProperties::getParachuteDurationOther() const
 {
     return m_cached_characteristic->getParachuteDurationOther();
 }  // getParachuteDurationOther
@@ -900,10 +906,9 @@ float KartProperties::getBubblegumTorque() const
 }  // getBubblegumTorque
 
 // ----------------------------------------------------------------------------
-int KartProperties::getBubblegumFadeInTicks() const
+float KartProperties::getBubblegumFadeInTime() const
 {
-    return stk_config->time2Ticks(m_cached_characteristic
-                                  ->getBubblegumFadeInTime());
+    return m_cached_characteristic->getBubblegumFadeInTime();
 }  // getBubblegumFadeInTime
 
 // ----------------------------------------------------------------------------
@@ -991,10 +996,9 @@ float KartProperties::getPlungerBandSpeedIncrease() const
 }  // getPlungerBandSpeedIncrease
 
 // ----------------------------------------------------------------------------
-int KartProperties::getPlungerBandFadeOutTicks() const
+float KartProperties::getPlungerBandFadeOutTime() const
 {
-    return stk_config->time2Ticks(m_cached_characteristic
-                                   ->getPlungerBandFadeOutTime());
+    return m_cached_characteristic->getPlungerBandFadeOutTime();
 }  // getPlungerBandFadeOutTime
 
 // ----------------------------------------------------------------------------
@@ -1057,7 +1061,7 @@ float KartProperties::getNitroDuration() const
     return m_cached_characteristic->getNitroDuration();
 }  // getNitroDuration
 
-// ------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 float KartProperties::getNitroEngineForce() const
 {
     return m_cached_characteristic->getNitroEngineForce();
@@ -1166,10 +1170,9 @@ float KartProperties::getSlipstreamMaxSpeedIncrease() const
 }  // getSlipstreamMaxSpeedIncrease
 
 // ----------------------------------------------------------------------------
-int KartProperties::getSlipstreamFadeOutTicks() const
+float KartProperties::getSlipstreamFadeOutTime() const
 {
-    return stk_config->time2Ticks(m_cached_characteristic
-                                  ->getSlipstreamFadeOutTime());
+    return m_cached_characteristic->getSlipstreamFadeOutTime();
 }  // getSlipstreamFadeOutTime
 
 // ----------------------------------------------------------------------------
@@ -1279,6 +1282,7 @@ bool KartProperties::getSkidEnabled() const
 {
     return m_cached_characteristic->getSkidEnabled();
 }  // getSkidEnabled
+
 
 /* <characteristics-end kpgetter> */
 

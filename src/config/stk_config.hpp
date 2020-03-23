@@ -209,6 +209,10 @@ public:
     std::string m_password_reset_url;
     std::string m_assets_download_url;
 
+    /* SRV records for stun server lists created */
+    std::string m_stun_ipv4;
+    std::string m_stun_ipv6;
+
     /** Lists of TTF files used in STK. */
     std::vector<std::string> m_normal_ttf;
     bool m_normal_ttf_is_bold; // Whether the normal_ttf fonts are bold

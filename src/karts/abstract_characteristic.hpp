@@ -114,6 +114,7 @@ public:
         // Camera
         CAMERA_DISTANCE,
         CAMERA_FORWARD_UP_ANGLE,
+        CAMERA_FORWARD_SMOOTHING,
         CAMERA_BACKWARD_UP_ANGLE,
 
         // Jump
@@ -298,6 +299,7 @@ public:
 
     float getCameraDistance() const;
     float getCameraForwardUpAngle() const;
+    bool getCameraForwardSmoothing() const;
     float getCameraBackwardUpAngle() const;
 
     float getJumpAnimationTime() const;
@@ -310,8 +312,8 @@ public:
     float getAnvilSpeedFactor() const;
 
     float getParachuteFriction() const;
-    int   getParachuteDuration() const;
-    int   getParachuteDurationOther() const;
+    float getParachuteDuration() const;
+    float getParachuteDurationOther() const;
     float getParachuteDurationRankMult() const;
     float getParachuteDurationSpeedMult() const;
     float getParachuteLboundFraction() const;

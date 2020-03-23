@@ -7,6 +7,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
@@ -18,6 +19,13 @@ import android.view.KeyEvent;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.View;
 import android.widget.FrameLayout;
+
+import java.util.Set;
+
+import org.minidns.hla.DnssecResolverApi;
+import org.minidns.hla.ResolverResult;
+import org.minidns.record.SRV;
+import org.minidns.record.TXT;
 
 public class SuperTuxKartActivity extends NativeActivity
 {
@@ -73,7 +81,7 @@ public class SuperTuxKartActivity extends NativeActivity
             @Override
             public void afterTextChanged(Editable edit)
             {
-                if (m_stk_edittext != null)
+                if (!isHardwareKeyboardConnected() && m_stk_edittext != null)
                     m_stk_edittext.updateSTKEditBox();
             }
         });
@@ -139,7 +147,7 @@ public class SuperTuxKartActivity extends NativeActivity
         // Called when user change cursor / select all text in native android
         // keyboard
         boolean ret = super.dispatchKeyEvent(event);
-        if (m_stk_edittext != null)
+        if (!isHardwareKeyboardConnected() && m_stk_edittext != null)
             m_stk_edittext.updateSTKEditBox();
         return ret;
     }
@@ -217,5 +225,51 @@ public class SuperTuxKartActivity extends NativeActivity
                     selection_end);
             }
         });
+    }
+    // ------------------------------------------------------------------------
+    public String[] getDNSTxtRecords(String domain)
+    {
+        try
+        {
+            ResolverResult<TXT> txts =
+                DnssecResolverApi.INSTANCE.resolve(domain, TXT.class);
+            Set<TXT> ans = txts.getAnswers();
+            String[] result = new String[ans.size()];
+            int i = 0;
+            for (TXT t : ans)
+                result[i++] = t.getText();
+            return result;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return new String[0];
+        }
+    }
+    // ------------------------------------------------------------------------
+    public String[] getDNSSrvRecords(String domain)
+    {
+        try
+        {
+            ResolverResult<SRV> srvs =
+                DnssecResolverApi.INSTANCE.resolve(domain, SRV.class);
+            Set<SRV> ans = srvs.getAnswers();
+            String[] result = new String[ans.size()];
+            int i = 0;
+            for (SRV s : ans)
+                result[i++] = s.target.toString() + ":" + s.port;
+            return result;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return new String[0];
+        }
+    }
+    // ------------------------------------------------------------------------
+    public boolean isHardwareKeyboardConnected()
+    {
+        return getResources().getConfiguration()
+            .keyboard == Configuration.KEYBOARD_QWERTY;
     }
 }
