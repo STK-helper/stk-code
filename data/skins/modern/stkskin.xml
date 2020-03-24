@@ -291,8 +291,8 @@ all types of ttf.
 
 <!-- Stateless -->
 <element type="window" image="dialog.png"
-      left_border="7" right_border="7" top_border="50" bottom_border="50"
-      hborder_out_portion="1.0" vborder_out_portion="0.2" />
+      left_border="32" right_border="32" top_border="32" bottom_border="32"
+      hborder_out_portion="1.0" vborder_out_portion="1.0" />
 
 <!-- Stateless -->
 <element type="tooltip" image="tooltip.png"
