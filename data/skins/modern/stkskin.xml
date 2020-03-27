@@ -60,6 +60,7 @@ all areas to be rendered. Then you can pass parameter areas="body+left+right+top
 and explicitely specify which parts you want to see. The 4 corner areas are only visible
 when the border that intersect at this corner are enabled.
 
+When there is a common="y" with image tag, the image will be loaded only from data/skins/common in stk-code.
 -->
 
 <skin name="Modern" author="LCP and QwertyChouskie">
@@ -71,8 +72,10 @@ Here you can configure advanced theming rules for this skin
 Currently STK supports:
 1. Icon theme
 2. Font
+
 To allow icon theme, use the tag icon_theme="y" and then place the replacement png into
 (local skin folder)/data/gui/icons, STK will prefer those first, if not found it will fallback to bundled icon.
+
 For TTF specify the list like the following, for normal and digit ttf it will be added in the beginning of font
 list in STK, so those TTF will be used first, and any missing character will be rendered from the bundled font
 list. For color emoji ttf it will be replace the bundled color emoji directly. You are not required to specify
@@ -254,8 +257,7 @@ all types of ttf.
 <!-- Scrollbars. Background and thumb have no state (always neutral state).
      The buttons are the top and bottom arrows. Image must be top arrow, will
      be mirrorred for bottom. Buttons can be in neutral or down state.
-     Advanced stretching is not used here.
-      -->
+     Advanced stretching is only used for the background and thumb. -->
 <element type="scrollbar_background"          image="scrollbar_bg.png"
     left_border="7" right_border="7" top_border="7" bottom_border="7"
     hborder_out_portion="0.0" vborder_out_portion="0.0" />
