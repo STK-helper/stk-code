@@ -434,8 +434,6 @@ BoxRenderParams::BoxRenderParams()
 
     m_hborder_out_portion = 0.5;
     m_vborder_out_portion = 1.0;
-    m_horizontal_inner_padding = 0.0f;
-    m_vertical_inner_padding = 0.0f;
 
     m_horizontal_margin = 0.0f;
     m_vertical_margin = 0.0f;
