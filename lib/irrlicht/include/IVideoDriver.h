@@ -374,12 +374,20 @@ namespace video
 		already loaded and generates mipmap levels if desired.
 		Texture loading can be influenced using the
 		setTextureCreationFlag() method. The texture can be in several
-		imageformats, such as BMP, JPG, TGA, PCX, PNG, and PSD.
+		imageformats, such as BMP, JPG, TGA, PCX, PNG, SVG, and PSD.
 		\param filename Filename of the texture to be loaded.
+		\param preferred_h_resolution Hint of what horizontal resolution is
+    preferred.  This is used by the SVG loader to render at the preferred
+    resolution when this parameter is provided.
+		\param preferred_v_resolution Hint of what vertical resolution is
+    preferred.  This is used by the SVG loader to render at the preferred
+    resolution when this parameter is provided.
 		\return Pointer to the texture, or 0 if the texture
 		could not be loaded. This pointer should not be dropped. See
 		IReferenceCounted::drop() for more information. */
-		virtual ITexture* getTexture(const io::path& filename) = 0;
+		virtual ITexture* getTexture(const io::path& filename,
+                                 int preferred_h_resolution = 0,
+                                 int preferred_v_resolution = 0) = 0;
 
 		//! Get access to a named texture.
 		/** Loads the texture from disk if it is not
@@ -388,10 +396,18 @@ namespace video
 		setTextureCreationFlag() method. The texture can be in several
 		imageformats, such as BMP, JPG, TGA, PCX, PNG, and PSD.
 		\param file Pointer to an already opened file.
+		\param preferred_h_resolution Hint of what horizontal resolution is
+    preferred.  This is used by the SVG loader to render at the preferred
+    resolution when this parameter is provided.
+		\param preferred_v_resolution Hint of what vertical resolution is
+    preferred.  This is used by the SVG loader to render at the preferred
+    resolution when this parameter is provided.
 		\return Pointer to the texture, or 0 if the texture
 		could not be loaded. This pointer should not be dropped. See
 		IReferenceCounted::drop() for more information. */
-		virtual ITexture* getTexture(io::IReadFile* file) =0;
+		virtual ITexture* getTexture(io::IReadFile* file,
+                                 int preferred_h_resolution = 0,
+                                 int preferred_v_resolution = 0) = 0;
 
 		//! Returns a texture by index
 		/** \param index: Index of the texture, must be smaller than

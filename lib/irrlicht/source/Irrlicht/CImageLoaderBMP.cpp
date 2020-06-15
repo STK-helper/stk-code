@@ -216,7 +216,8 @@ void CImageLoaderBMP::decompress4BitRLE(u8*& bmpData, s32 size, s32 width, s32 h
 
 
 //! creates a surface from the file
-IImage* CImageLoaderBMP::loadImage(io::IReadFile* file, bool skip_checking) const
+IImage* CImageLoaderBMP::loadImage(io::IReadFile* file, bool skip_checking,
+                                   int native_res_h, int native_res_v) const
 {
 	SBMPHeader header;
 

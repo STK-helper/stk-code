@@ -33,7 +33,8 @@ public:
 	virtual bool isALoadableFileFormat(io::IReadFile* file) const;
 
 	//! creates a surface from the file
-	virtual IImage* loadImage(io::IReadFile* file, bool skip_checking = false) const;
+	virtual IImage* loadImage(io::IReadFile* file, bool skip_checking = false,
+                            int native_res_h = 0, int native_res_v = 0) const;
 	virtual core::dimension2du getImageSize(io::IReadFile* file) const;
 	virtual bool supportThreadedLoading() const { return true; }
 };

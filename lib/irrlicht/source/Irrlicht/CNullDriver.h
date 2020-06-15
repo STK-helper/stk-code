@@ -87,10 +87,10 @@ namespace video
 		virtual void setMaterial(const SMaterial& material);
 
 		//! loads a Texture
-		virtual ITexture* getTexture(const io::path& filename);
+		virtual ITexture* getTexture(const io::path& filename, int preferred_h_resolution = 0, int preferred_v_resolution = 0);
 
 		//! loads a Texture
-		virtual ITexture* getTexture(io::IReadFile* file);
+		virtual ITexture* getTexture(io::IReadFile* file, int preferred_h_resolution = 0, int preferred_v_resolution = 0);
 
 		//! Returns a texture by index
 		virtual ITexture* getTextureByIndex(u32 index);
