@@ -129,13 +129,18 @@ namespace GUIEngine
          * \note May safely be called no matter if the widget is add()ed or not
          */
         void setImage(const char* path_to_texture,
-                      IconPathType path_type=ICON_PATH_TYPE_NO_CHANGE);
+                      IconPathType path_type=ICON_PATH_TYPE_NO_CHANGE,
+                      int preferred_h_resolution = 0,
+                      int preferred_v_resolution = 0);
         // --------------------------------------------------------------------
         /** Convenience function taking std::string. */
         void setImage(const std::string &path_to_texture,
-                      IconPathType path_type=ICON_PATH_TYPE_NO_CHANGE)
+                      IconPathType path_type=ICON_PATH_TYPE_NO_CHANGE,
+                      int preferred_h_resolution = 0,
+                      int preferred_v_resolution = 0)
         {
-            setImage(path_to_texture.c_str(), path_type);
+            setImage(path_to_texture.c_str(), path_type,
+            	     preferred_h_resolution, preferred_v_resolution);
         }
 
         // --------------------------------------------------------------------

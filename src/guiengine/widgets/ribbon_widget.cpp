@@ -279,7 +279,10 @@ void RibbonWidget::add()
                     icon->setScaleImage(true);
                     std::string filename = GUIEngine::getSkin()->getThemedIcon(
                                          m_active_children[i].m_properties[PROP_ICON]);
-                    icon->setImage( irr_driver->getTexture(filename.c_str()) );
+                    icon->setImage( getDriver()->getTexture(filename.c_str(),
+                                    icon_part.getWidth(), icon_part.getHeight()) );
+                    printf("ribbon_widget h: %i \n", icon_part.getWidth());
+                    printf("ribbon_widget v: %i \n", icon_part.getHeight());
                     icon->setUseAlphaChannel(true);
                     icon->setDrawBorder(false);
                     icon->setTabStop(false);
@@ -384,7 +387,10 @@ void RibbonWidget::add()
                 icon->setScaleImage(true);
                 std::string filename = GUIEngine::getSkin()->getThemedIcon(
                                      m_active_children[i].m_properties[PROP_ICON]);
-                icon->setImage( irr_driver->getTexture(filename.c_str()) );
+                icon->setImage( getDriver()->getTexture(filename.c_str(),
+                                icon_part.getWidth(), icon_part.getHeight()) );
+                printf("ribbon_widget h: %i \n", icon_part.getWidth());
+                printf("ribbon_widget v: %i \n", icon_part.getHeight());
                 icon->setUseAlphaChannel(true);
                 icon->setDrawBorder(false);
                 icon->setTabStop(false);

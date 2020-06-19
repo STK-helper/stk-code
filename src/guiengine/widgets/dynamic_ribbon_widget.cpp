@@ -1031,7 +1031,9 @@ void DynamicRibbonWidget::updateItemDisplay()
                     std::string item_icon = (m_items[icon_id].m_animated ?
                                              m_items[icon_id].m_all_images[0] :
                                              m_items[icon_id].m_sshot_file);
-                    icon->setImage( item_icon.c_str(), m_items[icon_id].m_image_path_type );
+                    icon->setImage(item_icon.c_str(),
+                                   m_items[icon_id].m_image_path_type,
+                                   m_child_width, m_child_height);
 
                     icon->m_properties[PROP_ID]   = m_items[icon_id].m_code_name;
                     icon->setLabelFont(m_font);

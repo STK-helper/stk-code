@@ -1192,7 +1192,9 @@ namespace video
 		\return The created image.
 		If you no longer need the image, you should call IImage::drop().
 		See IReferenceCounted::drop() for more information. */
-		virtual IImage* createImageFromFile(const io::path& filename) = 0;
+		virtual IImage* createImageFromFile(const io::path& filename,
+                                        int preferred_h_resolution = 0,
+                                        int preferred_v_resolution = 0) = 0;
 
 		//! Creates a software image from a file.
 		/** No hardware texture will be created for this image. This
@@ -1202,7 +1204,10 @@ namespace video
 		\return The created image.
 		If you no longer need the image, you should call IImage::drop().
 		See IReferenceCounted::drop() for more information. */
-		virtual IImage* createImageFromFile(io::IReadFile* file, video::IImageLoader** loader = NULL) =0;
+		virtual IImage* createImageFromFile(io::IReadFile* file,
+                                        video::IImageLoader** loader = NULL,
+                                        int preferred_h_resolution = 0,
+                                        int preferred_v_resolution = 0) = 0;
 
 		virtual video::IImageLoader* getImageLoaderForFile(const io::path& filename) = 0;
 

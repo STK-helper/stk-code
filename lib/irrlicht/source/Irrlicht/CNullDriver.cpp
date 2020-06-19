@@ -392,17 +392,19 @@ ITexture* CNullDriver::getTexture(const io::path& filename,
                                   int preferred_h_resolution,
                                   int preferred_v_resolution)
 {
+    printf("getTexture(path) h: %i \n", preferred_h_resolution);
+
 	// Identify textures by their absolute filenames if possible.
 	const io::path absolutePath = FileSystem->getAbsolutePath(filename);
 
 	ITexture* texture = findTexture(absolutePath);
-	if (texture)
-		return texture;
+	//if (texture)
+	//	return texture;
 
 	// Then try the raw filename, which might be in an Archive
-	texture = findTexture(filename);
-	if (texture)
-		return texture;
+	//texture = findTexture(filename);
+	//if (texture)
+	//	return texture;
 
 	// Now try to open the file using the complete path.
 	io::IReadFile* file = FileSystem->createAndOpenFile(absolutePath);
@@ -416,14 +418,18 @@ ITexture* CNullDriver::getTexture(const io::path& filename,
 	if (file)
 	{
 		// Re-check name for actual archive names
-		texture = findTexture(file->getFileName());
-		if (texture)
-		{
-			file->drop();
-			return texture;
-		}
+		//texture = findTexture(file->getFileName());
+		//if (texture)
+		//{
+		//	file->drop();
+		//	return texture;
+		//}
 
-		texture = loadTextureFromFile(file);
+		printf("getTexture(path) h: %i \n", preferred_h_resolution);
+        printf("getTexture(path) v: %i \n", preferred_v_resolution);
+
+		texture = loadTextureFromFile(file, "", preferred_h_resolution,
+		                              preferred_v_resolution);
 		file->drop();
 
 		if (texture)
@@ -452,12 +458,16 @@ ITexture* CNullDriver::getTexture(io::IReadFile* file,
 
 	if (file)
 	{
-		texture = findTexture(file->getFileName());
+		//texture = findTexture(file->getFileName());
 
-		if (texture)
-			return texture;
+		//if (texture)
+		//	return texture;
 
-		texture = loadTextureFromFile(file);
+        printf("getTexture(*file) h: %i \n", preferred_h_resolution);
+        printf("getTexture(*file) v: %i \n", preferred_v_resolution);
+
+		texture = loadTextureFromFile(file, "", preferred_h_resolution,
+		                              preferred_v_resolution);
 
 		if (texture)
 		{
@@ -474,10 +484,14 @@ ITexture* CNullDriver::getTexture(io::IReadFile* file,
 
 
 //! opens the file and loads it into the surface
-video::ITexture* CNullDriver::loadTextureFromFile(io::IReadFile* file, const io::path& hashName )
+video::ITexture* CNullDriver::loadTextureFromFile(io::IReadFile* file,
+                                                  const io::path& hashName,
+                                                  int preferred_h_resolution,
+                                                  int preferred_v_resolution)
 {
 	ITexture* texture = 0;
-	IImage* image = createImageFromFile(file);
+	IImage* image = createImageFromFile(file, NULL, preferred_h_resolution,
+	                                    preferred_v_resolution);
 
 	if (image)
 	{
@@ -1267,7 +1281,9 @@ bool CNullDriver::getTextureCreationFlag(E_TEXTURE_CREATION_FLAG flag) const
 
 
 //! Creates a software image from a file.
-IImage* CNullDriver::createImageFromFile(const io::path& filename)
+IImage* CNullDriver::createImageFromFile(const io::path& filename,
+                                         int preferred_h_resolution,
+                                         int preferred_v_resolution)
 {
 	if (!filename.size())
 		return 0;
@@ -1277,7 +1293,8 @@ IImage* CNullDriver::createImageFromFile(const io::path& filename)
 
 	if (file)
 	{
-		image = createImageFromFile(file);
+		image = createImageFromFile(file, NULL, preferred_h_resolution,
+		                            preferred_v_resolution);
 		file->drop();
 	}
 	else
@@ -1288,8 +1305,13 @@ IImage* CNullDriver::createImageFromFile(const io::path& filename)
 
 
 //! Creates a software image from a file.
-IImage* CNullDriver::createImageFromFile(io::IReadFile* file, video::IImageLoader** loader)
+IImage* CNullDriver::createImageFromFile(io::IReadFile* file,
+                                         video::IImageLoader** loader,
+                                         int preferred_h_resolution,
+                                         int preferred_v_resolution)
 {
+    printf("createImageFromFile() h: %i \n", preferred_h_resolution);
+    printf("createImageFromFile() v: %i \n", preferred_v_resolution);
 	if (!file)
 		return 0;
 
@@ -1311,7 +1333,9 @@ IImage* CNullDriver::createImageFromFile(io::IReadFile* file, video::IImageLoade
 			SurfaceLoader[i]->setScreenSize(getCurrentRenderTargetSize());
 			// reset file position which might have changed due to previous loadImage calls
 			file->seek(0);
-			image = SurfaceLoader[i]->loadImage(file);
+			image = SurfaceLoader[i]->loadImage(file, false,
+			                                    preferred_h_resolution,
+			                                    preferred_v_resolution);
 			if (image)
 				return image;
 		}
@@ -1332,7 +1356,8 @@ IImage* CNullDriver::createImageFromFile(io::IReadFile* file, video::IImageLoade
 			// pass screen size to ImageLoaderSVG. For other formats (BMP,JPG,PNG), setScreenSize() does nothing
 			SurfaceLoader[i]->setScreenSize(getCurrentRenderTargetSize());
 			file->seek(0);
-			image = SurfaceLoader[i]->loadImage(file);
+			image = SurfaceLoader[i]->loadImage(file, preferred_h_resolution,
+			                                    preferred_v_resolution);
 			if (image)
 				return image;
 		}

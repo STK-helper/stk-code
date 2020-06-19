@@ -71,13 +71,15 @@ void IconButtonWidget::add()
         {
             if (m_icon_path_type == ICON_PATH_TYPE_ABSOLUTE)
             {
-                setTexture(irr_driver->getTexture(m_properties[PROP_ICON]));
+                setTexture(getDriver()->getTexture(m_properties[PROP_ICON].c_str(),
+                                                   m_texture_w, m_texture_h));
             }
             else if (m_icon_path_type == ICON_PATH_TYPE_RELATIVE)
             {
                 std::string file =
                     GUIEngine::getSkin()->getThemedIcon(m_properties[PROP_ICON]);
-                setTexture(irr_driver->getTexture(file));
+                setTexture(getDriver()->getTexture(file.c_str(),
+                                                   m_texture_w, m_texture_h));
             }
         }
     }
@@ -95,22 +97,6 @@ void IconButtonWidget::add()
         if(!m_texture)
             Log::fatal("IconButtonWidget",
                   "Can't find fallback texture 'gui/icons/main_help.png, aborting.");
-    }
-
-    if (m_properties[PROP_FOCUS_ICON].size() > 0)
-    {
-        if (m_icon_path_type == ICON_PATH_TYPE_ABSOLUTE)
-        {
-            m_highlight_texture =
-                irr_driver->getTexture(m_properties[PROP_FOCUS_ICON]);
-        }
-        else if (m_icon_path_type == ICON_PATH_TYPE_RELATIVE)
-        {
-            m_highlight_texture =
-                irr_driver->getTexture(
-                    GUIEngine::getSkin()->getThemedIcon(m_properties[PROP_FOCUS_ICON]));
-        }
-
     }
 
     // irrlicht widgets don't support scaling while keeping aspect ratio
@@ -173,6 +159,48 @@ void IconButtonWidget::add()
         m_list_header_icon_rect.LowerRightCorner.X = m_list_header_icon_rect.LowerRightCorner.X - 4;
         m_list_header_icon_rect.LowerRightCorner.Y = m_list_header_icon_rect.LowerRightCorner.Y - 4;
         widget_size = rect<s32>(m_x, m_y, m_x + m_w, m_y + m_h);
+    }
+
+    // ---- Icon reload, at native res
+    if (true)
+    {
+        // Avoid warning about missing texture in case of e.g.
+        // screenshot widget
+        if (m_properties[PROP_ICON] != "")
+        {
+            if (m_icon_path_type == ICON_PATH_TYPE_ABSOLUTE)
+            {
+                setTexture(getDriver()->getTexture(m_properties[PROP_ICON].c_str(),
+                                                   widget_size.getWidth(), widget_size.getHeight()));
+            }
+            else if (m_icon_path_type == ICON_PATH_TYPE_RELATIVE)
+            {
+                std::string file =
+                    GUIEngine::getSkin()->getThemedIcon(m_properties[PROP_ICON]);
+                setTexture(getDriver()->getTexture(file.c_str(),
+                                                   widget_size.getWidth(), widget_size.getHeight()));
+            }
+        }
+    }
+
+    if (m_properties[PROP_FOCUS_ICON].size() > 0)
+    {
+        printf("PROP_FOCUS_ICON widget_size.getWidth(): %i \n", widget_size.getWidth());
+        printf("PROP_FOCUS_ICON widget_size.getHeight(): %i \n", widget_size.getHeight());
+        if (m_icon_path_type == ICON_PATH_TYPE_ABSOLUTE)
+        {
+            m_highlight_texture =
+                getDriver()->getTexture(m_properties[PROP_FOCUS_ICON].c_str(),
+                    widget_size.getWidth(), widget_size.getHeight());
+        }
+        else if (m_icon_path_type == ICON_PATH_TYPE_RELATIVE)
+        {
+            m_highlight_texture =
+                getDriver()->getTexture(
+                    GUIEngine::getSkin()->getThemedIcon(
+                        m_properties[PROP_FOCUS_ICON]).c_str(),
+                    widget_size.getWidth(), widget_size.getHeight());
+        }
     }
 
     IGUIButton* btn = GUIEngine::getGUIEnv()->addButton(widget_size,
@@ -270,7 +298,10 @@ void IconButtonWidget::add()
 
 // -----------------------------------------------------------------------------
 
-void IconButtonWidget::setImage(const char* path_to_texture, IconPathType pathType)
+void IconButtonWidget::setImage(const char* path_to_texture,
+                                IconPathType pathType,
+                                int preferred_h_resolution,
+                                int preferred_v_resolution)
 {
     if (pathType != ICON_PATH_TYPE_NO_CHANGE)
     {
@@ -282,11 +313,17 @@ void IconButtonWidget::setImage(const char* path_to_texture, IconPathType pathTy
     if (m_icon_path_type == ICON_PATH_TYPE_ABSOLUTE)
     {
         setTexture(irr_driver->getTexture(m_properties[PROP_ICON]));
+        // FIXME: This version causes STK to freeze when entering the track selection screen
+      /*setTexture(getDriver()->getTexture(m_properties[PROP_ICON].c_str(),
+                                           preferred_h_resolution,
+                                           preferred_v_resolution));*/
     }
     else if (m_icon_path_type == ICON_PATH_TYPE_RELATIVE)
     {
         std::string file = GUIEngine::getSkin()->getThemedIcon(m_properties[PROP_ICON]);
-        setTexture(irr_driver->getTexture(file));
+        setTexture(getDriver()->getTexture(file.c_str(),
+                                           preferred_h_resolution,
+                                           preferred_v_resolution));
     }
 
     if (!m_texture)

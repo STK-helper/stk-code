@@ -346,10 +346,15 @@ namespace video
 		virtual bool getTextureCreationFlag(E_TEXTURE_CREATION_FLAG flag) const;
 
 		//! Creates a software image from a file.
-		virtual IImage* createImageFromFile(const io::path& filename);
+		virtual IImage* createImageFromFile(const io::path& filename,
+                                        int preferred_h_resolution = 0,
+                                        int preferred_v_resolution = 0);
 
 		//! Creates a software image from a file.
-		virtual IImage* createImageFromFile(io::IReadFile* file, video::IImageLoader** loader = NULL);
+		virtual IImage* createImageFromFile(io::IReadFile* file,
+                                        video::IImageLoader** loader = NULL,
+                                        int preferred_h_resolution = 0,
+                                        int preferred_v_resolution = 0);
 
 		virtual video::IImageLoader* getImageLoaderForFile(const io::path& filename);
 
@@ -678,7 +683,10 @@ namespace video
 		void deleteAllTextures();
 
 		//! opens the file and loads it into the surface
-		video::ITexture* loadTextureFromFile(io::IReadFile* file, const io::path& hashName = "");
+		video::ITexture* loadTextureFromFile(io::IReadFile* file,
+                                         const io::path& hashName = "",
+                                         int preferred_h_resolution = 0,
+                                         int preferred_v_resolution = 0);
 
 		//! adds a surface, not loaded or created by the Irrlicht Engine
 		void addTexture(video::ITexture* surface);

@@ -14,6 +14,8 @@
 #include "irrString.h"
 #include "CNullDriver.h"
 
+#include <algorithm>    // std::min
+
 namespace irr
 {
 namespace video
@@ -68,7 +70,8 @@ bool CImageLoaderSVG::isALoadableFileFormat(io::IReadFile* file) const
 
 
 //! creates a surface from the file
-IImage* CImageLoaderSVG::loadImage(io::IReadFile* file, bool skip_checking) const
+IImage* CImageLoaderSVG::loadImage(io::IReadFile* file, bool skip_checking,
+                                   int native_res_h, int native_res_v) const
 {
     // check IMG_LoadSVG_RW
     struct NSVGimage *img = 0;
@@ -108,15 +111,31 @@ IImage* CImageLoaderSVG::loadImage(io::IReadFile* file, bool skip_checking) cons
     // only rescale the icons
     if ( strstr(file->getFileName().c_str(),"gui/icons/") )
     {
-        // determine scaling based on screen size
-        float screen_height = ScreenSize.Height;
-        float desired_icon_size = 0.21*screen_height + 30.0f; // phenomenological
-        scale = desired_icon_size/img->height;
+        printf("loadImage() h: %i \n", native_res_h);
+        printf("loadImage() v: %i \n", native_res_v);
+        if (native_res_h != 0)
+        {
+            w = native_res_h;
+            h = native_res_v;
+            scale = std::min(native_res_h, native_res_v)/img->height;
+        }
+        else
+        {
+            // determine scaling based on screen size
+            float screen_height = ScreenSize.Height;
+            float desired_icon_size = 0.021*screen_height + 0.0f; // phenomenological
+            scale = desired_icon_size/img->height;
+            w = (int)(img->width*scale);
+            h = (int)(img->height*scale);
+        }
+    }
+    else
+    {
+        w = (int)(img->width*scale);
+        h = (int)(img->height*scale);
     }
 
     // create surface
-    w = (int)(img->width*scale);
-    h = (int)(img->height*scale);
     image = new CImage(ECF_A8R8G8B8, core::dimension2d<u32>(w, h));
     if ( !image ) {
         os::Printer::log("LOAD SVG: create image struct failure", file->getFileName(), ELL_ERROR);
