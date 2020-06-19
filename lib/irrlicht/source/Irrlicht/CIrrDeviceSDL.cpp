@@ -344,8 +344,8 @@ start:
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	Window = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED, CreationParams.WindowSize.Width,
+	Window = SDL_CreateWindow("", CreationParams.WindowPosition.X,
+		CreationParams.WindowPosition.Y, CreationParams.WindowSize.Width,
 		CreationParams.WindowSize.Height, flags);
 	if (Window)
 	{
@@ -367,8 +367,8 @@ start:
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	Window = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED, CreationParams.WindowSize.Width,
+	Window = SDL_CreateWindow("", CreationParams.WindowPosition.X,
+		CreationParams.WindowPosition.Y, CreationParams.WindowSize.Width,
 		CreationParams.WindowSize.Height, flags);
 	if (Window)
 	{
@@ -389,8 +389,8 @@ start:
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	Window = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED, CreationParams.WindowSize.Width,
+	Window = SDL_CreateWindow("", CreationParams.WindowPosition.X,
+		CreationParams.WindowPosition.Y, CreationParams.WindowSize.Width,
 		CreationParams.WindowSize.Height, flags);
 	if (Window)
 	{
@@ -411,8 +411,8 @@ start:
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-	Window = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED, CreationParams.WindowSize.Width,
+	Window = SDL_CreateWindow("", CreationParams.WindowPosition.X,
+		CreationParams.WindowPosition.Y, CreationParams.WindowSize.Width,
 		CreationParams.WindowSize.Height, flags);
 	if (Window)
 	{
@@ -445,8 +445,8 @@ legacy:
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 	else
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 0);
-	Window = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED, CreationParams.WindowSize.Width,
+	Window = SDL_CreateWindow("", CreationParams.WindowPosition.X,
+		CreationParams.WindowPosition.Y, CreationParams.WindowSize.Width,
 		CreationParams.WindowSize.Height, flags);
 	if (Window)
 	{
@@ -478,7 +478,7 @@ void CIrrDeviceSDL::createDriver()
 	{
 		#ifdef _IRR_COMPILE_WITH_OGLES2_
 		u32 default_fb = 0;
-		#ifdef MOBILE_STK
+		#ifdef IOS_STK
 		default_fb = Info.info.uikit.framebuffer;
 		#endif
 		VideoDriver = video::createOGLES2Driver(CreationParams, FileSystem, this, default_fb);
@@ -796,6 +796,12 @@ video::IVideoModeList* CIrrDeviceSDL::getVideoModeList()
 				core::dimension2d<u32>(mode.w * NativeScale, mode.h * NativeScale));
 		}
 
+#ifdef MOBILE_STK
+	// SDL2 will return w,h and h,w for mobile STK, as we only use landscape
+	// so we just use desktop resolution for now
+	VideoModeList.addMode(core::dimension2d<u32>(mode.w * NativeScale, mode.h * NativeScale),
+		SDL_BITSPERPIXEL(mode.format));
+#else
 		for (int i = 0; i < mode_count; i++)
 		{
 			if (SDL_GetDisplayMode(0, i, &mode) == 0)
@@ -804,6 +810,7 @@ video::IVideoModeList* CIrrDeviceSDL::getVideoModeList()
 					SDL_BITSPERPIXEL(mode.format));
 			}
 		}
+#endif
 	}
 
 	return &VideoModeList;
@@ -1101,12 +1108,12 @@ bool CIrrDeviceSDL::hasOnScreenKeyboard() const
 }
 
 
-bool CIrrDeviceSDL::hasHardwareKeyboard() const
+u32 CIrrDeviceSDL::getOnScreenKeyboardHeight() const
 {
 #ifdef MOBILE_STK
-	return SDL_HasHardwareKeyboardConnected() == SDL_TRUE;
+	return SDL_GetScreenKeyboardHeight() * NativeScale;
 #else
-	return true;
+	return 0;
 #endif
 }
 
